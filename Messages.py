@@ -40,6 +40,9 @@ class ACLMessage(ET.Element):
     ACLMessageAsString = 'ACLMessageString'
     
     def __init__(self, performative=None):
+        '''
+            metodo de inicialização
+        '''
         super(ACLMessage, self).__init__('ACLMessage', attrib = {'date' : datetime.now().strftime('%d/%m/%Y - %H:%M:%S:%f')})
         
         self.performaives = ['accept-proposal', 'agree', 'cancel',
@@ -84,6 +87,9 @@ class ACLMessage(ET.Element):
         self.ACLMessageRepresentation = self.ACLMessageAsXML
     
     def setPerformative(self, data):
+        '''
+            Metodo que seta o parametro Performtive da mensagem ACL
+        '''
         self.performative = data
         self.find('performative').text = str(data).lower()
         
