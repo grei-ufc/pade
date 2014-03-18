@@ -1,4 +1,6 @@
+#! /usr/bin/python
 # -*- coding: utf-8 -*-
+
 """
 Created on Thu Jan 30 14:30:06 2014
 
@@ -36,6 +38,11 @@ class ACLMessage(ET.Element):
     PROXY = 'proxy'
     PROPAGATE = 'propagate'
     
+    FIPA_REQUEST_PROTOCOL = 'fipa-request protocol'
+    FIPA_QUERY_PROTOCOL = 'fipa-query protocol'
+    FIPA_REQUEST_WHEN_PROTOCOL = 'fipa-request-when protocol'
+    FIPA_CONTRACT_NET_PROTOCOL = 'fipa-contract-net protocol'
+    
     ACLMessageAsXML = 'ACLMessageXML'
     ACLMessageAsString = 'ACLMessageString'
     
@@ -52,6 +59,9 @@ class ACLMessage(ET.Element):
                              'refuse', 'reject-proposal', 'request',
                              'request-when', 'request-whenever', 'subscribe',
                              'inform-if', 'proxy', 'propagate']
+        
+        self.protocols = ['fipa-request protocol', 'fipa-query protocol', 'fipa-request-when protocol',
+                          'fipa-contract-net protocol']
                              
         self.append(ET.Element('performative'))
         self.append(ET.Element('sender'))
@@ -67,9 +77,10 @@ class ACLMessage(ET.Element):
         self.append(ET.Element('in-reply-to'))
         self.append(ET.Element('reply-by'))
         
-        if performative.lower() in self.performaives:
-            self.performative = performative.lower()
-            self.find('performative').text = self.performative
+        if performative != None:
+            if performative.lower() in self.performaives:
+                self.performative = performative.lower()
+                self.find('performative').text = self.performative
             
         self.sender = None
         self.receivers = []
@@ -210,54 +221,93 @@ class ACLMessage(ET.Element):
     def setMsg(self, data):
         aclmsg = ET.fromstring(data)
         
-        self.performative = aclmsg.find('performative').text
-        self.find('performative').text = self.performative
+        try:
+            self.performative = aclmsg.find('performative').text
+            self.find('performative').text = self.performative
+        except:
+            pass
         
-        self.sender = aclmsg.find('sender').text
-        self.find('sender').text = self.sender
+        try:
+            self.sender = aclmsg.find('sender').text
+            self.find('sender').text = self.sender
+        except:
+            pass
         
-        receivers = aclmsg.find('receivers').getchildren()
-        
-        for receiver in receivers:
-            self.receivers.append(receiver.text)
-            r = ET.Element('receiver')
-            r.text = receiver.text
-            self.find('receivers').append(r)
-        
-        receivers = aclmsg.find('reply-to').getchildren()
-        
-        for receiver in receivers:
-            self.reply_to.append(receiver.text)
-            r = ET.Element('receiver')
-            r.text = receiver.text
-            self.find('reply-to').append(r)
+        try:
+            receivers = aclmsg.find('receivers').getchildren()
             
-        self.content = aclmsg.find('content').text
-        self.find('content').text = self.content
+            for receiver in receivers:
+                self.receivers.append(receiver.text)
+                r = ET.Element('receiver')
+                r.text = receiver.text
+                self.find('receivers').append(r)
+        except:
+            pass
         
-        self.language = aclmsg.find('language').text
-        self.find('language').text = self.language
+        try:
+            receivers = aclmsg.find('reply-to').getchildren()
+            
+            for receiver in receivers:
+                self.reply_to.append(receiver.text)
+                r = ET.Element('receiver')
+                r.text = receiver.text
+                self.find('reply-to').append(r)
+        except:
+            pass
         
-        self.encoding = aclmsg.find('encoding').text
-        self.find('encoding').text = self.encoding
+        try:
+            self.content = aclmsg.find('content').text
+            self.find('content').text = self.content
+        except:
+            pass
         
-        self.ontology = aclmsg.find('ontology').text
-        self.find('ontology').text = self.ontology
+        try:
+            self.language = aclmsg.find('language').text
+            self.find('language').text = self.language
+        except:
+            pass
         
-        self.protocol = aclmsg.find('protocol').text
-        self.find('protocol').text = self.protocol
+        try:
+            self.encoding = aclmsg.find('encoding').text
+            self.find('encoding').text = self.encoding
+        except:
+            pass
         
-        self.conversation_id = aclmsg.find('conversation-id').text
-        self.find('conversation-id').text = self.conversation_id
+        try:
+            self.ontology = aclmsg.find('ontology').text
+            self.find('ontology').text = self.ontology
+        except:
+            pass
         
-        self.reply_with = aclmsg.find('reply-with').text
-        self.find('reply-with').text = self.reply_with
+        try:
+            self.protocol = aclmsg.find('protocol').text
+            self.find('protocol').text = self.protocol
+        except:
+            pass
         
-        self.in_reply_to = aclmsg.find('in-reply-to').text
-        self.find('in-reply-to').text = self.in_reply_to
+        try:
+            self.conversation_id = aclmsg.find('conversation-id').text
+            self.find('conversation-id').text = self.conversation_id
+        except:
+            pass
         
-        self.reply_by = aclmsg.find('reply-by').text
-        self.find('reply-by').text = self.reply_by
+        try:
+            self.reply_with = aclmsg.find('reply-with').text
+            self.find('reply-with').text = self.reply_with
+        except:
+            pass
+        
+        try:
+            self.in_reply_to = aclmsg.find('in-reply-to').text
+            self.find('in-reply-to').text = self.in_reply_to
+        except:
+            pass
+        
+        try:
+            self.reply_by = aclmsg.find('reply-by').text
+            self.find('reply-by').text = self.reply_by
+        except:
+            pass
     
 if __name__ == '__main__':
     msg = ACLMessage(ACLMessage.INFORM)

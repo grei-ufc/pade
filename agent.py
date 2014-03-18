@@ -36,12 +36,12 @@ class AgentProtocol(LineReceiver):
             # envia a mensagem ao AMS
             self.sendLine(msg.getMsg())
         else:
-            if self.factory.isClient:
+            if self.factory.messages != []:
                 for name, port in self.factory.table.iteritems():
                     if port == self.transport.getPeer().port:
                         self.factory.connections[name] = self
-                self.sendLine(self.factory.message.getMsg())
-                self.factory.isClient = False
+                message = self.factory.messages.pop(0)
+                self.sendLine(message.getMsg())
             
         
     def lineReceived(self, line):
@@ -70,10 +70,9 @@ class AgentFactory(protocol.ClientFactory):
         self.name = name
         self.port = port
         self.ams = ams
-        self.message = ACLMessage()
+        self.messages = []
         self.react = react
         self.onStart = onStart
-        self.isClient = False
         self.table = {}
         self.connections = {}
         self.agentProtocol = AgentProtocol(self)
@@ -91,6 +90,7 @@ class AgentFactory(protocol.ClientFactory):
     
     def startedConnecting(self, connector):
         pass
+    
         
 #=================================
 # Agent Class
@@ -101,8 +101,9 @@ class Agent():
         self.name = name
         self.port = port
         self.ams = {}
+        self.agentInstance = None
         
-    def setAMS(self, name, amsPort):
+    def setAMS(self, name='localhost', amsPort=8000):
         '''
             Este metodo configura os parametros do agente AMS,
             e dos agentes que instanciam a classe, deixando os
@@ -119,7 +120,7 @@ class Agent():
         self.agentInstance = AgentFactory(self.name, self.port, self.ams, self.react, self.onStart)
         reactor.listenTCP(self.port, self.agentInstance)
         
-    def react(self, data):
+    def react(self, message):
         '''
             Este metodo deve ser SobreEscrito e será executado todas as vezes que
             o agente em questão receber algum tipo de dado
@@ -128,12 +129,11 @@ class Agent():
     
     def send(self, message):
         for receiver in message.receivers:
-            if receiver in self.agentInstance.connections.keys():
+            if receiver in self.agentInstance.connections.keys() and receiver != self.name:
                 self.agentInstance.connections[receiver].sendLine(message.getMsg())
             else:
-                if receiver in self.agentInstance.table.keys():
-                    self.agentInstance.message = message
-                    self.agentInstance.isClient = True
+                if receiver in self.agentInstance.table.keys() and receiver != self.name:
+                    self.agentInstance.messages.append(message)
                     reactor.connectTCP('localhost', self.agentInstance.table[receiver], self.agentInstance)
                 else:
                     displayMessage(self.name, 'Agente ' + receiver + ' não esta ativo')
