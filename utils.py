@@ -11,7 +11,8 @@ from twisted.internet import protocol, reactor
 from twisted.protocols.basic import LineReceiver
 from datetime import datetime
 from messages import ACLMessage
-from pickle import dumps
+from pickle import dumps, loads
+from aid import AID
 
 class AMS(LineReceiver):
     '''
@@ -60,7 +61,7 @@ class AMS(LineReceiver):
             
         # prepara mensagem de atualização de tabela de agentes
         message = ACLMessage(ACLMessage.INFORM)
-        message.setSender('AMS')
+        message.setSender(self.factory.aid)
         message.setContent(dumps(self.factory.table))
         
         # envia tabela de agentes atualizada a todos os agentes com conexao ativa com o AMS
@@ -77,36 +78,36 @@ class AMS(LineReceiver):
         if self.STATE == "IDENT":
             message = ACLMessage()
             message.setMsg(line)
-            self.handle_identif(message.sender, int(message.content))
+            self.handle_identif(loads(message.content))
         elif self.STATE == "READY":
             pass
         message = ACLMessage()
         self.factory.msgs.append(message)
             
-    def handle_identif(self, name, port):
+    def handle_identif(self, aid):
         '''
             Este método é utilizado para cadastrar o agente que esta se identificando
             na tabela de agentes ativos.
         '''
-        if name in self.factory.agents:
-            displayMessage('AMS', 'Falha na Identificacao do agente ' + name)
+        if aid.name in self.factory.agents:
+            displayMessage('AMS', 'Falha na Identificacao do agente ' + aid.name)
             
             # prepara mensagem de resposta
             message = ACLMessage(ACLMessage.REFUSE)
-            message.setSender('AMS')
-            message.addReceiver(name)
+            message.setSender(self.factory.aid)
+            message.addReceiver(aid)
             message.setContent('Ja existe um agente com este identificador. Por favor, escolha outro.')
             # envia mensagem
             self.sendLine(message.getMsg())
             return
-        self.name = name
-        self.factory.agents[name] = self
-        self.factory.table[name] = port
-        displayMessage('AMS', 'Agente '+ name + ' identificado com sucesso')
+        self.aid = aid
+        self.factory.agents[aid.name] = self
+        self.factory.table[aid.name] = aid
+        displayMessage('AMS', 'Agente '+ aid.name + ' identificado com sucesso')
         
         # prepara mensagem de resposta
         message = ACLMessage(ACLMessage.INFORM)
-        message.setSender('AMS')
+        message.setSender(self.factory.aid)
         message.setContent(dumps(self.factory.table))
         
         # envia tabela de agentes atualizada a todos os agentes com conexao ativa com o AMS
@@ -125,12 +126,26 @@ class AMS(LineReceiver):
 class AMSFactory(protocol.Factory):
     
     def __init__(self, port):
+        
+        # dictionary que tem como keys o nome dos agentes e como valor a instancia do objeto instanciado
+        # pela classe twisted.protocols.basic.LineReceiver
         self.agents = {}
+        
+        # dictionary que tem como keys o nome dos agentes e como valor o objeto aid que identifica o agente
+        # indicado pela chave
         self.table = {}
+        
+        # lista que armazena as mensagens recebidas pelo AMS, devera ser utilizada posteriormente pelo
+        # serviço de visualização de mensagens
         self.msgs = []
-        self.port = port
+        
+        # aid do agente AMS
+        self.aid = AID(name='AMS' + '@' + 'localhost' + ':' + str(port))
+        
+        # numero de conexões ativas
         self.connections = 0
-        displayMessage('AMS', 'AMS is serving now on port ' + str(self.port))
+        
+        displayMessage('AMS', 'AMS is serving now on port ' + str(self.aid.port))
         
     def buildProtocol(self, addr):
         return AMS(self)

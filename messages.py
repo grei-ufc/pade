@@ -8,7 +8,9 @@ Created on Thu Jan 30 14:30:06 2014
 """
 
 import xml.etree.ElementTree as ET
+from xml.dom import minidom
 from datetime import datetime
+from aid import AID
 
 class ACLMessage(ET.Element):
     '''
@@ -43,16 +45,7 @@ class ACLMessage(ET.Element):
     FIPA_REQUEST_WHEN_PROTOCOL = 'fipa-request-when protocol'
     FIPA_CONTRACT_NET_PROTOCOL = 'fipa-contract-net protocol'
     
-    ACLMessageAsXML = 'ACLMessageXML'
-    ACLMessageAsString = 'ACLMessageString'
-    
-    def __init__(self, performative=None):
-        '''
-            metodo de inicialização
-        '''
-        super(ACLMessage, self).__init__('ACLMessage', attrib = {'date' : datetime.now().strftime('%d/%m/%Y - %H:%M:%S:%f')})
-        
-        self.performaives = ['accept-proposal', 'agree', 'cancel',
+    performaives = ['accept-proposal', 'agree', 'cancel',
                              'cfp', 'call-for-proposal', 'confirm', 'disconfirm',
                              'failure', 'inform', 'not-understood',
                              'propose', 'query-if', 'query-ref',
@@ -60,8 +53,14 @@ class ACLMessage(ET.Element):
                              'request-when', 'request-whenever', 'subscribe',
                              'inform-if', 'proxy', 'propagate']
         
-        self.protocols = ['fipa-request protocol', 'fipa-query protocol', 'fipa-request-when protocol',
+    protocols = ['fipa-request protocol', 'fipa-query protocol', 'fipa-request-when protocol',
                           'fipa-contract-net protocol']
+    
+    def __init__(self, performative=None):
+        '''
+            metodo de inicialização
+        '''
+        super(ACLMessage, self).__init__('ACLMessage', attrib = {'date' : datetime.now().strftime('%d/%m/%Y - %H:%M:%S:%f')})
                              
         self.append(ET.Element('performative'))
         self.append(ET.Element('sender'))
@@ -94,8 +93,6 @@ class ACLMessage(ET.Element):
         self.reply_with = None
         self.in_reply_to = None
         self.reply_by = None
-        
-        self.ACLMessageRepresentation = self.ACLMessageAsXML
     
     def setPerformative(self, data):
         '''
@@ -105,22 +102,31 @@ class ACLMessage(ET.Element):
         self.find('performative').text = str(data).lower()
         
     def setSender(self, data):
-        self.sender = data
-        self.find('sender').text = str(data)
+        if isinstance(data, AID):
+            self.sender = data
+            self.find('sender').text = str(self.sender.name)
+        else:
+            self.setSender(AID(name=data))
     
     def addReceiver(self, data):
-        self.receivers.append(data)
-        receivers = self.find('receivers')
-        receiver = ET.Element('receiver')
-        receiver.text = str(data)
-        receivers.append(receiver)
+        if isinstance(data, AID):
+            self.receivers.append(data)
+            receivers = self.find('receivers')
+            receiver = ET.Element('receiver')
+            receiver.text = str(data.name)
+            receivers.append(receiver)
+        else:
+            self.addReceiver(AID(name=data))
     
     def addReply_to(self, data):
-        self.reply_to.append[data]
-        reply_to = self.find('reply_to')
-        receiver = ET.Element('receiver')
-        receiver.text = str(data)
-        reply_to.append(receiver)
+        if isinstance(data, AID):
+            self.reply_to.append[data]
+            reply_to = self.find('reply_to')
+            receiver = ET.Element('receiver')
+            receiver.text = str(data.name)
+            reply_to.append(receiver)
+        else:
+            self.addReply_to(AID(name=data))
         
     def setContent(self, data):
         self.content = data
@@ -159,12 +165,14 @@ class ACLMessage(ET.Element):
         self.find('reply-by').text = str(data)
         
     def getMsg(self):
-        if self.ACLMessageRepresentation == self.ACLMessageAsXML:
-            return ET.tostring(self)
-        elif self.ACLMessageRepresentation == self.ACLMessageAsString:
-            return self.asString()
+        return ET.tostring(self)
+               
     
-    def asString(self):
+    def asXML(self):
+        domElement = minidom.parseString(ET.tostring(self))
+        return domElement.toprettyxml()
+        
+    def __str__(self):
         """
         returns a printable version of the message in ACL string representation
         """
@@ -228,8 +236,8 @@ class ACLMessage(ET.Element):
             pass
         
         try:
-            self.sender = aclmsg.find('sender').text
-            self.find('sender').text = self.sender
+            self.sender = AID(name = aclmsg.find('sender').text)
+            self.find('sender').text = self.sender.name
         except:
             pass
         
@@ -237,9 +245,10 @@ class ACLMessage(ET.Element):
             receivers = aclmsg.find('receivers').getchildren()
             
             for receiver in receivers:
-                self.receivers.append(receiver.text)
+                aid = AID(name=receiver.text)
+                self.receivers.append(aid)
                 r = ET.Element('receiver')
-                r.text = receiver.text
+                r.text = aid.name
                 self.find('receivers').append(r)
         except:
             pass
@@ -248,9 +257,10 @@ class ACLMessage(ET.Element):
             receivers = aclmsg.find('reply-to').getchildren()
             
             for receiver in receivers:
-                self.reply_to.append(receiver.text)
+                aid = AID(name=receiver.text)
+                self.reply_to.append(aid)
                 r = ET.Element('receiver')
-                r.text = receiver.text
+                r.text = aid.name
                 self.find('reply-to').append(r)
         except:
             pass
@@ -310,4 +320,14 @@ class ACLMessage(ET.Element):
             pass
     
 if __name__ == '__main__':
-    msg = ACLMessage(ACLMessage.INFORM)
+    
+    msg = ACLMessage()
+    msg.setMsg('<?xml version="1.0" ?><ACLMessage date="19/03/2014 - 15:51:03:207172"><performative>inform</performative><sender>Lucas@localhost:7352</sender><receivers><receiver>Allana@localhost:5851</receiver></receivers><reply-to/><content>51A Feeder 21I5</content><language/><enconding/><ontology/><protocol/><conversation-id/><reply-with/><in-reply-to/><reply-by/></ACLMessage>')
+    #msg.setSender(AID(name='Lucas'))
+    #msg.addReceiver(AID(name='Allana'))
+    #msg.setContent('51A Feeder 21I5')
+    #msg.ACLMessageRepresentation = ACLMessage.ACLMessageAsXML
+    
+    print msg.getMsg()
+    print msg.sender
+    print msg.receivers[0]

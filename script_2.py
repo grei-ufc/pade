@@ -4,13 +4,14 @@
 from utils import startAMS, startLoop, displayMessage
 from agent import Agent
 from messages import ACLMessage
+from aid import AID
 from pickle import dumps, loads
 from time import sleep
 
 class Consumer(Agent):
     
-    def __init__(self, name, port, bookStores):
-        Agent.__init__(self, name, port)
+    def __init__(self, aid, bookStores):
+        Agent.__init__(self, aid)
         
         self.bookStores = bookStores
         self.bestPropose = None
@@ -22,7 +23,7 @@ class Consumer(Agent):
     
     def consult(self, pedido):
         message = ACLMessage(ACLMessage.CALL_FOR_PROPOSAL)
-        message.setSender(self.name)
+        message.setSender(self.aid.name)
         for i in self.bookStores:
             message.addReceiver(i)
         message.setContent(dumps(pedido))
@@ -31,7 +32,7 @@ class Consumer(Agent):
     
     def buy(self, proposta):
         message = ACLMessage(ACLMessage.REQUEST)
-        message.setSender(self.name)
+        message.setSender(self.aid.name)
         message.addReceiver(proposta['book store'])
         message.addContent(dumps(proposta))
         self.send(message)
@@ -55,23 +56,23 @@ class Consumer(Agent):
         if message.performative == ACLMessage.PROPOSE or message.performative == ACLMessage.REJECT_PROPOSAL:
             self.receives += 1
             self.messages.append(message)
-            displayMessage(self.name, 'Received Propose')
+            displayMessage(self.aid.name, 'Received Propose')
             print str(loads(message.content))
         
         if self.receives == self.sends:
             message = self.analisys()
-            displayMessage(self.name, 'Best Propose Selected:')
+            displayMessage(self.aid.name, 'Best Propose Selected:')
             propose = loads(message.content)
             print str(propose)
         
 class BookStore(Agent):
-    def __init__(self, name, port, booksList):
-        Agent.__init__(self, name, port)
+    def __init__(self, aid, booksList):
+        Agent.__init__(self, aid)
         
         self.booksList = booksList
     
     def react(self, message):
-        displayMessage(self.name, 'Received Purchase Order')
+        displayMessage(self.aid.name, 'Received Purchase Order')
         self.message = message
         if message.performative == ACLMessage.CALL_FOR_PROPOSAL:
             self.pedido = loads(message.content)
@@ -82,14 +83,14 @@ class BookStore(Agent):
             if book['title'] == pedido['title'] and book['author'] == pedido['author']:
                 if book['qtd'] >= pedido['qtd']:
                     message = ACLMessage(ACLMessage.PROPOSE)
-                    message.setSender(self.name)
+                    message.setSender(self.aid.name)
                     message.addReceiver(self.message.sender)
-                    book['book store'] = self.name
+                    book['book store'] = self.aid.name
                     message.setContent(dumps(book))
                     self.send(message)
                 else:
                     message = ACLMessage(ACLMessage.REJECT_PROPOSAL)
-                    message.setSender(self.name)
+                    message.setSender(self.aid.name)
                     message.addReceiver(self.message.sender)
                     message.setContent('Request Refused')
                     self.send(message)
@@ -112,18 +113,18 @@ if __name__ == '__main__':
                          {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qtd' : 10, 'how much is' : 33.80}
                          ]
     
-    bookStoresInfo = [('Saraiva', 4000, booksList_Saraiva),
-                       ('Cultura', 4001, bookslist_Cultura),
-                       ('Nobel', 4002, bookslist_Nobel)]
+    bookStoresInfo = [(AID(name='Saraiva'), booksList_Saraiva),
+                      (AID(name='Cultura'), bookslist_Cultura),
+                      (AID(name='Nobel'), bookslist_Nobel)]
     
     startAMS(8000)
     
     for bookStore in bookStoresInfo:
-        agent = BookStore(bookStore[0], bookStore[1], bookStore[2])
+        agent = BookStore(bookStore[0], bookStore[1])
         agent.setAMS('localhost', 8000)
         agent.start()
-    
-    consumidor = Consumer('Lucas', 3000, ['Saraiva', 'Cultura', 'Nobel'])
+     
+    consumidor = Consumer(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'])
     consumidor.setAMS('localhost', 8000)
     consumidor.start()
     

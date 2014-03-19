@@ -4,8 +4,9 @@
 from twisted.internet import protocol, reactor
 from twisted.protocols.basic import LineReceiver
 from messages import ACLMessage
+from aid import AID
 from utils import displayMessage
-from pickle import loads
+from pickle import dumps, loads
 
 #=================================
 # Server and Client Classes
@@ -28,17 +29,17 @@ class AgentProtocol(LineReceiver):
            
             # cria a mensagem de registro no AMS
             msg = ACLMessage()
-            msg.addReceiver('AMS')
-            msg.setSender(self.factory.name)
+            msg.addReceiver(AID(name='AMS' + '@' + self.factory.ams['name'] + ':' + str(self.factory.ams['port']) ))
+            msg.setSender(self.factory.aid)
             msg.setPerformative(ACLMessage.INFORM)
-            msg.setContent(self.factory.port)
+            msg.setContent(dumps(self.factory.aid))
             
             # envia a mensagem ao AMS
             self.sendLine(msg.getMsg())
         else:
             if self.factory.messages != []:
-                for name, port in self.factory.table.iteritems():
-                    if port == self.transport.getPeer().port:
+                for name, aid in self.factory.table.iteritems():
+                    if aid.port == self.transport.getPeer().port:
                         self.factory.connections[name] = self
                 message = self.factory.messages.pop(0)
                 self.sendLine(message.getMsg())
@@ -49,26 +50,25 @@ class AgentProtocol(LineReceiver):
             message = ACLMessage()
             message.setMsg(line)
             self.factory.table = loads(message.content)
-            displayMessage(self.factory.name, 'tabela atualizada: ' + str(self.factory.table.keys()))
+            displayMessage(self.factory.aid.name, 'tabela atualizada: ' + str(self.factory.table.keys()))
             self.state = 'READY'
             self.factory.onStart()
         else:
             message = ACLMessage()
             message.setMsg(line)
-            if 'AMS' in message.sender:
+            if 'AMS' in message.sender.name:
                 self.factory.table = loads(message.content)
-                displayMessage(self.factory.name, 'tabela atualizada: ' + str(self.factory.table.keys()))
+                displayMessage(self.factory.aid.name, 'tabela atualizada: ' + str(self.factory.table.keys()))
             else:
                 self.factory.react(message)
         
     def connectionLost(self, reason):
-        displayMessage(self.factory.name,'Perda de Conexão')
+        displayMessage(self.factory.aid.name,'Perda de Conexão')
 
 class AgentFactory(protocol.ClientFactory):
     
-    def __init__(self, name, port, ams, react=None, onStart=None):
-        self.name = name
-        self.port = port
+    def __init__(self, aid, ams, react=None, onStart=None):
+        self.aid = aid
         self.ams = ams
         self.messages = []
         self.react = react
@@ -81,11 +81,11 @@ class AgentFactory(protocol.ClientFactory):
         return self.agentProtocol
     
     def clientConnectionFailed(self, connector, reason):
-        displayMessage(self.name, 'Falha na Conexão')
+        displayMessage(self.aid.name, 'Falha na Conexão')
         reactor.stop()
     
     def clientConnectionLost(self, connector, reason):
-        displayMessage(self.name, 'Perda de Conexão')
+        displayMessage(self.aid.name, 'Perda de Conexão')
         reactor.stop()
     
     def startedConnecting(self, connector):
@@ -97,9 +97,8 @@ class AgentFactory(protocol.ClientFactory):
 #=================================
 class Agent():
     
-    def __init__(self, name, port):
-        self.name = name
-        self.port = port
+    def __init__(self, aid):
+        self.aid = aid
         self.ams = {}
         self.agentInstance = None
         
@@ -117,8 +116,8 @@ class Agent():
         '''
             cria a instancia da classe AgentProtocol e inicializa o agente
         '''
-        self.agentInstance = AgentFactory(self.name, self.port, self.ams, self.react, self.onStart)
-        reactor.listenTCP(self.port, self.agentInstance)
+        self.agentInstance = AgentFactory(self.aid, self.ams, self.react, self.onStart)
+        reactor.listenTCP(self.aid.port, self.agentInstance)
         
     def react(self, message):
         '''
@@ -128,15 +127,35 @@ class Agent():
         pass
     
     def send(self, message):
+        # for percorre os destinatarios da mensagem
         for receiver in message.receivers:
-            if receiver in self.agentInstance.connections.keys() and receiver != self.name:
-                self.agentInstance.connections[receiver].sendLine(message.getMsg())
+            
+            # for percorre os agentes que já estão conectados
+            for name in self.agentInstance.connections.keys():
+                # if verifica se o nome do destinatario está entre os agentes já conectados
+                if receiver.localname in name and receiver.localname != self.aid.localname:
+                    # corrige o parametro porta e host gerado aleatoriamente quando apenas um nome
+                    # e dado como identificador de um destinatário
+                    receiver.port = self.agentInstance.table[name].port
+                    receiver.host = self.agentInstance.table[name].host
+                    # envia a mensagem ao agente destinatario
+                    self.agentInstance.connections[receiver].sendLine(message.getMsg())
+                    break
             else:
-                if receiver in self.agentInstance.table.keys() and receiver != self.name:
-                    self.agentInstance.messages.append(message)
-                    reactor.connectTCP('localhost', self.agentInstance.table[receiver], self.agentInstance)
+                # for percorre a lista de agentes disponíveis
+                for name in self.agentInstance.table:
+                    # if verifica se o nome do destinatario está entre os agentes disponíveis
+                    if receiver.localname in name and receiver.localname != self.aid.localname:
+                        # corrige o parametro porta e host gerado aleatoriamente quando apenas um nome
+                        # e dado como identificador de um destinatário
+                        receiver.port = self.agentInstance.table[name].port
+                        receiver.host = self.agentInstance.table[name].host
+                        # se conecta ao agente e envia a mensagem
+                        self.agentInstance.messages.append(message)
+                        reactor.connectTCP('localhost', self.agentInstance.table[name].port, self.agentInstance)
+                        break
                 else:
-                    displayMessage(self.name, 'Agente ' + receiver + ' não esta ativo')
+                    displayMessage(self.aid.localname, 'Agente ' + receiver.name + ' não esta ativo')
     
     def onStart(self):
         pass
