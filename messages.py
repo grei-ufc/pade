@@ -10,6 +10,7 @@ Created on Thu Jan 30 14:30:06 2014
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 from datetime import datetime
+from uuid import uuid1
 from aid import AID
 
 class ACLMessage(ET.Element):
@@ -45,7 +46,7 @@ class ACLMessage(ET.Element):
     FIPA_REQUEST_WHEN_PROTOCOL = 'fipa-request-when protocol'
     FIPA_CONTRACT_NET_PROTOCOL = 'fipa-contract-net protocol'
     
-    performaives = ['accept-proposal', 'agree', 'cancel',
+    performaives = [         'accept-proposal', 'agree', 'cancel',
                              'cfp', 'call-for-proposal', 'confirm', 'disconfirm',
                              'failure', 'inform', 'not-understood',
                              'propose', 'query-if', 'query-ref',
@@ -80,7 +81,8 @@ class ACLMessage(ET.Element):
             if performative.lower() in self.performaives:
                 self.performative = performative.lower()
                 self.find('performative').text = self.performative
-            
+        
+        self.conversation_id = str(uuid1())
         self.sender = None
         self.receivers = []
         self.reply_to = []
@@ -89,7 +91,6 @@ class ACLMessage(ET.Element):
         self.encoding = None
         self.ontology = None
         self.protocol = None
-        self.conversation_id = None
         self.reply_with = None
         self.in_reply_to = None
         self.reply_by = None
@@ -173,9 +174,9 @@ class ACLMessage(ET.Element):
         return domElement.toprettyxml()
         
     def __str__(self):
-        """
-        returns a printable version of the message in ACL string representation
-        """
+        '''
+            returns a printable version of the message in ACL string representation
+        '''
 
         p = '('
 
@@ -318,6 +319,37 @@ class ACLMessage(ET.Element):
             self.find('reply-by').text = self.reply_by
         except:
             pass
+    
+    def createReply(self):
+        '''
+        Creates a reply for the message
+        Duplicates all the message structures
+        exchanges the 'from' AID with the 'to' AID
+        '''
+
+        message = ACLMessage()
+
+        message.setPerformative(self.getPerformative())
+        
+        if self.getLanguage():
+            message.setLanguage(self.language)
+        if self.getOntology():
+            message.setOntology(self.ontology)
+        if self.getProtocol():
+            message.setProtocol(self.protocol)
+        if self.conversation_id:
+            message.setConversationId(self.conversation_id)
+
+        for i in self.reply_to:
+            message.addReceiver(i)
+
+        if not self.reply_to:
+            message.addReceiver(self.sender)
+
+        if self.reply_with:
+            message.setIn_reply_to(self.reply_with)
+
+        return message
     
 if __name__ == '__main__':
     
