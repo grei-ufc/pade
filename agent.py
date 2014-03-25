@@ -101,6 +101,7 @@ class Agent():
         self.aid = aid
         self.ams = {}
         self.agentInstance = None
+        self.behaviours = []
         
     def setAMS(self, name='localhost', amsPort=8000):
         '''
@@ -124,9 +125,12 @@ class Agent():
             Este metodo deve ser SobreEscrito e será executado todas as vezes que
             o agente em questão receber algum tipo de dado
         '''
-        pass
+        for behaviour in self.behaviours:
+            behaviour.execute(message)
     
     def send(self, message):
+        
+        message.setSender(self.aid)
         # for percorre os destinatarios da mensagem
         for receiver in message.receivers:
             
@@ -158,4 +162,11 @@ class Agent():
                     displayMessage(self.aid.localname, 'Agente ' + receiver.name + ' não esta ativo')
     
     def onStart(self):
-        pass
+        for behaviour in self.behaviours:
+        	behaviour.onStart()
+    
+    def getBehaviours(self):
+        return self.behaviours
+    
+    def addBehaviour(self, behaviour):
+        self.behaviours.append(behaviour)

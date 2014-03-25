@@ -23,7 +23,6 @@ class Consumer(Agent):
     
     def consult(self, pedido):
         message = ACLMessage(ACLMessage.CALL_FOR_PROPOSAL)
-        message.setSender(self.aid.name)
         for i in self.bookStores:
             message.addReceiver(i)
         message.setContent(dumps(pedido))
@@ -32,7 +31,6 @@ class Consumer(Agent):
     
     def buy(self, proposta):
         message = ACLMessage(ACLMessage.REQUEST)
-        message.setSender(self.aid.name)
         message.addReceiver(proposta['book store'])
         message.addContent(dumps(proposta))
         self.send(message)
@@ -47,6 +45,7 @@ class Consumer(Agent):
         return self.bestPropose
     
     def onStart(self):
+        Agent.onStart(self)
         sleep(1)
         pedido = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 5}
         self.consult(pedido)
@@ -71,6 +70,9 @@ class BookStore(Agent):
         
         self.booksList = booksList
     
+    def onStart(self):
+        pass
+    
     def react(self, message):
         displayMessage(self.aid.name, 'Received Purchase Order')
         self.message = message
@@ -83,14 +85,12 @@ class BookStore(Agent):
             if book['title'] == pedido['title'] and book['author'] == pedido['author']:
                 if book['qtd'] >= pedido['qtd']:
                     message = ACLMessage(ACLMessage.PROPOSE)
-                    message.setSender(self.aid.name)
                     message.addReceiver(self.message.sender)
                     book['book store'] = self.aid.name
                     message.setContent(dumps(book))
                     self.send(message)
                 else:
                     message = ACLMessage(ACLMessage.REJECT_PROPOSAL)
-                    message.setSender(self.aid.name)
                     message.addReceiver(self.message.sender)
                     message.setContent('Request Refused')
                     self.send(message)
