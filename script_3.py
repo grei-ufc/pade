@@ -28,6 +28,11 @@ class RequestParticipante(FIPA_Request_Protocol):
 		response.setContent('AGREE')
 		self.agent.send(response)
 		
+		response_2 = message.createReply()
+		response_2.setPerformative(ACLMessage.INFORM)
+		response_2.setContent('INFORM')
+		self.agent.send(response_2)
+		
 class Agent_Initiator(Agent):
 	def __init__(self, aid):
 		Agent.__init__(self, aid)
@@ -35,7 +40,7 @@ class Agent_Initiator(Agent):
 		message = ACLMessage(ACLMessage.REQUEST)
 		message.setProtocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
 		message.setContent('REQUEST')
-		message.addReceiver('agent_participant')
+		message.addReceiver('agent_participant_1')
 		comportamento_1 = RequestIniciante(self, message)
 		self.addBehaviour(comportamento_1)
 	
@@ -55,9 +60,9 @@ if __name__ == '__main__':
 	
 	startAMS(8000)
 	
-	agent_participant = Agent_Participant(AID('agent_participant'))
-	agent_participant.setAMS('localhost', 8000)
-	agent_participant.start()
+	agent_participant_1 = Agent_Participant(AID('agent_participant_1'))
+	agent_participant_1.setAMS('localhost', 8000)
+	agent_participant_1.start()
 	
 	agent_initiator = Agent_Initiator(AID('agent_initiator'))
 	agent_initiator.setAMS('localhost', 8000)

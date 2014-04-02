@@ -55,5 +55,4 @@ if __name__ == '__main__':
     if filtro.filter(message):
         print message.asXML()
     else:
-        print 'A mensagem foi barrada pelo protocolo'   
-    
+        print 'A mensagem foi barrada pelo protocolo'

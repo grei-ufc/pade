@@ -169,3 +169,4 @@ def startAMS(port):
 def startLoop():
     # inicia a execuçao do laço principal do agente
     reactor.run()
+    return reactor
