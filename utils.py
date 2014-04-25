@@ -7,12 +7,22 @@ Created on Mon Jan 27 23:54:15 2014
 @author: lucas
 """
 
-from twisted.internet import protocol, reactor
+import twisted.internet
+from twisted.internet import protocol
 from twisted.protocols.basic import LineReceiver
 from datetime import datetime
 from messages import ACLMessage
 from pickle import dumps, loads
 from aid import AID
+from agentsGui import ControlAgentsGui
+
+import sys
+
+from PySide import QtCore, QtGui
+
+#===============================================================================
+# Protocolo do agente AMS
+#===============================================================================
 
 class AMS(LineReceiver):
     '''
@@ -149,7 +159,78 @@ class AMSFactory(protocol.Factory):
         
     def buildProtocol(self, addr):
         return AMS(self)
+
+
+#===============================================================================
+# Protocolo do Agente GUI paramonitaramento dos agentes 
+# e das mensagens dos agentes
+#===============================================================================
+
+class Sniffer(LineReceiver):
+    def __init__(self, factory):
+        self.factory = factory
+        self.state = 'IDENT'
+        # conecta o agente ao agente AMS
+        twisted.internet.reactor.connectTCP(self.factory.ams['name'], self.factory.ams['port'], self.factory)
     
+    def connectionMade(self):
+        '''
+            Este método é executado sempre que uma conexão é executada entre 
+            um cliente e um servidor
+        '''
+        # fase de identificação do agente com o AMS
+        if self.state == 'IDENT':
+            # cria a mensagem de registro no AMS
+            msg = ACLMessage()
+            msg.addReceiver(AID(name='AMS' + '@' + self.factory.ams['name'] + ':' + str(self.factory.ams['port']) ))
+            msg.setSender(self.factory.aid)
+            msg.setPerformative(ACLMessage.INFORM)
+            msg.setContent(dumps(self.factory.aid))
+            
+            # envia a mensagem ao AMS
+            self.sendLine(msg.getMsg())
+
+    def lineReceived(self, line):
+        '''
+            Este método é executado sempre que uma mesagem é recebida pelo agente Sniffer
+        '''
+        if self.state == 'IDENT':
+            self.state = 'READY'
+        
+        message = ACLMessage()
+        message.setMsg(line)
+        # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
+        # para atualização da tabela de agentes disponíveis
+        if 'AMS' in message.sender.name:
+            self.factory.ui.listWidget.clear()
+            agents = loads(message.content)
+            for agent in agents:
+                self.factory.ui.listWidget.addItem(agent)
+            self.factory.ui.listWidget.currentItemChanged.connect(self.onItemChanged)
+        else:
+            pass
+        
+    def onItemChanged(self, current, previous):
+        print 'Item Changed'
+
+class SnifferFactory(protocol.ClientFactory):
+    
+    def __init__(self, aid, ams, ui):
+        self.ui = ui    # instancia da interface grafica
+        self.aid = aid  # identificação do agente
+        self.ams = ams  # identificação do agente ams
+        self.messages = [] # @TODO armazena as mensagens recebidas
+        self.protocol = Sniffer(self)
+        
+    def buildProtocol(self, addr):
+        return self.protocol
+
+#===============================================================================
+# Metodos Utilitarios 
+#===============================================================================
+
+ams = {'name' : 'localhost', 'port' : 8000}
+setGui = False
 
 def displayMessage(name, data):
     '''
@@ -159,14 +240,55 @@ def displayMessage(name, data):
     date = date.strftime('%d/%m/%Y %H:%M:%S --> ')
     print '[' + name + '] ' + date + str(data)
 
-def startAMS(port):
+def setAMS(name, port):
     '''
         Metodo utilizado na inicialização do laço de execução do AMS 
     '''
-    ams = AMSFactory(port)
-    reactor.listenTCP(port, ams)
+    global ams
     
+    ams = {'name' : name, 'port' : port}
+    
+    amsFactory = AMSFactory(port)
+    twisted.internet.reactor.listenTCP(port, amsFactory)
+
+def configLoop(gui=False):
+    '''
+        Importa o elemento Qt4Reactor que integra o Loop do Twisted com o loop
+        do Qt
+    '''
+    global setGui
+    setGui = gui
+    
+    if gui == False:
+        pass
+    else:
+        app = QtGui.QApplication(sys.argv)
+        
+        try:
+            import qt4reactor
+        except:
+            print 'Erro ao importar o modulo qt4reactor'
+        
+        qt4reactor.install()
+        
 def startLoop():
-    # inicia a execuçao do laço principal do agente
-    reactor.run()
-    return reactor
+    '''
+        Lança o loop do twisted integrado com o loop do Qt se a opção setGui for
+        verdadeira, se não lança o loop do Twisted
+    '''
+    global ams, setGui
+    
+    if setGui == True:
+        controlAgentsGui = ControlAgentsGui()
+        controlAgentsGui.show()
+    
+        # instancia um AID para o agente Sniffer
+        aid = AID('Sniffer_Agent')
+        # instancia um objeto Factory para o agente Sniffer
+        snifferFactory = SnifferFactory(aid, ams, controlAgentsGui.ui)
+        # lança o agente como servidor na porta gerada pelo objeto AID
+        twisted.internet.reactor.listenTCP(aid.port, snifferFactory)
+    
+    # lança o loop do Twisted
+    twisted.internet.reactor.run()
+    

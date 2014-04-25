@@ -1,6 +1,6 @@
 from protocols import FIPA_Request_Protocol
 from agent import Agent
-from utils import displayMessage, startAMS, startLoop
+from utils import displayMessage, setAMS, startLoop
 from messages import ACLMessage
 from aid import AID
 
@@ -58,7 +58,7 @@ class Agent_Participant(Agent):
 
 if __name__ == '__main__':
 	
-	startAMS(8000)
+	setAMS(8000)
 	
 	agent_participant_1 = Agent_Participant(AID('agent_participant_1'))
 	agent_participant_1.setAMS('localhost', 8000)

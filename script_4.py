@@ -1,7 +1,9 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-from utils import startAMS, startLoop, displayMessage
+from utils import setAMS, configLoop, startLoop, displayMessage
+configLoop(gui=True)
+
 from agent import Agent
 from messages import ACLMessage
 from protocols import FIPA_ContractNet_Protocol
@@ -68,6 +70,10 @@ class ParticipantProtocol(FIPA_ContractNet_Protocol):
     
     def handleAcceptPropose(self, message):
         FIPA_ContractNet_Protocol.handleAcceptPropose(self, message)
+        response = message.createReply()
+        response.setPerformative(ACLMessage.INFORM)
+        response.setContent('RECOMPOSICAO AUTORIZADA')
+        self.agent.send(response)
         displayMessage(self.agent.aid.name, message.content)
     
     def handleRejectPropose(self, message):
@@ -97,7 +103,7 @@ class ParticipantAgent(Agent):
 
 if __name__ == '__main__':
     
-    startAMS(8000)
+    setAMS('localhost', 8000)
     
     agent_participant_1 = ParticipantAgent(AID('participant_agent_1'), {'value' : 100.0})
     agent_participant_1.setAMS('localhost', 8000)

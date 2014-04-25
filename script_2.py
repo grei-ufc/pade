@@ -1,7 +1,9 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-from utils import startAMS, startLoop, displayMessage
+from utils import setAMS, configLoop, startLoop, displayMessage
+#configLoop(gui=False)
+
 from agent import Agent
 from messages import ACLMessage
 from aid import AID
@@ -117,13 +119,13 @@ if __name__ == '__main__':
                       (AID(name='Cultura'), bookslist_Cultura),
                       (AID(name='Nobel'), bookslist_Nobel)]
     
-    startAMS(8000)
+    setAMS('localhost', 8000)
     
     for bookStore in bookStoresInfo:
         agent = BookStore(bookStore[0], bookStore[1])
         agent.setAMS('localhost', 8000)
         agent.start()
-     
+    
     consumidor = Consumer(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'])
     consumidor.setAMS('localhost', 8000)
     consumidor.start()
