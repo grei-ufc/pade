@@ -12,13 +12,13 @@ from messages import ACLMessage
 from uuid import uuid1
 import sys
 
-class ACLMessage_Dialog(QtGui.QWidget):
+class ACLMessageDialog(QtGui.QWidget):
     '''
         Esta classe cria uma interface gráfica de configuração de 
         uma mensagem do tipo ACLMessage
     '''
     def __init__(self):
-        super(ACLMessage_Dialog, self).__init__()
+        super(ACLMessageDialog, self).__init__()
         self.dialog = QtGui.QDialog(self)    
         self.setupUi(self.dialog)
         self.dialog.exec_()
@@ -158,7 +158,7 @@ class ACLMessage_Dialog(QtGui.QWidget):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    fileDialog = ACLMessage_Dialog()
+    fileDialog = ACLMessageDialog()
     sys.exit(app.exec_())
     
     

@@ -14,7 +14,7 @@ from datetime import datetime
 from messages import ACLMessage
 from pickle import dumps, loads
 from aid import AID
-from agentsGui import ControlAgentsGui
+from agentsGui import ControlAgentsGui, ControlACLMessageDialog
 
 import sys
 
@@ -172,6 +172,10 @@ class Sniffer(LineReceiver):
         self.state = 'IDENT'
         # conecta o agente ao agente AMS
         twisted.internet.reactor.connectTCP(self.factory.ams['name'], self.factory.ams['port'], self.factory)
+        # configura os sinais da interface grafica
+        self.factory.ui.listWidget.currentItemChanged.connect(self.onItemChanged)
+        self.factory.ui.listWidget_2.itemPressed.connect(self.onItemEntered)
+        
     
     def connectionMade(self):
         '''
@@ -189,6 +193,14 @@ class Sniffer(LineReceiver):
             
             # envia a mensagem ao AMS
             self.sendLine(msg.getMsg())
+        else:
+            peer = self.transport.getPeer()
+            for message in self.factory.messages:
+                for receiver in message.receivers:
+                    if int(receiver.port) == int(peer.port):
+                        self.sendLine(message.getMsg())
+                        self.factory.messages.remove(message)
+                        print 'mensagem enviada'
 
     def lineReceived(self, line):
         '''
@@ -203,15 +215,59 @@ class Sniffer(LineReceiver):
         # para atualização da tabela de agentes disponíveis
         if 'AMS' in message.sender.name:
             self.factory.ui.listWidget.clear()
-            agents = loads(message.content)
-            for agent in agents:
-                self.factory.ui.listWidget.addItem(agent)
-            self.factory.ui.listWidget.currentItemChanged.connect(self.onItemChanged)
-        else:
-            pass
+            self.factory.table = loads(message.content)
+            for agent in self.factory.table:
+                serifFont = QtGui.QFont(None,10, QtGui.QFont.Bold)
+                item = QtGui.QListWidgetItem(str(agent) + '\n')
+                item.setFont(serifFont)
+                self.factory.ui.listWidget.addItem(item)
+        elif message.performative == ACLMessage.INFORM:
+            self.showMessages(message)
+            self.transport.loseConnection()
         
     def onItemChanged(self, current, previous):
-        print 'Item Changed'
+        for name, aid in self.factory.table.iteritems():
+            if name in current.text():
+                message = ACLMessage(ACLMessage.REQUEST)
+                message.setSender(self.factory.aid)
+                message.addReceiver(AID(current.text()))
+                print message.sender.name
+                message.setContent('Request messages history')
+                twisted.internet.reactor.connectTCP('localhost', aid.port, self.factory)
+                self.factory.messages.append(message)
+    
+    def showMessages(self, message):
+        print 'exibindo mensagens'
+        messages = loads(message.content)
+        self.factory.ui.listWidget_2.clear()
+        for message in messages:
+            serifFont = QtGui.QFont(None,10, QtGui.QFont.Bold)
+            item = Item(message, serifFont)
+            self.factory.ui.listWidget_2.addItem(item)
+    
+    def onItemEntered(self, item):
+        print 'Enter!'
+        gui = ControlACLMessageDialog()
+        gui.ui.senderText.setText(item.message.sender.name)
+        gui.ui.communicativeActComboBox.setCurrentIndex(
+                                                        gui.ui.communicativeActComboBox.findText(item.message.performative)
+                                                        )
+        for receiver in item.message.receivers:
+            gui.ui.receiverListWidget.addItem(receiver.name)
+        try:
+            gui.ui.contentText.setText(str(loads(item.message.content)))
+        except:
+            gui.ui.contentText.setText(str(item.message.content))
+        
+        gui.ui.protocolComboBox.setCurrentIndex(
+                                                gui.ui.protocolComboBox.findText(item.message.protocol)
+                                                )
+        gui.ui.languageText.setText(item.message.language)
+        gui.ui.encodingText.setText(item.message.encoding)
+        gui.ui.ontologyText.setText(item.message.ontology)
+        gui.ui.inReplyToText.setText(item.message.in_reply_to)
+        gui.ui.replyWithText.setText(item.message.reply_with)
+        gui.exec_()
 
 class SnifferFactory(protocol.ClientFactory):
     
@@ -219,12 +275,22 @@ class SnifferFactory(protocol.ClientFactory):
         self.ui = ui    # instancia da interface grafica
         self.aid = aid  # identificação do agente
         self.ams = ams  # identificação do agente ams
-        self.messages = [] # @TODO armazena as mensagens recebidas
+        self.table = {} # armazena os agentes ativos, é um dicionário contendo chaves: nome e valores: aid 
+        self.messages = [] # armazena as mensagens a serem enviadas
         self.protocol = Sniffer(self)
         
     def buildProtocol(self, addr):
         return self.protocol
 
+class Item(QtGui.QListWidgetItem):
+    def __init__(self, message, font):
+        super(Item, self).__init__()
+        self.setFont(font)
+        self.message = message
+        self.setText(message.performative.upper() + '\n' +
+                                         'Enviada em: ' + message.attrib['date'] + '\n' +
+                                         'Por: ' + message.sender.name + '\n')
+        
 #===============================================================================
 # Metodos Utilitarios 
 #===============================================================================

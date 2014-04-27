@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from utils import setAMS, configLoop, startLoop, displayMessage
-#configLoop(gui=False)
+configLoop(gui=True)
 
 from agent import Agent
 from messages import ACLMessage

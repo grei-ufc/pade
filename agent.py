@@ -41,17 +41,12 @@ class AgentProtocol(LineReceiver):
             # envia a mensagem ao AMS
             self.sendLine(msg.getMsg())
         else:
-            print 'Conexao realizada'
             peer = self.transport.getPeer()
             for message in self.factory.messages:
                 for receiver in message.receivers:
-                    if receiver.port == peer.port:
+                    if int(receiver.port) == int(peer.port):
                         self.sendLine(message.getMsg())
                         self.factory.messages.remove(message)
-                        
-                
-            
-            
             
     def lineReceived(self, line):
         '''
@@ -62,10 +57,8 @@ class AgentProtocol(LineReceiver):
         message = ACLMessage()
         message.setMsg(line)
         
-        displayMessage(self.factory.aid.name, 'Recebi uma mensagem!' + '\n' + message.sender.name)
-        
         # armazena a mensagem recebida
-        self.factory.messages.append(message) 
+        self.factory.messages_history.append(message)
         
         # fase de identificação do agente com o AMS
         if self.state == 'IDENT':
@@ -94,11 +87,14 @@ class AgentProtocol(LineReceiver):
         '''
             Este método trata a mensagem enviada pelo agente Sniffer
         '''
+        print 'Opa recebi uma mensagem do sniffer!'
         for name, aid in self.factory.table.iteritems():
             if 'Sniffer' in name:
                 sniffer = {'name' : name, 'aid' : aid}
         reply = message.createReply()
-        reply.setContent(dumps(self.factory.messages))
+        reply.setPerformative(ACLMessage.INFORM)
+        reply.setSender(self.factory.aid)
+        reply.setContent(dumps(self.factory.messages_history))
         self.sendLine(reply.getMsg())
             
     
@@ -113,7 +109,8 @@ class AgentFactory(protocol.ClientFactory):
     def __init__(self, aid, ams, react=None, onStart=None):
         self.aid = aid # identificação do agente
         self.ams = ams # identificação do agente ams
-        self.messages = [] # armazena as mensagens recebidas
+        self.messages = [] # armazena as mensagens a serem enviadas
+        self.messages_history = [] # armazena as mensagens recebidas
         self.react = react # metodo que executa os comportamentos dos agentes definido pelo usuario
         self.onStart = onStart # metodo que executa ações definidas pelo usuario quando o agente é iniciado
         self.table = {} # armazena os agentes ativos, é um dicionário contendo chaves: nome e valores: aid 
@@ -199,7 +196,6 @@ class Agent():
                 # if verifica se o nome do destinatario está entre os agentes disponíveis
                 displayMessage(self.aid.name, name)
                 if receiver.localname in name and receiver.localname != self.aid.localname:
-                    print 'Preparando para enviar mensagem'
                     # corrige o parametro porta e host gerado aleatoriamente quando apenas um nome
                     # e dado como identificador de um destinatário
                     receiver.port = self.agentInstance.table[name].port
@@ -207,7 +203,6 @@ class Agent():
                     # se conecta ao agente e envia a mensagem
                     self.agentInstance.messages.append(message)
                     reactor.connectTCP('localhost', self.agentInstance.table[name].port, self.agentInstance)
-                    print 'Uma mensagem sera enviada ao agente: ' + message.receivers[0].name
                     break
             else:
                 displayMessage(self.aid.localname, 'Agente ' + receiver.name + ' não esta ativo')

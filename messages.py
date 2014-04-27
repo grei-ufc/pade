@@ -61,7 +61,7 @@ class ACLMessage(ET.Element):
         '''
             metodo de inicialização
         '''
-        super(ACLMessage, self).__init__('ACLMessage', attrib = {'date' : datetime.now().strftime('%d/%m/%Y - %H:%M:%S:%f')})
+        super(ACLMessage, self).__init__('ACLMessage', attrib = {'date' : datetime.now().strftime('%d/%m/%Y as %H:%M:%S:%f')})
                              
         self.append(ET.Element('performative'))
         self.append(ET.Element('sender'))
