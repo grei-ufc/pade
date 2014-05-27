@@ -16,21 +16,20 @@ class AgentProtocol(LineReceiver):
         Esta classe implementa o protocolo que será seguido pelos agentes
         na comunicação entre
     '''
+    MAX_LENGTH = 32768
     
     def __init__(self, factory):
         self.factory = factory
-        self.state = 'IDENT'
-        
-        # conecta o agente ao AMS
-        reactor.connectTCP(self.factory.ams['name'], self.factory.ams['port'], self.factory)
+        self.factory.state = 'IDENT1'
     
     def connectionMade(self):
         '''
             Este método é executado sempre que uma conexão é executada entre 
             um cliente e um servidor
         '''
+        
         # fase de identificação do agente com o AMS
-        if self.state == 'IDENT':
+        if self.factory.state == 'IDENT1':
             # cria a mensagem de registro no AMS
             msg = ACLMessage()
             msg.addReceiver(AID(name='AMS' + '@' + self.factory.ams['name'] + ':' + str(self.factory.ams['port']) ))
@@ -38,46 +37,73 @@ class AgentProtocol(LineReceiver):
             msg.setPerformative(ACLMessage.INFORM)
             msg.setContent(dumps(self.factory.aid))
             
-            # envia a mensagem ao AMS
+            
+            # envia a mensagem ao AMS e atualiza a flag de identificação
+            self.factory.state = 'IDENT2'
             self.sendLine(msg.getMsg())
+            self.transport.loseConnection()
         else:
             peer = self.transport.getPeer()
+            displayMessage(self.factory.aid.name, 'Conexao estabelecida com ' + str(peer.port))
+            
+            sended_message = None
             for message in self.factory.messages:
-                for receiver in message.receivers:
-                    if int(receiver.port) == int(peer.port):
-                        self.sendLine(message.getMsg())
-                        self.factory.messages.remove(message)
+                if int(message[0].port) == int(peer.port):
+                    try:
+                        self.sendLine(message[1].getMsg())
+                        sended_message = message
+                    except:
+                        print 'Erro no envio da mensagem'
+                    break
+            
+            if sended_message != None:
+                self.factory.messages.remove(sended_message)
+                self.transport.loseConnection()
+    
+    def connectionLost(self, reason):
+        pass
+    
+    def lineLengthExceeded(self, line):
+        print 'A linha excedeu o tamanho!'
             
     def lineReceived(self, line):
         '''
             Este método é executado sempre que uma 
             nova mensagem é recebida pelo cliente ou pelo servidor
         '''
+        
         # Intancia um objeto mensagem com os dados recebidos
         message = ACLMessage()
         message.setMsg(line)
         
+        displayMessage(self.factory.aid.name, 'Mensagem recebida de: ' + str(message.sender.name))
+        
+        # TODO: Melhorar o armazenamento a troca deste tipo de mensagem entre o agente e o agente Sniffer
         # armazena a mensagem recebida
         self.factory.messages_history.append(message)
+        self.factory.recent_message_history.append(message)
         
         # fase de identificação do agente com o AMS
-        if self.state == 'IDENT':
+        if self.factory.state == 'IDENT2' and 'AMS' in message.sender.name:
             self.factory.table = loads(message.content)
-            displayMessage(self.factory.aid.name, 'tabela atualizada: ' + str(self.factory.table.keys()))
+            displayMessage(self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
             # alteração do estado para pronto para receber mensagens 
-            self.state = 'READY'
+            self.factory.state = 'READY'
             self.factory.onStart()
         # fase de recebimento de mensagens, o agente está pronto para executar seus comportamentos
         else:
-            
             # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
             # para atualização da tabela de agentes disponíveis
             if 'AMS' in message.sender.name:
                 self.factory.table = loads(message.content)
-                displayMessage(self.factory.aid.name, 'tabela atualizada: ' + str(self.factory.table.keys()))
+                displayMessage(self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
+                #self.transport.loseConnection()
             # este método é executado caso a mensagem recebida tenha sido enviada pelo Agente Sniffer
             # que requisita a tabela de mensagens do agente
             elif 'Sniffer' in message.sender.name:
+                if self.factory.sniffer == None:
+                    self.factory.sniffer = {'name' : 'localhost', 'port' : message.sender.port}
+                displayMessage(self.factory.aid.name, 'Solicitação do Sniffer Recebida')
                 self.snifferMessage(message)
             # senão o agente trata a mensagem através de seu método react()
             else:
@@ -87,19 +113,16 @@ class AgentProtocol(LineReceiver):
         '''
             Este método trata a mensagem enviada pelo agente Sniffer
         '''
-        print 'Opa recebi uma mensagem do sniffer!'
-        for name, aid in self.factory.table.iteritems():
-            if 'Sniffer' in name:
-                sniffer = {'name' : name, 'aid' : aid}
+        
         reply = message.createReply()
         reply.setPerformative(ACLMessage.INFORM)
         reply.setSender(self.factory.aid)
-        reply.setContent(dumps(self.factory.messages_history))
-        self.sendLine(reply.getMsg())
-            
-    
-    def connectionLost(self, reason):
-        displayMessage(self.factory.aid.name,'Perda de Conexão')
+        reply.setContent(dumps(self.factory.recent_message_history))
+        self.factory.recent_message_history = []
+        
+        sniffer_aid = AID(name='Sniffer_Agent' + '@' + self.factory.sniffer['name'] + ':' + str(self.factory.sniffer['port']))
+        self.factory.messages.append((sniffer_aid, reply))
+        reactor.connectTCP('localhost', int(self.factory.sniffer['port']), self.factory)
 
 class AgentFactory(protocol.ClientFactory):
     '''
@@ -109,9 +132,14 @@ class AgentFactory(protocol.ClientFactory):
     def __init__(self, aid, ams, react=None, onStart=None):
         self.aid = aid # identificação do agente
         self.ams = ams # identificação do agente ams
+        self.sniffer = None # identificação do agente sniffer
         self.messages = [] # armazena as mensagens a serem enviadas
         self.messages_history = [] # armazena as mensagens recebidas
+        self.recent_message_history = []
+        self.connections = {}
+        self.connections_cont = 0
         self.react = react # metodo que executa os comportamentos dos agentes definido pelo usuario
+        self.state = 'IDENT'
         self.onStart = onStart # metodo que executa ações definidas pelo usuario quando o agente é iniciado
         self.table = {} # armazena os agentes ativos, é um dicionário contendo chaves: nome e valores: aid 
         self.agentProtocol = AgentProtocol(self) # instancia do protocolo agente
@@ -133,8 +161,8 @@ class AgentFactory(protocol.ClientFactory):
         '''
             Este método chamado quando a conexão de um cliente com um servidor é perdida
         '''
-        displayMessage(self.aid.name, 'Perda de Conexão')
-        reactor.stop()
+        pass
+        #reactor.stop()
     
     def startedConnecting(self, connector):
         pass
@@ -169,13 +197,9 @@ class Agent():
         '''
         self.ams['name'] = name
         self.ams['port'] = amsPort
-    
-    def start(self):
-        '''
-            cria a instancia da classe AgentProtocol e inicializa o agente
-        '''
+        
+        # cria a instancia da classe AgentProtocol e inicializa o agente
         self.agentInstance = AgentFactory(self.aid, self.ams, self.react, self.onStart)
-        reactor.listenTCP(self.aid.port, self.agentInstance)
         
     def react(self, message):
         '''
@@ -194,14 +218,13 @@ class Agent():
         for receiver in message.receivers:
             for name in self.agentInstance.table:
                 # if verifica se o nome do destinatario está entre os agentes disponíveis
-                displayMessage(self.aid.name, name)
                 if receiver.localname in name and receiver.localname != self.aid.localname:
                     # corrige o parametro porta e host gerado aleatoriamente quando apenas um nome
                     # e dado como identificador de um destinatário
                     receiver.port = self.agentInstance.table[name].port
                     receiver.host = self.agentInstance.table[name].host
                     # se conecta ao agente e envia a mensagem
-                    self.agentInstance.messages.append(message)
+                    self.agentInstance.messages.append((receiver, message))
                     reactor.connectTCP('localhost', self.agentInstance.table[name].port, self.agentInstance)
                     break
             else:

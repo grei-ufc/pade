@@ -35,25 +35,26 @@ class AMS(LineReceiver):
         um deles sempre que um novo agente se conectar. 
     '''
 
+    MAX_LENGTH = 32768
+    
     def __init__(self, factory):
         '''
             Inicializa o objeto instanciado com os parâmetros iniciais
             @param factory: factory do protocolo do AMS 
         '''
         self.factory = factory
-        self.STATE = "IDENT"
-        self.name = None
         
     def connectionMade(self):
-        '''
-            Quando uma conexão é realizada este metodo é chamado,
-            Ele registra a conexão com o cliente em self.factory.connections
-        '''
-        self.factory.connections += 1
-        displayMessage('AMS', 'Uma conexao foi estabelecida com o servidor central')
-        displayMessage('AMS', 'Numero de conexoes estabelecidas: ' + str(self.factory.connections))
-        displayMessage('AMS', 'Aguardando pela identificacao do agente...')
+        pass
         
+        peer = self.transport.getPeer()
+        for message in self.factory.messages:
+            if int(message[0].port) == int(peer.port):
+                self.sendLine(message[1].getMsg())
+                self.factory.messages.remove(message)
+                self.transport.loseConnection()
+                break
+                                
     def connectionLost(self, reason):
         '''
             Quando uma conexão é encerrada este método é chamado.
@@ -62,22 +63,23 @@ class AMS(LineReceiver):
             Ele também envia mensagem para todos os agentes ativos com a tabela de
             agentes conectados atualizada
         '''
-        displayMessage('AMS', 'Uma conexao foi encerrada com o servidor central')
-        self.factory.connections -= 1
-        try:
-            self.factory.agents.pop(self.name)
-        except:
-            displayMessage('AMs', 'Erro ao desconectar agente...')
-            
-        # prepara mensagem de atualização de tabela de agentes
-        message = ACLMessage(ACLMessage.INFORM)
-        message.setSender(self.factory.aid)
-        message.setContent(dumps(self.factory.table))
-        
-        # envia tabela de agentes atualizada a todos os agentes com conexao ativa com o AMS
-        self.broadcastMessage(message)
-        
-        displayMessage('AMS', 'Numero de conexoes remanescentes: ' + str(self.factory.connections))
+        pass
+#         displayMessage('AMS', 'Uma conexao foi encerrada com o servidor central')
+#         self.factory.connections -= 1
+#         try:
+#             self.factory.agents.pop(self.name)
+#         except:
+#             displayMessage('AMS', 'Erro ao desconectar agente...')
+#             
+#         # prepara mensagem de atualização de tabela de agentes
+#         message = ACLMessage(ACLMessage.INFORM)
+#         message.setSender(self.factory.aid)
+#         message.setContent(dumps(self.factory.table))
+#         
+#         # envia tabela de agentes atualizada a todos os agentes com conexao ativa com o AMS
+#         self.broadcastMessage(message)
+#         
+#         displayMessage('AMS', 'Numero de conexoes remanescentes: ' + str(self.factory.connections))
         
     def lineReceived(self, line):
         '''
@@ -85,21 +87,17 @@ class AMS(LineReceiver):
             Quando em fase de identificação, o AMS registra o agente
             em sua tabele de agentes ativos
         '''
-        if self.STATE == "IDENT":
-            message = ACLMessage()
-            message.setMsg(line)
-            self.handle_identif(loads(message.content))
-        elif self.STATE == "READY":
-            pass
         message = ACLMessage()
-        self.factory.msgs.append(message)
+        message.setMsg(line)
+        
+        self.handle_identif(loads(message.content))
             
     def handle_identif(self, aid):
         '''
             Este método é utilizado para cadastrar o agente que esta se identificando
             na tabela de agentes ativos.
         '''
-        if aid.name in self.factory.agents:
+        if aid.name in self.factory.table:
             displayMessage('AMS', 'Falha na Identificacao do agente ' + aid.name)
             
             # prepara mensagem de resposta
@@ -111,35 +109,38 @@ class AMS(LineReceiver):
             self.sendLine(message.getMsg())
             return
         self.aid = aid
-        self.factory.agents[aid.name] = self
-        self.factory.table[aid.name] = aid
+        self.factory.table[self.aid.name] = self.aid
         displayMessage('AMS', 'Agente '+ aid.name + ' identificado com sucesso')
         
         # prepara mensagem de resposta
         message = ACLMessage(ACLMessage.INFORM)
         message.setSender(self.factory.aid)
+        for receiver in self.factory.table.values():
+            message.addReceiver(receiver)
+            
+            
         message.setContent(dumps(self.factory.table))
+        self.broadcastMessage(message, aid)
         
         # envia tabela de agentes atualizada a todos os agentes com conexao ativa com o AMS
-        self.broadcastMessage(message)
-        self.STATE = "READY"
+        
     
-    def broadcastMessage(self, message):
+    def broadcastMessage(self, message, agent_aid):
         '''
             Este método é utilizado para o envio de mensagems de atualização da
             tabela de agentes ativos sempre que um novo agente é connectado.
         '''
-        for name, protocol in self.factory.agents.iteritems():
-            displayMessage('AMS', 'Mensagem de atualização de tabela para o agente: ' + name)
-            protocol.sendLine(message.getMsg())
+        for name, aid in self.factory.table.iteritems():
+            #displayMessage('AMS', 'Mensagem de atualização de tabela para o agente: ' + name)
+            twisted.internet.reactor.connectTCP('localhost', int(aid.port), self.factory)
+            self.factory.messages.append((aid, message))
+                
         
-class AMSFactory(protocol.Factory):
+class AMSFactory(protocol.ClientFactory):
     
     def __init__(self, port):
         
-        # dictionary que tem como keys o nome dos agentes e como valor a instancia do objeto instanciado
-        # pela classe twisted.protocols.basic.LineReceiver
-        self.agents = {}
+        self.state = 'IDENT'
         
         # dictionary que tem como keys o nome dos agentes e como valor o objeto aid que identifica o agente
         # indicado pela chave
@@ -147,7 +148,7 @@ class AMSFactory(protocol.Factory):
         
         # lista que armazena as mensagens recebidas pelo AMS, devera ser utilizada posteriormente pelo
         # serviço de visualização de mensagens
-        self.msgs = []
+        self.messages = []
         
         # aid do agente AMS
         self.aid = AID(name='AMS' + '@' + 'localhost' + ':' + str(port))
@@ -167,9 +168,11 @@ class AMSFactory(protocol.Factory):
 #===============================================================================
 
 class Sniffer(LineReceiver):
+    
+    MAX_LENGTH = 32768
+    
     def __init__(self, factory):
         self.factory = factory
-        self.state = 'IDENT'
         # conecta o agente ao agente AMS
         twisted.internet.reactor.connectTCP(self.factory.ams['name'], self.factory.ams['port'], self.factory)
         # configura os sinais da interface grafica
@@ -182,8 +185,9 @@ class Sniffer(LineReceiver):
             Este método é executado sempre que uma conexão é executada entre 
             um cliente e um servidor
         '''
+        
         # fase de identificação do agente com o AMS
-        if self.state == 'IDENT':
+        if self.factory.state == 'IDENT':
             # cria a mensagem de registro no AMS
             msg = ACLMessage()
             msg.addReceiver(AID(name='AMS' + '@' + self.factory.ams['name'] + ':' + str(self.factory.ams['port']) ))
@@ -192,53 +196,92 @@ class Sniffer(LineReceiver):
             msg.setContent(dumps(self.factory.aid))
             
             # envia a mensagem ao AMS
+            self.factory.state = 'READY'
             self.sendLine(msg.getMsg())
+            self.transport.loseConnection()
         else:
             peer = self.transport.getPeer()
             for message in self.factory.messages:
-                for receiver in message.receivers:
-                    if int(receiver.port) == int(peer.port):
-                        self.sendLine(message.getMsg())
-                        self.factory.messages.remove(message)
-                        print 'mensagem enviada'
+                if int(message[0].port) == int(peer.port):
+                    self.sendLine(message[1].getMsg())
+                    self.factory.messages.remove(message)
+                    #self.transport.loseConnection()
+                    #print 'conexao encerrada'
+                    break
 
+    def connectionLost(self, reason):
+        pass
+    
+    
+    def lineLengthExceeded(self, line):
+        print 'A mensagem e muito grande!!!'
+        return LineReceiver.lineLengthExceeded(self, line)
+    
     def lineReceived(self, line):
         '''
             Este método é executado sempre que uma mesagem é recebida pelo agente Sniffer
         '''
-        if self.state == 'IDENT':
-            self.state = 'READY'
         
         message = ACLMessage()
         message.setMsg(line)
+        
+        displayMessage(self.factory.aid.name, 'Mensagem recebida de: ' + str(message.sender.name))
+        
         # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
         # para atualização da tabela de agentes disponíveis
         if 'AMS' in message.sender.name:
             self.factory.ui.listWidget.clear()
-            self.factory.table = loads(message.content)
+            
+            # loop for verifica se os agentes enviados na lista do AMS já estão cadastrados na tabela do agente
+            agents = loads(message.content)
+            for i in agents:
+                for j in self.factory.table:
+                    if i == j:
+                        break
+                else:
+                    self.factory.table[i] = agents[i]
+            
             for agent in self.factory.table:
                 serifFont = QtGui.QFont(None,10, QtGui.QFont.Bold)
                 item = QtGui.QListWidgetItem(str(agent) + '\n')
                 item.setFont(serifFont)
                 self.factory.ui.listWidget.addItem(item)
+        
+        # caso a mensagem recebida seja de um agente a lista de mensagens deste agente é atualizada
         elif message.performative == ACLMessage.INFORM:
-            self.showMessages(message)
-            self.transport.loseConnection()
+            
+            displayMessage(self.factory.aid.name, 'Lista de Mensagens Recebida')
+            
+            agent = message.sender.name
+            for i in self.factory.agents_messages:
+                if agent == i:
+                    messages = self.factory.agents_messages[i]
+                    messages.extend(loads(message.content))
+                    self.factory.agents_messages[i] = messages
+                    break
+            else:
+                self.factory.agents_messages[agent] = loads(message.content)
+            
+            print self.factory.agents_messages[agent]
+            self.showMessages(self.factory.agents_messages[agent])
         
     def onItemChanged(self, current, previous):
         for name, aid in self.factory.table.iteritems():
-            if name in current.text():
+            if name in current.text() and not ('Sniffer' in name):
                 message = ACLMessage(ACLMessage.REQUEST)
                 message.setSender(self.factory.aid)
-                message.addReceiver(AID(current.text()))
-                print message.sender.name
+                message.addReceiver(aid)
                 message.setContent('Request messages history')
+                
+                self.factory.messages.append((aid, message))
+                
                 twisted.internet.reactor.connectTCP('localhost', aid.port, self.factory)
-                self.factory.messages.append(message)
-    
-    def showMessages(self, message):
-        print 'exibindo mensagens'
-        messages = loads(message.content)
+                break
+                
+    def showMessages(self, messages):
+        '''
+            Este método exibe a lista de mensagens que estão em na lista de mensagens do agente selecionado
+        '''
         self.factory.ui.listWidget_2.clear()
         for message in messages:
             serifFont = QtGui.QFont(None,10, QtGui.QFont.Bold)
@@ -246,7 +289,7 @@ class Sniffer(LineReceiver):
             self.factory.ui.listWidget_2.addItem(item)
     
     def onItemEntered(self, item):
-        print 'Enter!'
+        
         gui = ControlACLMessageDialog()
         gui.ui.senderText.setText(item.message.sender.name)
         gui.ui.communicativeActComboBox.setCurrentIndex(
@@ -275,7 +318,9 @@ class SnifferFactory(protocol.ClientFactory):
         self.ui = ui    # instancia da interface grafica
         self.aid = aid  # identificação do agente
         self.ams = ams  # identificação do agente ams
-        self.table = {} # armazena os agentes ativos, é um dicionário contendo chaves: nome e valores: aid 
+        self.table = {} # armazena os agentes ativos, é um dicionário contendo chaves: nome e valores: aid
+        self.agents_messages = {}
+        self.state = 'IDENT'
         self.messages = [] # armazena as mensagens a serem enviadas
         self.protocol = Sniffer(self)
         
@@ -337,7 +382,7 @@ def configLoop(gui=False):
         
         qt4reactor.install()
         
-def startLoop():
+def startLoop(agents):
     '''
         Lança o loop do twisted integrado com o loop do Qt se a opção setGui for
         verdadeira, se não lança o loop do Twisted
@@ -355,6 +400,21 @@ def startLoop():
         # lança o agente como servidor na porta gerada pelo objeto AID
         twisted.internet.reactor.listenTCP(aid.port, snifferFactory)
     
-    # lança o loop do Twisted
-    twisted.internet.reactor.run()
+    i = 0
+    for agent in agents:
+        i += 1
+        twisted.internet.reactor.callLater(i, listenAgent, agent)
+        
     
+    # lança o loop do Twisted
+    #twisted.internet.reactor.startRunning(init)
+    twisted.internet.reactor.run()
+
+def init():
+    print 'Hello World!'
+    
+def listenAgent(agent):
+    # Conecta o agente ao AMS
+    twisted.internet.reactor.connectTCP(agent.ams['name'], agent.ams['port'], agent.agentInstance)
+    # Conecta o agente à porta que será utilizada para comunicação
+    twisted.internet.reactor.listenTCP(agent.aid.port, agent.agentInstance)

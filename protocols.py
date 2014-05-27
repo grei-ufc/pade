@@ -172,7 +172,9 @@ class FIPA_ContractNet_Protocol(Behaviour):
 		while True:
 			sleep(self.timesleep)
 			if self.t2 - self.t1 > self.timeout:
-				self.handleAllProposes()
+				self.handleAllProposes(self.proposes)
+				self.t1 = 0
+				self.t2 = 0
 		
 	def execute(self, message):
 		
