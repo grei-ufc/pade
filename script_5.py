@@ -19,10 +19,11 @@ class Teste(Agent):
 	def onStart(self):
 		Agent.onStart(self)
 		displayMessage(self.aid.name, "Hello World")
-		message = ACLMessage(ACLMessage.INFORM)
-		message.addReceiver(AID('Alice'))
-		message.setContent('Ola Alice!')
-		self.send(message)
+		if 'Bob' in self.aid.name:
+			message = ACLMessage(ACLMessage.INFORM)
+			message.addReceiver(AID('Alice'))
+			message.setContent('Ola Alice!')
+			self.send(message)
 	
 	def react(self, message):
 		Agent.react(self, message)

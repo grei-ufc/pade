@@ -12,6 +12,7 @@ from xml.dom import minidom
 from datetime import datetime
 from uuid import uuid1
 from aid import AID
+from IPython.nbconvert.filters import datatypefilter
 
 class ACLMessage(ET.Element):
     '''
@@ -22,7 +23,6 @@ class ACLMessage(ET.Element):
     AGREE = 'agree'
     CANCEL = 'cancel'
     CFP = 'cfp'
-    CALL_FOR_PROPOSAL = 'call-for-proposal'
     CONFIRM = 'confirm'
     DISCONFIRM = 'disconfirm'
     FAILURE = 'failure'

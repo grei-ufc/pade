@@ -18,7 +18,10 @@ from agentsGui import ControlAgentsGui, ControlACLMessageDialog
 
 import sys
 
-from PySide import QtCore, QtGui
+try:
+    from PySide import QtCore, QtGui
+except ValueError:
+    pass
 
 #===============================================================================
 # Protocolo do agente AMS
@@ -132,7 +135,7 @@ class AMS(LineReceiver):
         '''
         for name, aid in self.factory.table.iteritems():
             #displayMessage('AMS', 'Mensagem de atualização de tabela para o agente: ' + name)
-            twisted.internet.reactor.connectTCP('localhost', int(aid.port), self.factory)
+            twisted.internet.reactor.connectTCP(aid.host, int(aid.port), self.factory)
             self.factory.messages.append((aid, message))
                 
         
@@ -163,7 +166,7 @@ class AMSFactory(protocol.ClientFactory):
 
 
 #===============================================================================
-# Protocolo do Agente GUI paramonitaramento dos agentes 
+# Protocolo do Agente GUI paramonitoramento dos agentes
 # e das mensagens dos agentes
 #===============================================================================
 
@@ -275,7 +278,7 @@ class Sniffer(LineReceiver):
                 
                 self.factory.messages.append((aid, message))
                 
-                twisted.internet.reactor.connectTCP('localhost', aid.port, self.factory)
+                twisted.internet.reactor.connectTCP(aid.host, aid.port, self.factory)
                 break
                 
     def showMessages(self, messages):
@@ -409,9 +412,6 @@ def startLoop(agents):
     # lança o loop do Twisted
     #twisted.internet.reactor.startRunning(init)
     twisted.internet.reactor.run()
-
-def init():
-    print 'Hello World!'
     
 def listenAgent(agent):
     # Conecta o agente ao AMS

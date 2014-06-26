@@ -2,7 +2,7 @@
 
 import random
 
-class AID:
+class AID(object):
     def __init__(self, name=None, addresses=None, resolvers=None, userDefinedProperties=None):
         """
         Agent Identifier Class
@@ -20,12 +20,13 @@ class AID:
                 self.addresses = [adress]
                 if ':' in adress:
                     self.host, self.port = adress.split(':')
+                    self.port = int(self.port)
                 else:
                     self.host, self.port = None, None
             else:
                 self.localname = name
                 self.host = 'localhost'
-                self.port = random.randint(1000, 9999)
+                self.port = random.randint(1024, 64024)
                 self.name = self.localname + '@' + self.host +  ':'  + str(self.port) 
                 self.addresses = [self.host + ':' + str(self.port)]
         else:

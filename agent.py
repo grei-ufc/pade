@@ -37,7 +37,6 @@ class AgentProtocol(LineReceiver):
             msg.setPerformative(ACLMessage.INFORM)
             msg.setContent(dumps(self.factory.aid))
             
-            
             # envia a mensagem ao AMS e atualiza a flag de identificação
             self.factory.state = 'IDENT2'
             self.sendLine(msg.getMsg())
@@ -102,7 +101,7 @@ class AgentProtocol(LineReceiver):
             # que requisita a tabela de mensagens do agente
             elif 'Sniffer' in message.sender.name:
                 if self.factory.sniffer == None:
-                    self.factory.sniffer = {'name' : 'localhost', 'port' : message.sender.port}
+                    self.factory.sniffer = {'name' : self.factory.ams['name'], 'port' : message.sender.port}
                 displayMessage(self.factory.aid.name, 'Solicitação do Sniffer Recebida')
                 self.snifferMessage(message)
             # senão o agente trata a mensagem através de seu método react()
@@ -122,7 +121,7 @@ class AgentProtocol(LineReceiver):
         
         sniffer_aid = AID(name='Sniffer_Agent' + '@' + self.factory.sniffer['name'] + ':' + str(self.factory.sniffer['port']))
         self.factory.messages.append((sniffer_aid, reply))
-        reactor.connectTCP('localhost', int(self.factory.sniffer['port']), self.factory)
+        reactor.connectTCP(self.factory.sniffer['name'], int(self.factory.sniffer['port']), self.factory)
 
 class AgentFactory(protocol.ClientFactory):
     '''
@@ -171,7 +170,7 @@ class AgentFactory(protocol.ClientFactory):
 #=================================
 # Agent Class
 #=================================
-class Agent():
+class Agent(object):
     '''
         A classe Agente estabelece as funcionalidades essenciais de um agente como:
         - Conexão com o AMS
@@ -225,7 +224,7 @@ class Agent():
                     receiver.host = self.agentInstance.table[name].host
                     # se conecta ao agente e envia a mensagem
                     self.agentInstance.messages.append((receiver, message))
-                    reactor.connectTCP('localhost', self.agentInstance.table[name].port, self.agentInstance)
+                    reactor.connectTCP(self.agentInstance.table[name].host, self.agentInstance.table[name].port, self.agentInstance)
                     break
             else:
                 displayMessage(self.aid.localname, 'Agente ' + receiver.name + ' não esta ativo')
