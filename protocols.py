@@ -2,15 +2,13 @@
 from messages import ACLMessage
 from filters import Filter
 from time import time
+import twisted
 
 class Behaviour(object):
 	def __init__(self, agent):
 		super(Behaviour, self).__init__()
 		self.agent = agent
-		self.t1 = 0
-		self.t2 = 0
 		self.timeout = 1
-		self.timesleep = 0.5
 		
 	def execute(self):
 		pass
@@ -142,6 +140,8 @@ class FIPA_ContractNet_Protocol(Behaviour):
 				self.CFP_Qtd = len(self.message.receivers)
 				
 				self.agent.send(self.message)
+
+				self.timedBehaviour()
 	
 	def handleCFP(self, message):
 		pass
@@ -167,14 +167,11 @@ class FIPA_ContractNet_Protocol(Behaviour):
 	def timedBehaviour(self):
 		Behaviour.timedBehaviour(self)
 		
-		from time import sleep
-		self.t2 = int(time())
-		while True:
-			sleep(self.timesleep)
-			if self.t2 - self.t1 > self.timeout:
-				self.handleAllProposes(self.proposes)
-				self.t1 = 0
-				self.t2 = 0
+		twisted.internet.reactor.callLater(self.timeout, self.executeOnTimeout)
+
+	def executeOnTimeout(self):
+		if not self.received_Qtd == self.CFP_Qtd:
+			self.handleAllProposes(self.proposes)
 		
 	def execute(self, message):
 		

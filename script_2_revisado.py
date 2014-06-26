@@ -161,7 +161,7 @@ if __name__ == '__main__':
     
     nobel = AgenteLivraria(AID(name='Nobel'), bookslist_Nobel)
     nobel.setAMS()
-    agents.append(nobel)
+    #agents.append(nobel)
        
     consumidor = AgenteConsumidor(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'], pedido)
     consumidor.setAMS()

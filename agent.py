@@ -247,5 +247,4 @@ class Agent(object):
         '''
             Adiciona um comportamento padronizado ao agente
         '''
-        reactor.callInThread(behaviour.timedBehaviour)
         self.behaviours.append(behaviour)
