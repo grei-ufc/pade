@@ -114,7 +114,7 @@ class AgenteConsumidor(Agent):
         cfp_message.setContent(dumps(self.pedido))
         
         comportamento = ComportamentoAgenteConsumidor(self, cfp_message)
-        self.addBehaviour(comportamento)
+        self.behaviours.append(comportamento)
 
 class AgenteLivraria(Agent):
     
@@ -124,7 +124,7 @@ class AgenteLivraria(Agent):
         self.booksList = booksList
         
         comportamento = ComportamentoAgenteLivraria(self)
-        self.addBehaviour(comportamento)
+        self.behaviours.append(comportamento)
 
 if __name__ == '__main__':
     booksList_Saraiva = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 10, 'how much is' : 53.50},
@@ -152,19 +152,15 @@ if __name__ == '__main__':
     
     agents = []
     saraiva = AgenteLivraria(AID(name='Saraiva'), booksList_Saraiva)
-    saraiva.setAMS()
     agents.append(saraiva)
     
     cultura = AgenteLivraria(AID(name='Cultura'), bookslist_Cultura)
-    cultura.setAMS()
     agents.append(cultura)
     
     nobel = AgenteLivraria(AID(name='Nobel'), bookslist_Nobel)
-    nobel.setAMS()
-    #agents.append(nobel)
+    #   agents.append(nobel)
        
     consumidor = AgenteConsumidor(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'], pedido)
-    consumidor.setAMS()
     agents.append(consumidor)
     
     startLoop(agents)

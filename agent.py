@@ -1,12 +1,31 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
+# Este módulo Python faz parte da infraestrutura de comunicação e gerenciamento de agentes
+# que compõem o framework para construção de agentes inteligentes 
+
 from twisted.internet import protocol, reactor
 from twisted.protocols.basic import LineReceiver
 from messages import ACLMessage
+from protocols import Behaviour
 from aid import AID
 from utils import displayMessage
 from pickle import dumps, loads
+
+
+class AttributeDescriptor(object):
+    
+    def __init__(self, instance):
+        self.__attribute = None
+        self.__instance = instance
+
+    def __get__(self, instance, owner):
+        return self.__attribute
+
+    def __set__(self, instance, attribute):
+        if isinstance(attribute, self.__instance):
+            self.__attribute = attribute
+
 
 #=================================
 # Server and Client Classes
@@ -96,7 +115,7 @@ class AgentProtocol(LineReceiver):
             if 'AMS' in message.sender.name:
                 self.factory.table = loads(message.content)
                 displayMessage(self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
-                #self.transport.loseConnection()
+
             # este método é executado caso a mensagem recebida tenha sido enviada pelo Agente Sniffer
             # que requisita a tabela de mensagens do agente
             elif 'Sniffer' in message.sender.name:
@@ -104,6 +123,7 @@ class AgentProtocol(LineReceiver):
                     self.factory.sniffer = {'name' : self.factory.ams['name'], 'port' : message.sender.port}
                 displayMessage(self.factory.aid.name, 'Solicitação do Sniffer Recebida')
                 self.snifferMessage(message)
+
             # senão o agente trata a mensagem através de seu método react()
             else:
                 self.factory.react(message)
@@ -180,26 +200,69 @@ class Agent(object):
         - metodo abstrato a ser utilizado na implementação dos comportamentos iniciais 
         - metodo abstrato a ser utlizado na implementação dos comportamentos dos agentes quando recebem uma mensagem
     '''
+
     def __init__(self, aid):
+        
         self.aid = aid
-        self.ams = {}
-        self.agentInstance = None
+        self.ams = {'name' : 'localhost', 'port' : 8000}
+        self.agentInstance = AgentFactory(self.aid, self.__ams, self.react, self.onStart)
         self.behaviours = []
-        self.messages = []
-        
-    def setAMS(self, name='localhost', amsPort=8000):
-        '''
-            Este metodo configura os parametros do agente AMS,
-            e dos agentes que instanciam a classe, deixando os
-            agentes aguandando apenas o chamado do metodo 
-            reactor.run()
-        '''
-        self.ams['name'] = name
-        self.ams['port'] = amsPort
-        
-        # cria a instancia da classe AgentProtocol e inicializa o agente
-        self.agentInstance = AgentFactory(self.aid, self.ams, self.react, self.onStart)
-        
+        self.__messages = []
+
+    @property
+    def aid(self):
+        return self.__aid
+
+    @aid.setter
+    def aid(self, value):
+        if isinstance(value, AID):
+            self.__aid = value
+        else:
+            raise ValueError('O objeto aid precisa ser do tipo AID!')
+
+    @property    
+    def ams(self):
+        return self.__ams
+
+    @ams.setter
+    def ams(self, value):
+        self.__ams = dict()
+        if value == {}:
+            self.__ams['name'] = 'localhost'
+            self.__ams['port'] = 8000
+        else:
+            try:
+                self.__ams['name'] = value['name']
+                self.__ams['port'] = value['port']
+            except Exception, e:
+                raise e
+
+        self.__agentInstance = AgentFactory(self.aid, self.__ams, self.react, self.onStart)
+
+    @property
+    def agentInstance(self):
+        return self.__agentInstance
+
+    @agentInstance.setter
+    def agentInstance(self, value):
+        if isinstance(value, AgentFactory):
+            self.__agentInstance = AgentFactory(self.aid, self.__ams, self.react, self.onStart)
+        else:
+            raise ValueError('O objeto agentInstance precisa ser do tipo AgentFactory')
+
+    @property
+    def behaviours(self):
+        return self.__behaviours
+
+    @behaviours.setter
+    def behaviours(self, value):
+        for v in value:
+            if not issubclass(v.__class__, Behaviour):
+                raise ValueError('O objeto behaviour presiza ser subclasse da classe Behaviour!')
+        else:
+            self.__behaviours = value
+
+
     def react(self, message):
         '''
             Este metodo deve ser SobreEscrito e será executado todas as vezes que
@@ -236,15 +299,3 @@ class Agent(object):
         # Este for adiciona os comportametos padronizados especificados pelo usuário
         for behaviour in self.behaviours:
             behaviour.onStart()
-    
-    def getBehaviours(self):
-        '''
-            Retorna os comportamentos padronizados do agente
-        '''
-        return self.behaviours
-    
-    def addBehaviour(self, behaviour):
-        '''
-            Adiciona um comportamento padronizado ao agente
-        '''
-        self.behaviours.append(behaviour)
