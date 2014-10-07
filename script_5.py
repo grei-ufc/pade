@@ -1,8 +1,8 @@
 #! /usr/bin/ python
 # -*- encoding: utf-8 -*-
 
-from utils import setAMS, configLoop, startLoop, displayMessage
-configLoop(gui=True)
+from utils import set_ams, config_loop, start_loop, display_message
+config_loop(gui=True)
 
 from agent import Agent
 from messages import ACLMessage
@@ -16,28 +16,30 @@ class Teste(Agent):
 	def __init__(self, aid):
 		Agent.__init__(self, aid)
 		
-	def onStart(self):
-		Agent.onStart(self)
-		displayMessage(self.aid.name, "Hello World")
+	def on_start
+on_start(self):
+		Agent.on_start
+on_start(self)
+		display_message(self.aid.name, "Hello World")
 		if 'Bob' in self.aid.name:
 			message = ACLMessage(ACLMessage.INFORM)
-			message.addReceiver(AID('Alice'))
-			message.setContent('Ola Alice!')
+			message.add_receiver(AID('Alice'))
+			message.set_content('Ola Alice!')
 			self.send(message)
 	
 	def react(self, message):
 		Agent.react(self, message)
-		displayMessage(self.aid.name, message.getMsg())
+		display_message(self.aid.name, message.get_message())
 
 if __name__ == '__main__':
-	setAMS('localhost', 8000)
+	set_ams('localhost', 8000)
 	
 	agente = Teste(AID('Alice'))
-	agente.setAMS('localhost', 8000)
+	agente.set_ams('localhost', 8000)
 	agente.start()
 	
 	agente = Teste(AID('Bob'))
-	agente.setAMS('localhost', 8000)
+	agente.set_ams('localhost', 8000)
 	agente.start()
 	
-	startLoop()
+	start_loop()

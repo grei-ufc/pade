@@ -2,9 +2,13 @@
 # -*- coding: utf-8 -*-
 
 """
-Created on Thu Jan 30 14:30:06 2014
+    Módulo message
+    --------------
 
-@author: lucas
+    Este módulo contém a classe que implementa um objeto do tipo
+    ACLMessage, que é a mensagem padronizada pela FIPA utilizada
+    na troca de mensagens entre os agentes.
+
 """
 
 import xml.etree.ElementTree as ET
@@ -12,12 +16,14 @@ from xml.dom import minidom
 from datetime import datetime
 from uuid import uuid1
 from aid import AID
-from IPython.nbconvert.filters import datatypefilter
 
 class ACLMessage(ET.Element):
-    '''
+    """
+        Classe ACLMessage
+        -----------------
+
         Classe que implementa uma mensagem do tipo ACLMessage
-    '''
+    """
     
     ACCEPT_PROPOSAL = 'accept-proposal'
     AGREE = 'agree'
@@ -45,6 +51,7 @@ class ACLMessage(ET.Element):
     FIPA_QUERY_PROTOCOL = 'fipa-query protocol'
     FIPA_REQUEST_WHEN_PROTOCOL = 'fipa-request-when protocol'
     FIPA_CONTRACT_NET_PROTOCOL = 'fipa-contract-net protocol'
+    FIPA_SUBSCRIBE_PROTOCOL = 'fipa-subscribe-protocol'
     
     performaives = [         'accept-proposal', 'agree', 'cancel',
                              'cfp', 'call-for-proposal', 'confirm', 'disconfirm',
@@ -58,10 +65,21 @@ class ACLMessage(ET.Element):
                           'fipa-contract-net protocol']
     
     def __init__(self, performative=None):
-        '''
-            metodo de inicialização
-        '''
-        super(ACLMessage, self).__init__('ACLMessage', attrib = {'date' : datetime.now().strftime('%d/%m/%Y as %H:%M:%S:%f')})
+        """
+            Método de inicialização
+            -----------------------
+
+            Este método inicializa um objeto do tipo ACLMessage quando este é
+            instanciado.
+
+            Parâmetros
+            ----------
+            performative : Tipo da mensagem a ser criada de acordo com a padronização da
+            FIPA, podendo ser do tipo INFORM, CFP, AGREE, PROPOSE...
+            Todos estes tipos são atributos da classe ACLMessage
+        """
+        super(ACLMessage, self).__init__('ACLMessage', 
+            attrib = {'date' : datetime.now().strftime('%d/%m/%Y as %H:%M:%S:%f')})
                              
         self.append(ET.Element('performative'))
         self.append(ET.Element('sender'))
@@ -97,88 +115,127 @@ class ACLMessage(ET.Element):
         self.in_reply_to = None
         self.reply_by = None
     
-    def setPerformative(self, data):
-        '''
-            Metodo que seta o parametro Performtive da mensagem ACL
-        '''
-        self.performative = data
-        self.find('performative').text = str(data).lower()
+    def set_performative(self, performative):
+        """
+            set_performative
+            ----------------
+            Método que seta o parâmetro Performtive da mensagem ACL
+
+            Parâmetros
+            ----------
+            performative : tipo da performative da mensagem, podendo ser qualquer
+            um dos atributos da classe ACLMessage.
+        """
+        self.performative = performative
+        self.find('performative').text = str(performative).lower()
         
-    def setSender(self, data):
-        if isinstance(data, AID):
-            self.sender = data
+    def set_sender(self, aid):
+        """
+            set_sender
+            ----------
+            Método utilizado para definir o agente que irá enviar a mensagem
+
+            Parâmetros
+            ----------
+            aid : objeto do tipo AID que identifica o agente que enviará a mensagem
+        """
+        if isinstance(aid, AID):
+            self.sender = aid
             self.find('sender').text = str(self.sender.name)
         else:
-            self.setSender(AID(name=data))
+            self.set_sender(AID(name=aid))
     
-    def addReceiver(self, data):
-        if isinstance(data, AID):
-            self.receivers.append(data)
+    def add_receiver(self, aid):
+        """
+            add_receiver
+            ------------
+            Método utilizado para adicionar receptores para a mensagem que está
+            sendo montada
+
+            Parâmetros
+            ----------
+            aid : objeto do tipo AID que identifica o agente que receberá a mensagem
+        """
+
+        if isinstance(aid, AID):
+            self.receivers.append(aid)
             receivers = self.find('receivers')
             receiver = ET.Element('receiver')
-            receiver.text = str(data.name)
+            receiver.text = str(aid.name)
             receivers.append(receiver)
         else:
-            self.addReceiver(AID(name=data))
+            self.add_receiver(AID(name=aid))
     
-    def addReply_to(self, data):
-        if isinstance(data, AID):
-            self.reply_to.append[data]
+    def add_reply_to(self, aid):
+        """
+            add_reply_to
+            ------------
+            Método utilizado para adicionar agentes que devem receber
+            a resposta desta mensagem
+
+            Parâmetros
+            ----------
+            aid : objeto do tipo AID que identifica o agente que receberá a resposta
+            desta mensagem
+
+        """
+        if isinstance(aid, AID):
+            self.reply_to.append[aid]
             reply_to = self.find('reply_to')
             receiver = ET.Element('receiver')
-            receiver.text = str(data.name)
+            receiver.text = str(aid.name)
             reply_to.append(receiver)
         else:
-            self.addReply_to(AID(name=data))
+            self.add_reply_to(AID(name=aid))
         
-    def setContent(self, data):
+    def set_content(self, data):
         self.content = data
         self.find('content').text = str(data)
         
-    def setLanguage(self, data):
+    def set_language(self, data):
         self.language = data
         self.find('language').text = str(data)
         
-    def setEncoding(self, data):
+    def set_encoding(self, data):
         self.encoding = data
         self.find('encoding').text = str(data)
     
-    def setOntology(self, data):
+    def set_ontology(self, data):
         self.ontology = data
         self.find('ontology').text = str(data)
     
-    def setProtocol(self, data):
+    def set_protocol(self, data):
         self.protocol = data
         self.find('protocol').text = str(data)
     
-    def setConversationId(self, data):
+    def set_conversation_id(self, data):
         self.conversationID = data
         self.find('conversationID').text = str(data)
     
-    def setReply_with(self, data):
+    def set_reply_with(self, data):
         self.reply_with = data
         self.find('reply-with').text = str(data)
     
-    def setIn_reply_to(self, data):
+    def set_in_reply_to(self, data):
         self.in_reply_to = data
         self.find('in-reply-to').text = str(data)
     
-    def setReply_by(self, data):
+    def set_reply_by(self, data):
         self.reply_by = data
         self.find('reply-by').text = str(data)
         
-    def getMsg(self):
+    def get_message(self):
         return ET.tostring(self)
                
     
-    def asXML(self):
+    def as_xml(self):
         domElement = minidom.parseString(ET.tostring(self))
         return domElement.toprettyxml()
         
     def __str__(self):
-        '''
+        """
             returns a printable version of the message in ACL string representation
-        '''
+        """
 
         p = '('
 
@@ -230,7 +287,7 @@ class ACLMessage(ET.Element):
 
         return p
     
-    def setMsg(self, data):
+    def set_message(self, data):
         aclmsg = ET.fromstring(data)
         
         try:
@@ -323,46 +380,46 @@ class ACLMessage(ET.Element):
         except:
             pass
     
-    def createReply(self):
-        '''
+    def create_reply(self):
+        """
         Creates a reply for the message
         Duplicates all the message structures
         exchanges the 'from' AID with the 'to' AID
-        '''
+        """
 
         message = ACLMessage()
 
-        message.setPerformative(self.performative)
+        message.set_performative(self.performative)
         
         if self.language:
-            message.setLanguage(self.language)
+            message.set_language(self.language)
         if self.ontology:
-            message.setOntology(self.ontology)
+            message.set_ontology(self.ontology)
         if self.protocol:
-            message.setProtocol(self.protocol)
+            message.set_protocol(self.protocol)
         if self.conversationID:
-            message.setConversationId(self.conversationID)
+            message.set_conversation_id(self.conversationID)
 
         for i in self.reply_to:
-            message.addReceiver(i)
+            message.add_receiver(i)
 
         if not self.reply_to:
-            message.addReceiver(self.sender)
+            message.add_receiver(self.sender)
 
         if self.reply_with:
-            message.setIn_reply_to(self.reply_with)
+            message.set_in_reply_to(self.reply_with)
 
         return message
     
 if __name__ == '__main__':
     
     msg = ACLMessage()
-    msg.setMsg('<?xml version="1.0" ?><ACLMessage date="19/03/2014 - 15:51:03:207172"><performative>inform</performative><sender>Lucas@localhost:7352</sender><receivers><receiver>Allana@localhost:5851</receiver></receivers><reply-to/><content>51A Feeder 21I5</content><language/><enconding/><ontology/><protocol/><conversationID/><reply-with/><in-reply-to/><reply-by/></ACLMessage>')
-    #msg.setSender(AID(name='Lucas'))
-    #msg.addReceiver(AID(name='Allana'))
-    #msg.setContent('51A Feeder 21I5')
+    msg.set_message('<?xml version="1.0" ?><ACLMessage date="19/03/2014 - 15:51:03:207172"><performative>inform</performative><sender>Lucas@localhost:7352</sender><receivers><receiver>Allana@localhost:5851</receiver></receivers><reply-to/><content>51A Feeder 21I5</content><language/><enconding/><ontology/><protocol/><conversationID/><reply-with/><in-reply-to/><reply-by/></ACLMessage>')
+    #msg.set_sender(AID(name='Lucas'))
+    #msg.add_receiver(AID(name='Allana'))
+    #msg.set_content('51A Feeder 21I5')
     #msg.ACLMessageRepresentation = ACLMessage.ACLMessageAsXML
     
-    print msg.getMsg()
+    print msg.get_message()
     print msg.sender
     print msg.receivers[0]

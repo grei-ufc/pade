@@ -14,16 +14,16 @@ class Filter():
         self.performative = None
         self.protocol = None
     
-    def setSender(self, aid):
+    def set_sender(self, aid):
         self.sender = aid
         
-    def setPerformative(self, performative):
+    def set_performative(self, performative):
         self.performative = performative
     
     def setConversationID(self, conversationID):
         self.conversationID = conversationID
     
-    def setProtocol(self, protocol):
+    def set_protocol(self, protocol):
         self.protocol = protocol
     
     def filter(self, message):
@@ -45,14 +45,14 @@ class Filter():
 
 if __name__ == '__main__':
     message = ACLMessage(ACLMessage.REQUEST)
-    message.setSender(AID('lucas'))
-    message.addReceiver('allana')
-    message.setProtocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
+    message.set_sender(AID('lucas'))
+    message.add_receiver('allana')
+    message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
     
     filtro = Filter()
-    filtro.setProtocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
+    filtro.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
     
     if filtro.filter(message):
-        print message.asXML()
+        print message.as_xml()
     else:
         print 'A mensagem foi barrada pelo protocolo'

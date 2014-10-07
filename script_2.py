@@ -1,8 +1,8 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
-from utils import setAMS, configLoop, startLoop, displayMessage
-configLoop(gui=True)
+from utils import set_ams, config_loop, start_loop, display_message
+config_loop(gui=True)
 
 from agent import Agent
 from messages import ACLMessage
@@ -26,14 +26,14 @@ class Consumer(Agent):
     def consult(self, pedido):
         message = ACLMessage(ACLMessage.CALL_FOR_PROPOSAL)
         for i in self.bookStores:
-            message.addReceiver(i)
-        message.setContent(dumps(pedido))
+            message.add_receiver(i)
+        message.set_content(dumps(pedido))
         self.sends = len(self.bookStores)
         self.send(message)
     
     def buy(self, proposta):
         message = ACLMessage(ACLMessage.REQUEST)
-        message.addReceiver(proposta['book store'])
+        message.add_receiver(proposta['book store'])
         message.addContent(dumps(proposta))
         self.send(message)
     
@@ -46,8 +46,10 @@ class Consumer(Agent):
                 
         return self.bestPropose
     
-    def onStart(self):
-        Agent.onStart(self)
+    def on_start
+on_start(self):
+        Agent.on_start
+on_start(self)
         sleep(1)
         pedido = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 5}
         self.consult(pedido)
@@ -57,12 +59,12 @@ class Consumer(Agent):
         if message.performative == ACLMessage.PROPOSE or message.performative == ACLMessage.REJECT_PROPOSAL:
             self.receives += 1
             self.messages.append(message)
-            displayMessage(self.aid.name, 'Received Propose')
+            display_message(self.aid.name, 'Received Propose')
             print str(loads(message.content))
         
         if self.receives == self.sends:
             message = self.analisys()
-            displayMessage(self.aid.name, 'Best Propose Selected:')
+            display_message(self.aid.name, 'Best Propose Selected:')
             propose = loads(message.content)
             print str(propose)
         
@@ -72,11 +74,12 @@ class BookStore(Agent):
         
         self.booksList = booksList
     
-    def onStart(self):
+    def on_start
+on_start(self):
         pass
     
     def react(self, message):
-        displayMessage(self.aid.name, 'Received Purchase Order')
+        display_message(self.aid.name, 'Received Purchase Order')
         self.message = message
         if message.performative == ACLMessage.CALL_FOR_PROPOSAL:
             self.pedido = loads(message.content)
@@ -87,14 +90,14 @@ class BookStore(Agent):
             if book['title'] == pedido['title'] and book['author'] == pedido['author']:
                 if book['qtd'] >= pedido['qtd']:
                     message = ACLMessage(ACLMessage.PROPOSE)
-                    message.addReceiver(self.message.sender)
+                    message.add_receiver(self.message.sender)
                     book['book store'] = self.aid.name
-                    message.setContent(dumps(book))
+                    message.set_content(dumps(book))
                     self.send(message)
                 else:
                     message = ACLMessage(ACLMessage.REJECT_PROPOSAL)
-                    message.addReceiver(self.message.sender)
-                    message.setContent('Request Refused')
+                    message.add_receiver(self.message.sender)
+                    message.set_content('Request Refused')
                     self.send(message)
 
 if __name__ == '__main__':
@@ -119,15 +122,15 @@ if __name__ == '__main__':
                       (AID(name='Cultura'), bookslist_Cultura),
                       (AID(name='Nobel'), bookslist_Nobel)]
     
-    setAMS('localhost', 8000)
+    set_ams('localhost', 8000)
     
     for bookStore in bookStoresInfo:
         agent = BookStore(bookStore[0], bookStore[1])
-        agent.setAMS('localhost', 8000)
+        agent.set_ams('localhost', 8000)
         agent.start()
     
     consumidor = Consumer(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'])
-    consumidor.setAMS('localhost', 8000)
+    consumidor.set_ams('localhost', 8000)
     consumidor.start()
     
-    startLoop()
+    start_loop()

@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 
-from utils import displayMessage, setAMS, startLoop, configLoop
-configLoop(gui=True)
+from utils import display_message, set_ams, start_loop, config_loop
+config_loop(gui=True)
 from agent import Agent
 from messages import ACLMessage
 from aid import AID
-from protocols import FIPA_ContractNet_Protocol
+from protocols import FipaContractNetProtocol
 from filters import Filter
 from pickle import loads, dumps
 from time import sleep
@@ -19,18 +19,18 @@ from time import sleep
 #===============================================================================
 
 
-class ComportamentoAgenteConsumidor(FIPA_ContractNet_Protocol):
+class ComportamentoAgenteConsumidor(FipaContractNetProtocol):
     def __init__(self, agent, message):
-        super(ComportamentoAgenteConsumidor, self).__init__(agent, message, isInitiator=True)
+        super(ComportamentoAgenteConsumidor, self).__init__(agent, message, is_initiator=True)
         self.bestPropose = None
         self.bestBookStore = None
         
-    def handlePropose(self, message):
-        FIPA_ContractNet_Protocol.handlePropose(self, message)
-        displayMessage(self.agent.aid.name, 'Proposta Recebida')
+    def handle_propose(self, message):
+        FipaContractNetProtocol.handle_propose(self, message)
+        display_message(self.agent.aid.name, 'Proposta Recebida')
     
-    def handleAllProposes(self, proposes):
-        FIPA_ContractNet_Protocol.handleAllProposes(self, proposes)
+    def handle_all_proposes(self, proposes):
+        FipaContractNetProtocol.handle_all_proposes(self, proposes)
         
         try:
             
@@ -41,63 +41,63 @@ class ComportamentoAgenteConsumidor(FIPA_ContractNet_Protocol):
                 if content['how much is'] < loads(self.bestPropose.content)['how much is']:
                     self.bestPropose = propose
                     
-            response = self.bestPropose.createReply()
-            response.setPerformative(ACLMessage.ACCEPT_PROPOSAL)
-            response.setContent('Proposta Aceita')
+            response = self.bestPropose.create_reply()
+            response.set_performative(ACLMessage.ACCEPT_PROPOSAL)
+            response.set_content('Proposta Aceita')
             self.agent.send(response)
             
             for propose in proposes:
                 if propose != self.bestPropose:
-                    response = propose.createReply()
-                    response.setPerformative(ACLMessage.REJECT_PROPOSAL)
-                    response.setContent('Proposta Recusada')
+                    response = propose.create_reply()
+                    response.set_performative(ACLMessage.REJECT_PROPOSAL)
+                    response.set_content('Proposta Recusada')
                     self.agent.send(response)
         except:
-            displayMessage(self.agent.aid.name, 'O Processamento não foi possivel porque nenhuma mensagem foi retornada.')
+            display_message(self.agent.aid.name, 'O Processamento não foi possivel porque nenhuma mensagem foi retornada.')
         
-    def handleInform(self, message):
-        FIPA_ContractNet_Protocol.handleInform(self, message)
-        displayMessage(self.agent.aid.name, 'Compra Autorizada')
+    def handle_inform(self, message):
+        FipaContractNetProtocol.handle_inform(self, message)
+        display_message(self.agent.aid.name, 'Compra Autorizada')
 
-class ComportamentoAgenteLivraria(FIPA_ContractNet_Protocol):
+class ComportamentoAgenteLivraria(FipaContractNetProtocol):
     def __init__(self, agent):
-        super(ComportamentoAgenteLivraria, self).__init__(agent, isInitiator=False)
+        super(ComportamentoAgenteLivraria, self).__init__(agent, is_initiator=False)
     
-    def handleCFP(self, message):
-        FIPA_ContractNet_Protocol.handleCFP(self, message)
-        displayMessage(self.agent.aid.name, 'Solicitação Recebida')
+    def handle_cfp(self, message):
+        FipaContractNetProtocol.handle_cfp(self, message)
+        display_message(self.agent.aid.name, 'Solicitação Recebida')
         
         pedido = loads(message.content)
         
         for book in self.agent.booksList:
             if book['title'] == pedido['title'] and book['author'] == pedido['author']:
                 if book['qtd'] >= pedido['qtd']:
-                    response = message.createReply()
-                    response.setPerformative(ACLMessage.PROPOSE)
+                    response = message.create_reply()
+                    response.set_performative(ACLMessage.PROPOSE)
                     book['book store'] = self.agent.aid.name
-                    response.setContent(dumps(book))
+                    response.set_content(dumps(book))
                     self.agent.send(response)
                 else:
-                    response = message.createReply()
-                    response.setPerformative(ACLMessage.REJECT_PROPOSAL)
-                    response.setContent('Requisição Recusada')
+                    response = message.create_reply()
+                    response.set_performative(ACLMessage.REJECT_PROPOSAL)
+                    response.set_content('Requisição Recusada')
                     self.agent.send(response)
     
-    def handleAcceptPropose(self, message):
-        FIPA_ContractNet_Protocol.handleAcceptPropose(self, message)
+    def handle_accept_propose(self, message):
+        FipaContractNetProtocol.handle_accept_propose(self, message)
         
-        displayMessage(self.agent.aid.name, 'Proposta Aceita')
+        display_message(self.agent.aid.name, 'Proposta Aceita')
         
-        response = message.createReply()
-        response.setPerformative(ACLMessage.INFORM)
-        response.setContent('Compra Autorizada')
+        response = message.create_reply()
+        response.set_performative(ACLMessage.INFORM)
+        response.set_content('Compra Autorizada')
         self.agent.send(response)
         
         
-    def handleRejectPropose(self, message):
-        FIPA_ContractNet_Protocol.handleRejectPropose(self, message)
+    def handle_reject_proposes(self, message):
+        FipaContractNetProtocol.handle_reject_proposes(self, message)
         
-        displayMessage(self.agent.aid.name, 'Proposta Recusada')
+        display_message(self.agent.aid.name, 'Proposta Recusada')
 
 class AgenteConsumidor(Agent):
     
@@ -108,10 +108,10 @@ class AgenteConsumidor(Agent):
         self.pedido = pedido
         
         cfp_message = ACLMessage(ACLMessage.CFP)
-        cfp_message.setProtocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
+        cfp_message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
         for i in self.bookStores:
-            cfp_message.addReceiver(i)
-        cfp_message.setContent(dumps(self.pedido))
+            cfp_message.add_receiver(i)
+        cfp_message.set_content(dumps(self.pedido))
         
         comportamento = ComportamentoAgenteConsumidor(self, cfp_message)
         self.behaviours.append(comportamento)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     
     pedido = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 5}
     
-    setAMS('localhost', 8000)
+    set_ams('localhost', 8000)
     
     agents = []
     saraiva = AgenteLivraria(AID(name='Saraiva'), booksList_Saraiva)
@@ -163,4 +163,4 @@ if __name__ == '__main__':
     consumidor = AgenteConsumidor(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'], pedido)
     agents.append(consumidor)
     
-    startLoop(agents)
+    start_loop(agents)

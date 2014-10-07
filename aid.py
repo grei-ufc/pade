@@ -224,7 +224,7 @@ class AID(object):
 
         return sb
 
-    def asXML(self):
+    def as_xml(self):
         """
         returns a printable version of an AID in XML
         """
@@ -259,5 +259,5 @@ if __name__ == '__main__':
     print agentname.getName()
     print agentname.getHost()
     print agentname.getPort()
-    print agentname.asXML()
+    print agentname.as_xml()
     print agentname.__str__()

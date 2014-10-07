@@ -1,36 +1,36 @@
-from protocols import FIPA_Request_Protocol
+from protocols import FipaRequestProtocol
 from agent import Agent
-from utils import displayMessage, setAMS, startLoop
+from utils import display_message, set_ams, start_loop
 from messages import ACLMessage
 from aid import AID
 
-class RequestIniciante(FIPA_Request_Protocol):
+class RequestIniciante(FipaRequestProtocol):
 	
 	def __init__(self, agent, message):
-		super(RequestIniciante, self).__init__(agent, message, isInitiator=True)
+		super(RequestIniciante, self).__init__(agent, message, is_initiator=True)
 	
-	def handleAgree(self, message):
-		displayMessage(self.agent.aid.name, message.content)
+	def handle_agree(self, message):
+		display_message(self.agent.aid.name, message.content)
 	
-	def handleInform(self, message):
-		displayMessage(self.agent.aid.name, message.content)
+	def handle_inform(self, message):
+		display_message(self.agent.aid.name, message.content)
 
-class RequestParticipante(FIPA_Request_Protocol):
+class RequestParticipante(FipaRequestProtocol):
 	
 	def __init__(self, agent):
-		super(RequestParticipante, self).__init__(agent, message=None, isInitiator=False)
+		super(RequestParticipante, self).__init__(agent, message=None, is_initiator=False)
 	
-	def handleRequest(self, message):
-		displayMessage(self.agent.aid.name, message.content)
+	def handle_request(self, message):
+		display_message(self.agent.aid.name, message.content)
 		
-		response = message.createReply()
-		response.setPerformative(ACLMessage.AGREE)
-		response.setContent('AGREE')
+		response = message.create_reply()
+		response.set_performative(ACLMessage.AGREE)
+		response.set_content('AGREE')
 		self.agent.send(response)
 		
-		response_2 = message.createReply()
-		response_2.setPerformative(ACLMessage.INFORM)
-		response_2.setContent('INFORM')
+		response_2 = message.create_reply()
+		response_2.set_performative(ACLMessage.INFORM)
+		response_2.set_content('INFORM')
 		self.agent.send(response_2)
 		
 class Agent_Initiator(Agent):
@@ -38,14 +38,16 @@ class Agent_Initiator(Agent):
 		Agent.__init__(self, aid)
 		
 		message = ACLMessage(ACLMessage.REQUEST)
-		message.setProtocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
-		message.setContent('REQUEST')
-		message.addReceiver('agent_participant_1')
+		message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
+		message.set_content('REQUEST')
+		message.add_receiver('agent_participant_1')
 		comportamento_1 = RequestIniciante(self, message)
 		self.addBehaviour(comportamento_1)
 	
-	def onStart(self):
-		Agent.onStart(self)
+	def on_start
+on_start(self):
+		Agent.on_start
+on_start(self)
 
 class Agent_Participant(Agent):
 	def __init__(self, aid):
@@ -53,19 +55,21 @@ class Agent_Participant(Agent):
 		comportamento_1 = RequestParticipante(self)
 		self.addBehaviour(comportamento_1)
 		
-	def onStart(self):
-		Agent.onStart(self)
+	def on_start
+on_start(self):
+		Agent.on_start
+on_start(self)
 
 if __name__ == '__main__':
 	
-	setAMS(8000)
+	set_ams(8000)
 	
 	agent_participant_1 = Agent_Participant(AID('agent_participant_1'))
-	agent_participant_1.setAMS('localhost', 8000)
+	agent_participant_1.set_ams('localhost', 8000)
 	agent_participant_1.start()
 	
 	agent_initiator = Agent_Initiator(AID('agent_initiator'))
-	agent_initiator.setAMS('localhost', 8000)
+	agent_initiator.set_ams('localhost', 8000)
 	agent_initiator.start()
 	
-	startLoop()
+	start_loop()
