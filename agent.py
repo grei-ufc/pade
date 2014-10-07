@@ -102,8 +102,12 @@ class AgentProtocol(LineReceiver):
             # captura o host conectado ao agente por meio do metodo
             # self.transport.getPeer()
             peer = self.transport.getPeer()
-            display_message(
+            
+            if self.factory.debug:
+                display_message(
                 self.factory.aid.name, 'Conexao estabelecida com ' + str(peer.port))
+            else:
+                pass
 
             sended_message = None
             # for percorre a lista de mensagens para serem enviadas
@@ -142,8 +146,11 @@ class AgentProtocol(LineReceiver):
 
             Este método exibi um aviso quando uma mensagem muito grande é recebida
         """
-        display_message(self.factory.aid.name,
+        if self.factory.debug:
+            display_message(self.factory.aid.name,
                         'A mensagem excedeu o tamanho máximo!')
+        else:
+            pass
 
     def lineReceived(self, line):
         """
@@ -164,8 +171,11 @@ class AgentProtocol(LineReceiver):
         message = ACLMessage()
         message.set_message(line)
 
-        display_message(self.factory.aid.name,
+        if self.factory.debug:
+            display_message(self.factory.aid.name,
                         'Mensagem recebida de: ' + str(message.sender.name))
+        else:
+            pass
 
         # TODO: Melhorar o armazenamento e a troca deste tipo de mensagem
         # entre o agente e o agente Sniffer
@@ -178,8 +188,13 @@ class AgentProtocol(LineReceiver):
         # ao agente com uma tabela de todos os agentes presentes na rede
         if self.factory.state == 'IDENT2' and 'AMS' in message.sender.name:
             self.factory.table = loads(message.content)
-            display_message(
-                self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
+            
+            if self.factory.debug:
+                display_message(
+                    self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
+            else:
+                pass
+            
             # alteração do estado de em fase de identificação
             # para pronto para receber mensagens
             self.factory.state = 'READY'
@@ -192,8 +207,11 @@ class AgentProtocol(LineReceiver):
             # para atualização da tabela de agentes disponíveis
             if 'AMS' in message.sender.name:
                 self.factory.table = loads(message.content)
-                display_message(
-                    self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
+                if self.factory.debug:
+                    display_message(
+                        self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
+                else:
+                    pass
 
             # este método é executado caso a mensagem recebida tenha sido enviada pelo Agente Sniffer
             # que requisita a tabela de mensagens do agente
@@ -204,8 +222,13 @@ class AgentProtocol(LineReceiver):
                 if self.factory.sniffer == None:
                     self.factory.sniffer = {
                         'name': self.factory.ams['name'], 'port': message.sender.port}
-                display_message(
-                    self.factory.aid.name, 'Solicitação do Sniffer Recebida')
+                
+                if self.factory.debug:
+                    display_message(
+                        self.factory.aid.name, 'Solicitação do Sniffer Recebida')
+                else:
+                    pass
+
                 self.sniffer_message(message)
 
             # senão o agente trata a mensagem através de seu método react()
@@ -250,7 +273,7 @@ class AgentFactory(protocol.ClientFactory):
         protocolo de comunicação  do agente
     """
 
-    def __init__(self, aid, ams, react=None, on_start=None):
+    def __init__(self, aid, ams, debug, react, on_start):
         self.aid = aid  # armazena a identificação do agente
         self.ams = ams  # armazena a identificação do agente ams
         self.sniffer = None  # armazena a identificação do agente sniffer
@@ -270,6 +293,7 @@ class AgentFactory(protocol.ClientFactory):
         # valores: aid
         self.table = {}
         # instancia do protocolo agente
+        self.debug = debug
         self.agentProtocol = AgentProtocol(self)
 
     def buildProtocol(self, addr):
@@ -288,7 +312,11 @@ class AgentFactory(protocol.ClientFactory):
 
             Este método é chamado quando ocorre uma falha na conexão de um cliente com o servidor 
         """
-        display_message(self.aid.name, 'Falha na Conexão')
+        if self.debug:
+            display_message(self.aid.name, 'Falha na Conexão')
+        else:
+            pass
+
         reactor.stop()
 
     def clientConnectionLost(self, connector, reason):
@@ -316,12 +344,13 @@ class Agent(object):
         6. metodo abstrato a ser utlizado na implementação dos comportamentos dos agentes quando recebem uma mensagem
     """
 
-    def __init__(self, aid):
+    def __init__(self,aid, debug=False):
 
         self.aid = aid
+        self.debug = debug
         self.ams = {'name': 'localhost', 'port': 8000}
-        self.agentInstance = AgentFactory(self.aid, self.__ams,
-                                          self.react, self.on_start)
+        self.agentInstance = AgentFactory(aid=self.aid, ams=self.__ams, debug=self.__debug,
+                                          react=self.react, on_start=self.on_start)
         self.behaviours = []
         self.__messages = []
 
@@ -335,6 +364,17 @@ class Agent(object):
             self.__aid = value
         else:
             raise ValueError('O objeto aid precisa ser do tipo AID!')
+
+    @property
+    def debug(self):
+        return self.__debug
+
+    @debug.setter
+    def debug(self, value):
+        if isinstance(value, bool):
+            self.__debug = value
+        else:
+            raise ValueError('O objeto debug precisa ser do tipo bool')
 
     @property
     def ams(self):
@@ -353,10 +393,11 @@ class Agent(object):
             except Exception, e:
                 raise e
 
-        self.__agentInstance = AgentFactory(self.aid,
-                                            self.__ams,
-                                            self.react,
-                                            self.on_start)
+        self.__agentInstance = AgentFactory(aid=self.aid,
+                                            ams=self.__ams,
+                                            debug=self.__debug,
+                                            react=self.react,
+                                            on_start=self.on_start)
 
     @property
     def agentInstance(self):
@@ -365,8 +406,11 @@ class Agent(object):
     @agentInstance.setter
     def agentInstance(self, value):
         if isinstance(value, AgentFactory):
-            self.__agentInstance = AgentFactory(self.aid, self.__ams,
-                                                self.react, self.on_start)
+            self.__agentInstance = AgentFactory(aid=self.aid,
+                                                ams=self.__ams,
+                                                debug=self.__debug,
+                                                react=self.react,
+                                                on_start=self.on_start)
         else:
             raise ValueError(
                 'O objeto agentInstance precisa ser do tipo AgentFactory')
@@ -421,8 +465,11 @@ class Agent(object):
                                        name].host, self.agentInstance.table[name].port, self.agentInstance)
                     break
             else:
-                display_message(
-                    self.aid.localname, 'Agente ' + receiver.name + ' não esta ativo')
+                if self.debug:
+                    display_message(
+                        self.aid.localname, 'Agente ' + receiver.name + ' não esta ativo')
+                else:
+                    pass
 
     def on_start(self):
         """
