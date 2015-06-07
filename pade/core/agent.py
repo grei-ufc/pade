@@ -133,12 +133,14 @@ class AgentProtocol(LineReceiver):
             # for percorre a lista de mensagens para serem enviadas
             for message in self.factory.messages:
                 if int(message[0].port) == int(peer.port):
-                    try:
-                        self.sendLine(message[1].get_message())
-                        sended_message = message
-                    except:
-                        print 'Erro no envio da mensagem'
-                    break
+                    if str(message[0].host) == 'localhost' and str(peer.host) == '127.0.0.1' or \
+                       str(message[0].host) == str(peer.host):
+                        try:
+                            self.sendLine(message[1].get_message())
+                            sended_message = message
+                        except:
+                            print 'Erro no envio da mensagem'
+                        break
             # Se alguma mensagem foi enviada, o agente, que está
             # no modo cliente, encerra a conexão. Isto é verificado na variável
             # sended_message
@@ -186,7 +188,6 @@ class AgentProtocol(LineReceiver):
             line : mensagem recebida pelo agente
 
         """
-
         # Intancia um objeto mensagem com os dados recebidos
         message = ACLMessage()
         message.set_message(line)
@@ -477,8 +478,8 @@ class Agent(object):
                 if receiver.localname in name and receiver.localname != self.aid.localname:
                     # corrige o parametro porta e host gerado aleatoriamente quando apenas um nome
                     # e dado como identificador de um destinatário
-                    receiver.port = self.agentInstance.table[name].port
-                    receiver.host = self.agentInstance.table[name].host
+                    receiver.setPort(self.agentInstance.table[name].port)
+                    receiver.setHost(self.agentInstance.table[name].host)
                     # se conecta ao agente e envia a mensagem
                     self.agentInstance.messages.append((receiver, message))
                     reactor.connectTCP(self.agentInstance.table[

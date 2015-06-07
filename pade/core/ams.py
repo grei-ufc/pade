@@ -224,6 +224,7 @@ class AgentManagementFactory(protocol.ClientFactory):
             if aid.port == connector.port:
                 display_message(
                     self.aid.name, 'O agente ' + aid.name + ' esta desconectado.')
+                print reason
                 self.table.pop(name)
                 message = ACLMessage(ACLMessage.INFORM)
                 message.set_sender(self.aid)
