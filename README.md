@@ -7,6 +7,25 @@ PADE é um framework para desenvolvimento, execução e gerenciamento de sistema
 PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido no ambito da Universidade Federal do Ceará pelo Grupo de Redes Elétricas Inteligentes (GREI) que pertence ao departamento de Engenharia Elétrica.
 Qualquer um que queira contribuir com o projeto é convidado a baixar, executar, testar e enviar feedback a respeito das impressões tiradas da plataforma.
 
+Dependências
+-----
+
+PADE é desenvolvido com [Python 2.7](https://www.python.org/) no topo do framework [Twisted](https://twistedmatrix.com/trac/) que é sua principal dependência.
+
+Instalação
+------
+
+Para baixar e instalar o PADE, basta abrir uma seção do terminal de comandos Linux e digitar os seguintes comandos:
+
+	$ git clone https://github.com/lucassm/PADE
+	$ cd PADE
+	$ sudo python setup.py install
+
+Pronto! Você já está pronto para utilizar o PADE!
+
+Exemplo
+------
+
 Um simples agente desenvolvido com as bibliotecas do PADE:
 
 ```python
@@ -53,8 +72,3 @@ Interface de Desenvolvimento
 
 ![Interface do Python](https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/interface.png)
 
-
-Dependências
------
-
-PADE é desenvolvido com [Python 2.7](https://www.python.org/) no topo do framework [Twisted](https://twistedmatrix.com/trac/) que é sua principal dependência.
