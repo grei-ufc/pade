@@ -1,6 +1,8 @@
 Python Agent DEvelopment framework (PADE)
 ==============
 
+[![Join the chat at https://gitter.im/lucassm/Pade](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lucassm/Pade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ![Logo padrão do projeto PADE] (https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/pade_logo.png)
 
 PADE é um framework para desenvolvimento, execução e gerenciamento de sistemas multiagentes em ambientes de computação distribuída. PADE é escrito 100% em Python e utiliza as bibliotecas do projeto Twisted para implementar a comunicação entre os nós da rede.
