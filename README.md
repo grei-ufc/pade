@@ -33,3 +33,23 @@ if __name__ == '__main__':
 
     start_loop(agents, gui=True)
 ```
+
+Funcionalidades
+------
+
+Pade possui as seguintes funcionalidades:
+
+* Bibliotecas para desenvolver agentes que se comunicam no Padrão FIPA-ACL;
+* Fácil de utilizar e com versatilizade do Python;
+* Ambiente de execução distribuído testado em hardware embarcados como Raspberry Pi e BeagleBone Black;
+* Desenvolvido inteiramente em Python! isso mesmo feito por quem ama Python para quem ama programar em Python;
+* Interface gráfica para monitoramento de agentes;
+* Projeto em pleno desenvolvimento;
+* É software livre.
+
+
+Interface de Desenvolvimento
+-------
+
+![Interface do Python](https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/interface.png)
+
