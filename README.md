@@ -53,3 +53,8 @@ Interface de Desenvolvimento
 
 ![Interface do Python](https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/interface.png)
 
+
+Dependências
+-----
+
+PADE é desenvolvido com [Python 2.7](https://www.python.org/) no topo do framework [Twisted](https://twistedmatrix.com/trac/) que é sua principal dependência.
