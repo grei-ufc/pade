@@ -43,7 +43,8 @@ class AgentManagementProtocol(LineReceiver):
         um deles sempre que um novo agente se conectar. 
     """
 
-    MAX_LENGTH = 62768
+    # MAX_LENGTH = 62768
+    message = None
 
     def __init__(self, factory):
         """
@@ -73,14 +74,12 @@ class AgentManagementProtocol(LineReceiver):
         for message in self.factory.messages:
             if int(message[0].port) == int(peer.port):
                 # envia a mensagem por meio do metodo sendLine()
-                self.sendLine(message[1].get_message())
+                self.send_message(message[1].get_message())
                 # remove a mesagem enviada da variavel factory.messages
                 self.factory.messages.remove(message)
                 display_message(
                     self.factory.aid.name,
                     'Mensagem enviada ao agente ' + message[0].name)
-                # encerra a conexão com o agente
-                self.transport.loseConnection()
                 break
 
     def connectionLost(self, reason):
@@ -91,7 +90,26 @@ class AgentManagementProtocol(LineReceiver):
             Este método é executado sempre que uma conexão é perdida 
             com o agente AMS
         """
-        pass
+        if self.message is not None:
+            message = ACLMessage()
+            # carrega a mesagem recebida no objeto message
+            message.set_message(self.message)
+
+            # como o agente AMS só recebe mensagens
+            self.handle_identif(loads(message.content))
+            self.message = None
+
+    def send_message(self, message):
+        l = len(message)
+        if l > 14384:
+
+            while len(message) > 0:
+                message, m = message[14384:], message[:14384]
+                print 'enviando mensagem...'
+                self.sendLine(m)
+        else:
+            self.sendLine(message)
+        self.transport.loseConnection()
 
     def connection_test_send(self):
         """
@@ -119,12 +137,13 @@ class AgentManagementProtocol(LineReceiver):
             Quando em fase de identificação, o AMS registra o agente
             em sua tabele de agentes ativos
         """
-        message = ACLMessage()
-        # carrega a mesagem recebida no objeto message
-        message.set_message(line)
 
-        # como o agente AMS só recebe mensagens
-        self.handle_identif(loads(message.content))
+        # recebe uma parte da mensagem enviada
+        print 'Recebendo mensagem...'
+        if self.message is not None:
+            self.message += line
+        else:
+            self.message = line
 
     def handle_identif(self, aid):
         """
@@ -145,7 +164,7 @@ class AgentManagementProtocol(LineReceiver):
             message.set_content(
                 'Ja existe um agente com este identificador. Por favor, escolha outro.')
             # envia mensagem
-            self.sendLine(message.get_message())
+            self.send_message(message.get_message())
             return
         self.aid = aid
         self.factory.table[self.aid.name] = self.aid

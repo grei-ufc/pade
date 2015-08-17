@@ -80,10 +80,10 @@ def start_loop(agents, gui=False):
         # lança o agente como servidor na porta gerada pelo objeto AID
         twisted.internet.reactor.listenTCP(aid.port, snifferFactory)
 
-    i = 0
+    i = 1
     for agent in agents:
-        i += 1
         twisted.internet.reactor.callLater(i, listen_agent, agent)
+        i += 0.2
 
     # lança o loop do Twisted
     # twisted.internet.reactor.startRunning(init)

@@ -114,8 +114,7 @@ class AgentProtocol(LineReceiver):
             # envia a mensagem ao AMS e atualiza a flag de identificação para a
             # fase 2
             self.factory.state = 'IDENT2'
-            self.sendLine(msg.get_message())
-            self.transport.loseConnection()
+            self.send_message(msg.get_message())
 
         # se não é a fase de identificação 1 então o agente tenta enviar as mensagens presentes
         # na fila de envio representada pela variável self.factory.messages
