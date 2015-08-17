@@ -47,7 +47,8 @@ class Sniffer(LineReceiver):
         e das mensagens dos agentes
     """
 
-    MAX_LENGTH = 62768
+    # MAX_LENGTH = 62768
+    message = None
 
     def __init__(self, factory):
         self.factory = factory
@@ -84,47 +85,16 @@ class Sniffer(LineReceiver):
             peer = self.transport.getPeer()
             for message in self.factory.messages:
                 if int(message[0].port) == int(peer.port):
-                    self.sendLine(message[1].get_message())
+                    self.send_message(message[1].get_message())
                     self.factory.messages.remove(message)
-                    self.transport.loseConnection()
                     break
 
     def connectionLost(self, reason):
-        pass
-
-    def lineLengthExceeded(self, line):
-        print 'A mensagem e muito grande!!!'
-        return LineReceiver.lineLengthExceeded(self, line)
-
-    def lineReceived(self, line):
-        """
-            Este método é executado sempre que uma mesagem é recebida pelo agente Sniffer
-        """
-
-        message = ACLMessage()
-        message.set_message(line)
-
-        display_message(self.factory.aid.name,
-                        'Mensagem recebida de: ' + str(message.sender.name))
-
-        # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
-        # para atualização da tabela de agentes disponíveis
-        if 'AMS' in message.sender.name:
-            self.factory.ui.listWidget.clear()
-
-            # loop for verifica se os agentes enviados na lista do AMS já estão
-            # cadastrados na tabela do agente
-            self.factory.table = loads(message.content)
-
-            for agent in self.factory.table:
-                serifFont = QtGui.QFont(None, 10, QtGui.QFont.Bold)
-                item = QtGui.QListWidgetItem(str(agent) + '\n')
-                item.setFont(serifFont)
-                self.factory.ui.listWidget.addItem(item)
-
-        # caso a mensagem recebida seja de um agente a lista de mensagens deste
-        # agente é atualizada
-        elif message.performative == ACLMessage.INFORM:
+        if self.message is not None:
+            print 'Mensagem recebida!'
+            print self.message
+            message = ACLMessage()
+            message.set_message(self.message)
 
             display_message(
                 self.factory.aid.name, 'Lista de Mensagens Recebida')
@@ -141,6 +111,58 @@ class Sniffer(LineReceiver):
 
             print self.factory.agents_messages[agent]
             self.show_messages(self.factory.agents_messages[agent])
+
+            self.message = None
+
+    def lineLengthExceeded(self, line):
+        print 'A mensagem e muito grande!!!'
+        return LineReceiver.lineLengthExceeded(self, line)
+
+    def send_message(self, message):
+        l = len(message)
+        if l > 14384:
+
+            while len(message) > 0:
+                message, m = message[14384:], message[:14384]
+                print 'enviando mensagem...'
+                self.sendLine(m)
+        else:
+            self.sendLine(message)
+        self.transport.loseConnection()
+
+    def lineReceived(self, line):
+        """
+            Este método é executado sempre que uma mesagem é recebida pelo agente Sniffer
+        """
+
+        # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
+        # para atualização da tabela de agentes disponíveis
+        if 'AMS' in line:
+
+            message = ACLMessage()
+            message.set_message(line)
+
+            self.factory.ui.listWidget.clear()
+
+            # loop for verifica se os agentes enviados na lista do AMS já estão
+            # cadastrados na tabela do agente
+            self.factory.table = loads(message.content)
+
+            for agent in self.factory.table:
+                serifFont = QtGui.QFont(None, 10, QtGui.QFont.Bold)
+                item = QtGui.QListWidgetItem(str(agent) + '\n')
+                item.setFont(serifFont)
+                self.factory.ui.listWidget.addItem(item)
+
+        # caso a mensagem recebida seja de um agente a lista de mensagens deste
+        # agente é atualizada
+        else:
+            # recebe uma parte da mensagem enviada
+            print 'Recebendo mensagem...'
+            if self.message is not None:
+                self.message += line
+            else:
+                self.message = line
 
     def onItemChanged(self, current, previous):
         for name, aid in self.factory.table.iteritems():

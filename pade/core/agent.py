@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Framework para Desenvolvimento de Agentes Inteligentes KajuPy
+# Framework para Desenvolvimento de Agentes Inteligentes PADE
 
 # Copyright (C) 2014  Lucas Silveira Melo
 
-# Este arquivo é parte do programa KajuPy
+# Este arquivo é parte do programa PADE
 #
-# KajuPy é um software livre; você pode redistribuí-lo e/ou 
+# PADE é um software livre; você pode redistribuí-lo e/ou 
 # modificá-lo dentro dos termos da Licença Pública Geral GNU como 
 # publicada pela Fundação do Software Livre (FSF); na versão 3 da 
 # Licença, ou (na sua opinião) qualquer versão.
@@ -70,7 +70,8 @@ class AgentProtocol(LineReceiver):
         Esta classe não armazena informações permanentes, sendo 
         esta função delegada à classe AgentFactory
     """
-    MAX_LENGTH = 62768
+    # MAX_LENGTH = 62768
+    message = None
 
     def __init__(self, factory):
         """
@@ -105,7 +106,7 @@ class AgentProtocol(LineReceiver):
                 AID(
                     name='AMS' + '@' + self.factory.ams['name'] +
                     ':' + str(self.factory.ams['port'])
-                    ))
+                ))
             msg.set_sender(self.factory.aid)
             msg.set_performative(ACLMessage.INFORM)
             msg.set_content(dumps(self.factory.aid))
@@ -122,7 +123,7 @@ class AgentProtocol(LineReceiver):
             # captura o host conectado ao agente por meio do metodo
             # self.transport.getPeer()
             peer = self.transport.getPeer()
-            
+
             if self.factory.debug:
                 display_message(
                 self.factory.aid.name, 'Conexao estabelecida com ' + str(peer.port))
@@ -135,18 +136,14 @@ class AgentProtocol(LineReceiver):
                 if int(message[0].port) == int(peer.port):
                     if str(message[0].host) == 'localhost' and str(peer.host) == '127.0.0.1' or \
                        str(message[0].host) == str(peer.host):
-                        try:
-                            self.sendLine(message[1].get_message())
-                            sended_message = message
-                        except:
-                            print 'Erro no envio da mensagem'
-                        break
+                        
+                        self.send_message(message[1].get_message())
+                        sended_message = message
             # Se alguma mensagem foi enviada, o agente, que está
             # no modo cliente, encerra a conexão. Isto é verificado na variável
             # sended_message
             if sended_message != None:
                 self.factory.messages.remove(sended_message)
-                self.transport.loseConnection()
 
     def connectionLost(self, reason):
         """
@@ -159,28 +156,58 @@ class AgentProtocol(LineReceiver):
             ----------
             reason: Identifica o problema na perda de conexão
         """
-        pass
+        if self.message is not None:
+            print 'Mensagem recebida!'
+            print self.message
+            message = ACLMessage()
+            message.set_message(self.message)
+
+            # armazena a mensagem recebida
+            self.factory.messages_history.append(message)
+            self.factory.recent_message_history.append(message)
+
+            if self.factory.debug:
+                display_message(self.factory.aid.name,
+                                'Mensagem recebida de: ' + str(
+                                    message.sender.name)
+                                )
+
+            self.message = None
+            self.factory.react(message)
 
     def lineLengthExceeded(self, line):
         """
             lineLengthExceeded
             ------------------
 
-            Este método exibi um aviso quando uma mensagem muito grande é recebida
+            Este método exibe um aviso quando uma mensagem
+            muito grande é recebida
         """
         if self.factory.debug:
             display_message(self.factory.aid.name,
-                        'A mensagem excedeu o tamanho máximo!')
+                            'A mensagem excedeu o tamanho máximo!')
         else:
             pass
+
+    def send_message(self, message):
+        l = len(message)
+        if l > 14384:
+
+            while len(message) > 0:
+                message, m = message[14384:], message[:14384]
+                print 'enviando mensagem...'
+                self.sendLine(m)
+        else:
+            self.sendLine(message)
+        self.transport.loseConnection()
 
     def lineReceived(self, line):
         """
             lineReceived
             ------------
 
-            Este método é executado sempre que uma 
-            nova mensagem é recebida pelo agente, tanto no modo cliente 
+            Este método é executado sempre que uma
+            nova mensagem é recebida pelo agente, tanto no modo cliente
             quanto no modo servidor
 
             Parâmetros
@@ -188,26 +215,17 @@ class AgentProtocol(LineReceiver):
             line : mensagem recebida pelo agente
 
         """
-        # Intancia um objeto mensagem com os dados recebidos
-        message = ACLMessage()
-        message.set_message(line)
 
-        if self.factory.debug:
-            display_message(self.factory.aid.name,
-                        'Mensagem recebida de: ' + str(message.sender.name))
-        else:
-            pass
 
         # TODO: Melhorar o armazenamento e a troca deste tipo de mensagem
         # entre o agente e o agente Sniffer
 
-        # armazena a mensagem recebida
-        self.factory.messages_history.append(message)
-        self.factory.recent_message_history.append(message)
-
         # fase 2 de identificação do agente com o AMS. Nesta fase o agente AMS retorna uma mensagem
         # ao agente com uma tabela de todos os agentes presentes na rede
-        if self.factory.state == 'IDENT2' and 'AMS' in message.sender.name:
+        if self.factory.state == 'IDENT2' and 'AMS' in line:
+            message = ACLMessage()
+            message.set_message(line)
+
             self.factory.table = loads(message.content)
             
             if self.factory.debug:
@@ -226,7 +244,9 @@ class AgentProtocol(LineReceiver):
         else:
             # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
             # para atualização da tabela de agentes disponíveis
-            if 'AMS' in message.sender.name:
+            if 'AMS' in line:
+                message = ACLMessage()
+                message.set_message(line)
                 self.factory.table = loads(message.content)
                 if self.factory.debug:
                     display_message(
@@ -236,10 +256,12 @@ class AgentProtocol(LineReceiver):
 
             # este método é executado caso a mensagem recebida tenha sido enviada pelo Agente Sniffer
             # que requisita a tabela de mensagens do agente
-            elif 'Sniffer' in message.sender.name:
+            elif 'Sniffer' in line:
                 # se for a primeira mensagem recebida do agente Sniffer, então seu endereço, isto é nome
                 # e porta, é armazenado na variável do tipo dicionário
                 # self.factory.sniffer
+                message = ACLMessage()
+                message.set_message(line)
                 if self.factory.sniffer == None:
                     self.factory.sniffer = {
                         'name': self.factory.ams['name'], 'port': message.sender.port}
@@ -252,9 +274,13 @@ class AgentProtocol(LineReceiver):
 
                 self.sniffer_message(message)
 
-            # senão o agente trata a mensagem através de seu método react()
+            # recebe uma parte da mensagem enviada
             else:
-                self.factory.react(message)
+                print 'Recebendo mensagem...'
+                if self.message is not None:
+                    self.message += line
+                else:
+                    self.message = line
 
     def sniffer_message(self, message):
         """
