@@ -20,11 +20,9 @@
 # junto com este programa, se não, escreva para a Fundação do Software
 # Livre(FSF) Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-#import sys
-#sys.path.insert(1, '..')
-
 from twisted.internet import protocol, reactor
-from twisted.protocols.basic import LineReceiver
+
+from pade.core.peer import PeerProtocol
 
 from pade.misc.utility import display_message
 from pade.acl.messages import ACLMessage
@@ -34,101 +32,75 @@ from pickle import dumps, loads
 
 from PySide import QtGui
 
-class Sniffer(LineReceiver):
+
+class Sniffer(PeerProtocol):
 
     """
         Sniffer
         -------
 
-        Esta classe implementa o agente Sniffer que tem o objetivo de 
+        Esta classe implementa o agente Sniffer que tem o objetivo de
         enviar mensagens para os agentes ativos e exibir suas mensagens
         por meio de uma GUI.
         Protocolo do Agente GUI paramonitoramento dos agentes
         e das mensagens dos agentes
     """
 
-    # MAX_LENGTH = 62768
-    message = None
-
-    def __init__(self, factory):
-        self.factory = factory
+    def __init__(self, fact):
+        PeerProtocol.__init__(self, fact)
         # conecta o agente ao agente AMS
-        reactor.connectTCP(self.factory.ams['name'], 
-                           self.factory.ams['port'],
-                           self.factory)
+        reactor.connectTCP(self.fact.ams['name'],
+                           self.fact.ams['port'],
+                           self.fact)
         # configura os sinais da interface grafica
-        self.factory.ui.listWidget.currentItemChanged.connect(
+        self.fact.ui.listWidget.currentItemChanged.connect(
             self.onItemChanged)
-        self.factory.ui.listWidget_2.itemPressed.connect(self.on_item_entered)
+        self.fact.ui.listWidget_2.itemPressed.connect(self.on_item_entered)
 
     def connectionMade(self):
         """
-            Este método é executado sempre que uma conexão é executada entre 
+            Este método é executado sempre que uma conexão é executada entre
             um cliente e um servidor
         """
 
         # fase de identificação do agente com o AMS
-        if self.factory.state == 'IDENT':
+        if self.fact.state == 'IDENT':
             # cria a mensagem de registro no AMS
             msg = ACLMessage()
             msg.add_receiver(
-                AID(name='AMS' + '@' + self.factory.ams['name'] + ':' + str(self.factory.ams['port'])))
-            msg.set_sender(self.factory.aid)
+                AID(name='AMS' + '@' + self.fact.ams['name'] + ':' + str(self.fact.ams['port'])))
+            msg.set_sender(self.fact.aid)
             msg.set_performative(ACLMessage.INFORM)
-            msg.set_content(dumps(self.factory.aid))
+            msg.set_content(dumps(self.fact.aid))
 
             # envia a mensagem ao AMS
-            self.factory.state = 'READY'
+            self.fact.state = 'READY'
             self.sendLine(msg.get_message())
             self.transport.loseConnection()
         else:
-            peer = self.transport.getPeer()
-            for message in self.factory.messages:
-                if int(message[0].port) == int(peer.port):
-                    self.send_message(message[1].get_message())
-                    self.factory.messages.remove(message)
-                    break
+            PeerProtocol.connectionMade(self)
 
     def connectionLost(self, reason):
         if self.message is not None:
-            print 'Mensagem recebida!'
-            print self.message
-            message = ACLMessage()
-            message.set_message(self.message)
-
-            display_message(
-                self.factory.aid.name, 'Lista de Mensagens Recebida')
+            message = PeerProtocol.connectionLost(self, reason)
 
             agent = message.sender.name
-            for i in self.factory.agents_messages:
+            for i in self.fact.agents_messages:
                 if agent == i:
-                    messages = self.factory.agents_messages[i]
+                    messages = self.fact.agents_messages[i]
                     messages.extend(loads(message.content))
-                    self.factory.agents_messages[i] = messages
+                    self.fact.agents_messages[i] = messages
                     break
             else:
-                self.factory.agents_messages[agent] = loads(message.content)
+                self.fact.agents_messages[agent] = loads(message.content)
 
-            print self.factory.agents_messages[agent]
-            self.show_messages(self.factory.agents_messages[agent])
+            print self.fact.agents_messages[agent]
+            self.show_messages(self.fact.agents_messages[agent])
 
             self.message = None
 
-    def lineLengthExceeded(self, line):
-        print 'A mensagem e muito grande!!!'
-        return LineReceiver.lineLengthExceeded(self, line)
-
     def send_message(self, message):
-        l = len(message)
-        if l > 14384:
-
-            while len(message) > 0:
-                message, m = message[14384:], message[:14384]
-                print 'enviando mensagem...'
-                self.sendLine(m)
-        else:
-            self.sendLine(message)
-        self.transport.loseConnection()
+        PeerProtocol.send_message(self, message)
 
     def lineReceived(self, line):
         """
@@ -142,50 +114,45 @@ class Sniffer(LineReceiver):
             message = ACLMessage()
             message.set_message(line)
 
-            self.factory.ui.listWidget.clear()
+            self.fact.ui.listWidget.clear()
 
             # loop for verifica se os agentes enviados na lista do AMS já estão
             # cadastrados na tabela do agente
-            self.factory.table = loads(message.content)
+            self.fact.table = loads(message.content)
 
-            for agent in self.factory.table:
+            for agent in self.fact.table:
                 serifFont = QtGui.QFont(None, 10, QtGui.QFont.Bold)
                 item = QtGui.QListWidgetItem(str(agent) + '\n')
                 item.setFont(serifFont)
-                self.factory.ui.listWidget.addItem(item)
+                self.fact.ui.listWidget.addItem(item)
 
         # caso a mensagem recebida seja de um agente a lista de mensagens deste
         # agente é atualizada
         else:
-            # recebe uma parte da mensagem enviada
-            print 'Recebendo mensagem...'
-            if self.message is not None:
-                self.message += line
-            else:
-                self.message = line
+            PeerProtocol.lineReceived(self, line)
 
     def onItemChanged(self, current, previous):
-        for name, aid in self.factory.table.iteritems():
+        for name, aid in self.fact.table.iteritems():
             if name in current.text() and not ('Sniffer' in name):
                 message = ACLMessage(ACLMessage.REQUEST)
-                message.set_sender(self.factory.aid)
+                message.set_sender(self.fact.aid)
                 message.add_receiver(aid)
                 message.set_content('Request messages history')
 
-                self.factory.messages.append((aid, message))
+                self.fact.messages.append((aid, message))
 
-                reactor.connectTCP(aid.host, aid.port, self.factory)
+                reactor.connectTCP(aid.host, aid.port, self.fact)
                 break
 
     def show_messages(self, messages):
         """
             Este método exibe a lista de mensagens que estão em na lista de mensagens do agente selecionado
         """
-        self.factory.ui.listWidget_2.clear()
+        self.fact.ui.listWidget_2.clear()
         for message in messages:
             serifFont = QtGui.QFont(None, 10, QtGui.QFont.Bold)
             item = Item(message, serifFont)
-            self.factory.ui.listWidget_2.addItem(item)
+            self.fact.ui.listWidget_2.addItem(item)
 
     def on_item_entered(self, item):
 
@@ -229,6 +196,7 @@ class SnifferFactory(protocol.ClientFactory):
         self.ams = ams  # identificação do agente ams
         # armazena os agentes ativos, é um dicionário contendo chaves: nome e
         # valores: aid
+        self.debug = False
         self.table = {}
         self.agents_messages = {}
         self.state = 'IDENT'

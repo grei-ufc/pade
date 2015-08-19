@@ -22,15 +22,18 @@
 
 
 from twisted.internet import protocol, reactor
-from twisted.protocols.basic import LineReceiver
 from twisted.enterprise import adbapi
 from pickle import dumps, loads
 from uuid import uuid4
+
+from pade.core.peer import PeerProtocol
+
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.misc.utility import display_message
 
-class AgentManagementProtocol(LineReceiver):
+
+class AgentManagementProtocol(PeerProtocol):
 
     """
         Agent Management protocol
@@ -40,21 +43,18 @@ class AgentManagementProtocol(LineReceiver):
 
         A princiapal funcionalidade do AMS é registrar todos os agentes que
         estão conectados ao sistema e atualizar a tabela de agentes de cada
-        um deles sempre que um novo agente se conectar. 
+        um deles sempre que um novo agente se conectar.
     """
 
-    # MAX_LENGTH = 62768
-    message = None
-
-    def __init__(self, factory):
+    def __init__(self, fact):
         """
             Este método Inicializa o objeto que implementa a classe AMS
 
             Parâmetros
             ----------
-            factory: factory do protocolo do AMS 
+            fact: fact do protocolo do AMS
         """
-        self.factory = factory
+        PeerProtocol.__init__(self, fact)
 
     def connectionMade(self):
         """
@@ -69,16 +69,16 @@ class AgentManagementProtocol(LineReceiver):
         peer = self.transport.getPeer()
 
         # laço for percorre as mensagens armazenadas na variavel
-        # factory.messages e caso alguma mensagem seja para o agente
+        # fact.messages e caso alguma mensagem seja para o agente
         # conectado esta será enviada
-        for message in self.factory.messages:
+        for message in self.fact.messages:
             if int(message[0].port) == int(peer.port):
                 # envia a mensagem por meio do metodo sendLine()
                 self.send_message(message[1].get_message())
-                # remove a mesagem enviada da variavel factory.messages
-                self.factory.messages.remove(message)
+                # remove a mesagem enviada da variavel fact.messages
+                self.fact.messages.remove(message)
                 display_message(
-                    self.factory.aid.name,
+                    self.fact.aid.name,
                     'Mensagem enviada ao agente ' + message[0].name)
                 break
 
@@ -87,45 +87,34 @@ class AgentManagementProtocol(LineReceiver):
             connectionLost
             --------------
 
-            Este método é executado sempre que uma conexão é perdida 
+            Este método é executado sempre que uma conexão é perdida
             com o agente AMS
         """
         if self.message is not None:
-            message = ACLMessage()
-            # carrega a mesagem recebida no objeto message
-            message.set_message(self.message)
+            message = PeerProtocol.connectionLost(self, reason)
 
             # como o agente AMS só recebe mensagens
             self.handle_identif(loads(message.content))
             self.message = None
 
     def send_message(self, message):
-        l = len(message)
-        if l > 14384:
-
-            while len(message) > 0:
-                message, m = message[14384:], message[:14384]
-                print 'enviando mensagem...'
-                self.sendLine(m)
-        else:
-            self.sendLine(message)
-        self.transport.loseConnection()
+        PeerProtocol.send_message(self, message)
 
     def connection_test_send(self):
         """
             Este método é executado ciclicamente com o objetivo de
             verificar se os agentes estão conectados
         """
-        if self.factory.debug:
-            display_message(self.factory.aid.name,
+        if self.fact.debug:
+            display_message(self.fact.aid.name,
                             'Enviando mensagens de verificação da conexão...')
-        for name, aid in self.factory.table.iteritems():
-            if self.factory.debug:
+        for name, aid in self.fact.table.iteritems():
+            if self.fact.debug:
                 display_message(
-                    self.factory.aid.name,
+                    self.fact.aid.name,
                     'Tentando conexão com agente ' + name + '...')
             reactor.connectTCP(
-                aid.host, int(aid.port), self.factory)
+                aid.host, int(aid.port), self.fact)
             self.transport.loseConnection()
         else:
             reactor.callLater(1,
@@ -139,11 +128,7 @@ class AgentManagementProtocol(LineReceiver):
         """
 
         # recebe uma parte da mensagem enviada
-        print 'Recebendo mensagem...'
-        if self.message is not None:
-            self.message += line
-        else:
-            self.message = line
+        PeerProtocol.lineReceived(self, line)
 
     def handle_identif(self, aid):
         """
@@ -153,13 +138,13 @@ class AgentManagementProtocol(LineReceiver):
             Este método é utilizado para cadastrar o agente que esta se identificando
             na tabela de agentes ativos.
         """
-        if aid.name in self.factory.table:
+        if aid.name in self.fact.table:
             display_message(
                 'AMS', 'Falha na Identificacao do agente ' + aid.name)
 
             # prepara mensagem de resposta
             message = ACLMessage(ACLMessage.REFUSE)
-            message.set_sender(self.factory.aid)
+            message.set_sender(self.fact.aid)
             message.add_receiver(aid)
             message.set_content(
                 'Ja existe um agente com este identificador. Por favor, escolha outro.')
@@ -167,17 +152,17 @@ class AgentManagementProtocol(LineReceiver):
             self.send_message(message.get_message())
             return
         self.aid = aid
-        self.factory.table[self.aid.name] = self.aid
+        self.fact.table[self.aid.name] = self.aid
         display_message(
             'AMS', 'Agente ' + aid.name + ' identificado com sucesso')
 
         # prepara mensagem de resposta
         message = ACLMessage(ACLMessage.INFORM)
-        message.set_sender(self.factory.aid)
-        for receiver in self.factory.table.values():
+        message.set_sender(self.fact.aid)
+        for receiver in self.fact.table.values():
             message.add_receiver(receiver)
 
-        message.set_content(dumps(self.factory.table))
+        message.set_content(dumps(self.fact.table))
         self.broadcast_message(message)
 
         # envia tabela de agentes atualizada a todos os agentes com conexao
@@ -191,10 +176,10 @@ class AgentManagementProtocol(LineReceiver):
             Este método é utilizado para o envio de mensagems de atualização da
             tabela de agentes ativos sempre que um novo agente é connectado.
         """
-        for name, aid in self.factory.table.iteritems():
+        for name, aid in self.fact.table.iteritems():
             reactor.connectTCP(
-                aid.host, int(aid.port), self.factory)
-            self.factory.messages.append((aid, message))
+                aid.host, int(aid.port), self.fact)
+            self.fact.messages.append((aid, message))
 
 
 class AgentManagementFactory(protocol.ClientFactory):
@@ -251,9 +236,10 @@ class AgentManagementFactory(protocol.ClientFactory):
                 self.protocol.broadcast_message(message)
                 break
 
-    #========================================================================
-    # Estes métodos são utilizados para a comunicação do loop twisted com o banco de dados
-    #========================================================================
+    # =======================================================================
+    # Estes métodos são utilizados para a comunicação do loop
+    # twisted com o banco de dados
+    # =======================================================================
     def createAgentsTable(self):
         display_message(
             self.aid.name, 'Tabela de agentes criada no banco de dados.')

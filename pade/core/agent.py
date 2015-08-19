@@ -35,6 +35,9 @@
 
 from twisted.internet import protocol, reactor
 from twisted.protocols.basic import LineReceiver
+
+from pade.core.peer import PeerProtocol
+
 from pade.acl.messages import ACLMessage
 from pade.behaviours.protocols import Behaviour
 from pade.acl.aid import AID
@@ -56,24 +59,22 @@ class AttributeDescriptor(object):
             self.__attribute = attribute
 
 
-class AgentProtocol(LineReceiver):
+class AgentProtocol(PeerProtocol):
 
     """
         Classe AgentProtocol
         --------------------
 
-        Esta classe implementa o protocolo que será seguido pelos 
+        Esta classe implementa o protocolo que será seguido pelos
         agentes no processo de comunicação. Esta classe modela os
-        atos de comunicação entre agente e agente AMS, agente e 
+        atos de comunicação entre agente e agente AMS, agente e
         agente Sniffer e entre agentes.
 
-        Esta classe não armazena informações permanentes, sendo 
+        Esta classe não armazena informações permanentes, sendo
         esta função delegada à classe AgentFactory
     """
-    # MAX_LENGTH = 62768
-    message = None
 
-    def __init__(self, factory):
+    def __init__(self, fact):
         """
             Método de inicializacao da classe AgentProtocol
             -----------------------------------------------
@@ -82,12 +83,12 @@ class AgentProtocol(LineReceiver):
 
             Parâmetros
             ----------
-            factory : instancia factory do protocolo a ser inplementado
+            fact : instancia fact do protocolo a ser inplementado
         """
 
-        self.factory = factory
+        self.fact = fact
         # esta variavel é setada para a fase de identificação 1
-        self.factory.state = 'IDENT1'
+        self.fact.state = 'IDENT1'
 
     def connectionMade(self):
         """
@@ -99,50 +100,29 @@ class AgentProtocol(LineReceiver):
         """
 
         # fase 1 de identificação do agente com o AMS
-        if self.factory.state == 'IDENT1':
+        if self.fact.state == 'IDENT1':
             # cria a mensagem de registro no AMS
             msg = ACLMessage()
             msg.add_receiver(
                 AID(
-                    name='AMS' + '@' + self.factory.ams['name'] +
-                    ':' + str(self.factory.ams['port'])
+                    name='AMS' + '@' + self.fact.ams['name'] +
+                    ':' + str(self.fact.ams['port'])
                 ))
-            msg.set_sender(self.factory.aid)
+            msg.set_sender(self.fact.aid)
             msg.set_performative(ACLMessage.INFORM)
-            msg.set_content(dumps(self.factory.aid))
+            msg.set_content(dumps(self.fact.aid))
 
             # envia a mensagem ao AMS e atualiza a flag de identificação para a
             # fase 2
-            self.factory.state = 'IDENT2'
+            self.fact.state = 'IDENT2'
             self.send_message(msg.get_message())
 
         # se não é a fase de identificação 1 então o agente tenta enviar as mensagens presentes
-        # na fila de envio representada pela variável self.factory.messages
+        # na fila de envio representada pela variável self.fact.messages
         else:
             # captura o host conectado ao agente por meio do metodo
             # self.transport.getPeer()
-            peer = self.transport.getPeer()
-
-            if self.factory.debug:
-                display_message(
-                self.factory.aid.name, 'Conexao estabelecida com ' + str(peer.port))
-            else:
-                pass
-
-            sended_message = None
-            # for percorre a lista de mensagens para serem enviadas
-            for message in self.factory.messages:
-                if int(message[0].port) == int(peer.port):
-                    if str(message[0].host) == 'localhost' and str(peer.host) == '127.0.0.1' or \
-                       str(message[0].host) == str(peer.host):
-                        
-                        self.send_message(message[1].get_message())
-                        sended_message = message
-            # Se alguma mensagem foi enviada, o agente, que está
-            # no modo cliente, encerra a conexão. Isto é verificado na variável
-            # sended_message
-            if sended_message != None:
-                self.factory.messages.remove(sended_message)
+            PeerProtocol.connectionMade(self)
 
     def connectionLost(self, reason):
         """
@@ -156,49 +136,17 @@ class AgentProtocol(LineReceiver):
             reason: Identifica o problema na perda de conexão
         """
         if self.message is not None:
-            print 'Mensagem recebida!'
-            print self.message
-            message = ACLMessage()
-            message.set_message(self.message)
+            message = PeerProtocol.connectionLost(self, reason)
 
             # armazena a mensagem recebida
-            self.factory.messages_history.append(message)
-            self.factory.recent_message_history.append(message)
-
-            if self.factory.debug:
-                display_message(self.factory.aid.name,
-                                'Mensagem recebida de: ' + str(
-                                    message.sender.name)
-                                )
+            self.fact.messages_history.append(message)
+            self.fact.recent_message_history.append(message)
 
             self.message = None
-            self.factory.react(message)
-
-    def lineLengthExceeded(self, line):
-        """
-            lineLengthExceeded
-            ------------------
-
-            Este método exibe um aviso quando uma mensagem
-            muito grande é recebida
-        """
-        if self.factory.debug:
-            display_message(self.factory.aid.name,
-                            'A mensagem excedeu o tamanho máximo!')
-        else:
-            pass
+            self.fact.react(message)
 
     def send_message(self, message):
-        l = len(message)
-        if l > 14384:
-
-            while len(message) > 0:
-                message, m = message[14384:], message[:14384]
-                print 'enviando mensagem...'
-                self.sendLine(m)
-        else:
-            self.sendLine(message)
-        self.transport.loseConnection()
+        PeerProtocol.send_message(self, message)
 
     def lineReceived(self, line):
         """
@@ -221,22 +169,22 @@ class AgentProtocol(LineReceiver):
 
         # fase 2 de identificação do agente com o AMS. Nesta fase o agente AMS retorna uma mensagem
         # ao agente com uma tabela de todos os agentes presentes na rede
-        if self.factory.state == 'IDENT2' and 'AMS' in line:
+        if self.fact.state == 'IDENT2' and 'AMS' in line:
             message = ACLMessage()
             message.set_message(line)
 
-            self.factory.table = loads(message.content)
+            self.fact.table = loads(message.content)
             
-            if self.factory.debug:
+            if self.fact.debug:
                 display_message(
-                    self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
+                    self.fact.aid.name, 'Tabela atualizada: ' + str(self.fact.table.keys()))
             else:
                 pass
             
             # alteração do estado de em fase de identificação
             # para pronto para receber mensagens
-            self.factory.state = 'READY'
-            self.factory.on_start()
+            self.fact.state = 'READY'
+            self.fact.on_start()
         # caso o agente não esteja na fase 2 de identificação, então estará na fase
         # de recebimento de mensagens, e assim estará pronto para executar seus
         # comportamentos
@@ -246,10 +194,10 @@ class AgentProtocol(LineReceiver):
             if 'AMS' in line:
                 message = ACLMessage()
                 message.set_message(line)
-                self.factory.table = loads(message.content)
-                if self.factory.debug:
+                self.fact.table = loads(message.content)
+                if self.fact.debug:
                     display_message(
-                        self.factory.aid.name, 'Tabela atualizada: ' + str(self.factory.table.keys()))
+                        self.fact.aid.name, 'Tabela atualizada: ' + str(self.fact.table.keys()))
                 else:
                     pass
 
@@ -258,16 +206,16 @@ class AgentProtocol(LineReceiver):
             elif 'Sniffer' in line:
                 # se for a primeira mensagem recebida do agente Sniffer, então seu endereço, isto é nome
                 # e porta, é armazenado na variável do tipo dicionário
-                # self.factory.sniffer
+                # self.fact.sniffer
                 message = ACLMessage()
                 message.set_message(line)
-                if self.factory.sniffer == None:
-                    self.factory.sniffer = {
-                        'name': self.factory.ams['name'], 'port': message.sender.port}
+                if self.fact.sniffer == None:
+                    self.fact.sniffer = {
+                        'name': self.fact.ams['name'], 'port': message.sender.port}
                 
-                if self.factory.debug:
+                if self.fact.debug:
                     display_message(
-                        self.factory.aid.name, 'Solicitação do Sniffer Recebida')
+                        self.fact.aid.name, 'Solicitação do Sniffer Recebida')
                 else:
                     pass
 
@@ -275,11 +223,7 @@ class AgentProtocol(LineReceiver):
 
             # recebe uma parte da mensagem enviada
             else:
-                print 'Recebendo mensagem...'
-                if self.message is not None:
-                    self.message += line
-                else:
-                    self.message = line
+                PeerProtocol.lineReceived(self, line)
 
     def sniffer_message(self, message):
         """
@@ -297,15 +241,15 @@ class AgentProtocol(LineReceiver):
 
         reply = message.create_reply()
         reply.set_performative(ACLMessage.INFORM)
-        reply.set_sender(self.factory.aid)
-        reply.set_content(dumps(self.factory.recent_message_history))
-        self.factory.recent_message_history = []
+        reply.set_sender(self.fact.aid)
+        reply.set_content(dumps(self.fact.recent_message_history))
+        self.fact.recent_message_history = []
 
-        sniffer_aid = AID(name='Sniffer_Agent' + '@' + self.factory.sniffer[
-                          'name'] + ':' + str(self.factory.sniffer['port']))
-        self.factory.messages.append((sniffer_aid, reply))
-        reactor.connectTCP(self.factory.sniffer['name'], int(
-            self.factory.sniffer['port']), self.factory)
+        sniffer_aid = AID(name='Sniffer_Agent' + '@' + self.fact.sniffer[
+                          'name'] + ':' + str(self.fact.sniffer['port']))
+        self.fact.messages.append((sniffer_aid, reply))
+        reactor.connectTCP(self.fact.sniffer['name'], int(
+            self.fact.sniffer['port']), self.fact)
 
 
 class AgentFactory(protocol.ClientFactory):
