@@ -34,10 +34,10 @@ Podemos criar o seguinte filtro:
 
 Em uma sessão IPython é possível observar o efeito da aplicação do filtro sobre a mensagem:
 
-.. sourcecode:: ipython
+::
 
-    In [12]: f.filter(message)
-    Out[12]: False
+    >> f.filter(message)
+    >> False
 
 
 Ajustando agora o filtro para outra condição:
@@ -50,6 +50,6 @@ E aplicando o filtro novamente sobre a mensagem, obtemos um novo resultado:
 
 .. sourcecode:: ipython
 
-    In [14]: f.filter(message)
-    Out[14]: True
+    >> f.filter(message)
+    >> True
     

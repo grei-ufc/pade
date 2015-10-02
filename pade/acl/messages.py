@@ -41,6 +41,7 @@ from datetime import datetime
 from uuid import uuid1
 from pade.acl.aid import AID
 
+
 class ACLMessage(ET.Element):
     """Classe que implementa uma mensagem do tipo ACLMessage
     """
@@ -73,16 +74,16 @@ class ACLMessage(ET.Element):
     FIPA_CONTRACT_NET_PROTOCOL = 'fipa-contract-net protocol'
     FIPA_SUBSCRIBE_PROTOCOL = 'fipa-subscribe-protocol'
     
-    performaives = [         'accept-proposal', 'agree', 'cancel',
-                             'cfp', 'call-for-proposal', 'confirm', 'disconfirm',
-                             'failure', 'inform', 'not-understood',
-                             'propose', 'query-if', 'query-ref',
-                             'refuse', 'reject-proposal', 'request',
-                             'request-when', 'request-whenever', 'subscribe',
-                             'inform-if', 'proxy', 'propagate']
-        
+    performaives = ['accept-proposal', 'agree', 'cancel',
+                    'cfp', 'call-for-proposal', 'confirm', 'disconfirm',
+                    'failure', 'inform', 'not-understood',
+                    'propose', 'query-if', 'query-ref',
+                    'refuse', 'reject-proposal', 'request',
+                    'request-when', 'request-whenever', 'subscribe',
+                    'inform-if', 'proxy', 'propagate']
+
     protocols = ['fipa-request protocol', 'fipa-query protocol', 'fipa-request-when protocol',
-                          'fipa-contract-net protocol']
+                 'fipa-contract-net protocol']
     
     def __init__(self, performative=None):
         """Este método inicializa um objeto do tipo ACLMessage quando este é
