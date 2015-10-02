@@ -1,25 +1,36 @@
 # -*- coding: utf-8 -*-
 
-# Framework para Desenvolvimento de Agentes Inteligentes KajuPy
+# Framework para Desenvolvimento de Agentes Inteligentes PADE
 
-# Copyright (C) 2014  Lucas Silveira Melo
+# The MIT License (MIT)
 
-# Este arquivo é parte do programa KajuPy
-#
-# KajuPy é um software livre; você pode redistribuí-lo e/ou 
-# modificá-lo dentro dos termos da Licença Pública Geral GNU como 
-# publicada pela Fundação do Software Livre (FSF); na versão 3 da 
-# Licença, ou (na sua opinião) qualquer versão.
-#
-# Este programa é distribuído na esperança de que possa ser  útil, 
-# mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO a qualquer
-# MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
-# Licença Pública Geral GNU para maiores detalhes.
-#
-# Você deve ter recebido uma cópia da Licença Pública Geral GNU
-# junto com este programa, se não, escreva para a Fundação do Software
-# Livre(FSF) Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# Copyright (c) 2015 Lucas S Melo
 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+"""
+    Módulo de Definição do AMS
+    --------------------------
+
+    Neste módulo estão definidos os comportamentos do agente
+    AMS.
+"""
 
 from twisted.internet import protocol, reactor
 from twisted.enterprise import adbapi
@@ -35,11 +46,7 @@ from pade.misc.utility import display_message
 
 class AgentManagementProtocol(PeerProtocol):
 
-    """
-        Agent Management protocol
-        -------------------------
-
-        Esta classe implementa os comportamentos de um agente AMS
+    """Esta classe implementa os comportamentos de um agente AMS
 
         A princiapal funcionalidade do AMS é registrar todos os agentes que
         estão conectados ao sistema e atualizar a tabela de agentes de cada
@@ -52,16 +59,12 @@ class AgentManagementProtocol(PeerProtocol):
 
             Parâmetros
             ----------
-            fact: fact do protocolo do AMS
+            factory: factory do protocolo do AMS
         """
         PeerProtocol.__init__(self, fact)
 
     def connectionMade(self):
-        """
-            connectionMade
-            --------------
-
-            Este método é executado sempre que uma conexão é realizada
+        """Este método é executado sempre que uma conexão é realizada
             com o agente AMS
         """
         # armazena as informações do agente conectado por meio do metodo
@@ -81,13 +84,13 @@ class AgentManagementProtocol(PeerProtocol):
                     self.fact.aid.name,
                     'Mensagem enviada ao agente ' + message[0].name)
                 break
+        reactor.callLater(2.0, self.close_con)
+
+    def close_con(self):
+        self.transport.loseConnection()
 
     def connectionLost(self, reason):
-        """
-            connectionLost
-            --------------
-
-            Este método é executado sempre que uma conexão é perdida
+        """Este método é executado sempre que uma conexão é perdida
             com o agente AMS
         """
         if self.message is not None:
@@ -100,29 +103,8 @@ class AgentManagementProtocol(PeerProtocol):
     def send_message(self, message):
         PeerProtocol.send_message(self, message)
 
-    def connection_test_send(self):
-        """
-            Este método é executado ciclicamente com o objetivo de
-            verificar se os agentes estão conectados
-        """
-        if self.fact.debug:
-            display_message(self.fact.aid.name,
-                            'Enviando mensagens de verificação da conexão...')
-        for name, aid in self.fact.table.iteritems():
-            if self.fact.debug:
-                display_message(
-                    self.fact.aid.name,
-                    'Tentando conexão com agente ' + name + '...')
-            reactor.connectTCP(
-                aid.host, int(aid.port), self.fact)
-            self.transport.loseConnection()
-        else:
-            reactor.callLater(1,
-                              self.connection_test_send)
-
     def lineReceived(self, line):
-        """
-            Quando uma mensagem é enviada ao AMS este método é executado.
+        """Quando uma mensagem é enviada ao AMS este método é executado.
             Quando em fase de identificação, o AMS registra o agente
             em sua tabele de agentes ativos
         """
@@ -131,11 +113,7 @@ class AgentManagementProtocol(PeerProtocol):
         PeerProtocol.lineReceived(self, line)
 
     def handle_identif(self, aid):
-        """
-            handle_identif
-            --------------
-
-            Este método é utilizado para cadastrar o agente que esta se identificando
+        """Este método é utilizado para cadastrar o agente que esta se identificando
             na tabela de agentes ativos.
         """
         if aid.name in self.fact.table:
@@ -163,32 +141,12 @@ class AgentManagementProtocol(PeerProtocol):
             message.add_receiver(receiver)
 
         message.set_content(dumps(self.fact.table))
-        self.broadcast_message(message)
-
-        # envia tabela de agentes atualizada a todos os agentes com conexao
-        # ativa com o AMS
-
-    def broadcast_message(self, message):
-        """
-            broadcast_message
-            -----------------
-
-            Este método é utilizado para o envio de mensagems de atualização da
-            tabela de agentes ativos sempre que um novo agente é connectado.
-        """
-        for name, aid in self.fact.table.iteritems():
-            reactor.connectTCP(
-                aid.host, int(aid.port), self.fact)
-            self.fact.messages.append((aid, message))
+        self.fact.broadcast_message(message)
 
 
 class AgentManagementFactory(protocol.ClientFactory):
 
-    """
-        AgentManagementFactory
-        ----------
-
-        Esta classe implementa as ações e atributos do protocolo AMS
+    """Esta classe implementa as ações e atributos do protocolo AMS
         sua principal função é armazenar informações importantes ao protocolo de comunicação 
         do agente AMS
     """
@@ -211,17 +169,20 @@ class AgentManagementFactory(protocol.ClientFactory):
         display_message(
             'AMS', 'AMS esta servindo na porta' + str(self.aid.port))
 
-        # instancia do objeto que implementa o protocolo AMS
-        self.protocol = AgentManagementProtocol(self)
-
         # instancia o objeto que realizará a conexão com o banco de dados
         self.conn = adbapi.ConnectionPool(
             'sqlite3', 'database.db', check_same_thread=False)
         self.d = self.createAgentsTable()
         self.d.addCallback(self.insert_agent)
 
+        reactor.callLater(5, self.connection_test_send)
+
     def buildProtocol(self, addr):
-        return self.protocol
+        # instancia do objeto que implementa o protocolo AMS
+        return AgentManagementProtocol(self)
+
+    def clientConnectionLost(self, connector, reason):
+        pass
 
     def clientConnectionFailed(self, connector, reason):
         for name, aid in self.table.iteritems():
@@ -233,8 +194,35 @@ class AgentManagementFactory(protocol.ClientFactory):
                 message = ACLMessage(ACLMessage.INFORM)
                 message.set_sender(self.aid)
                 message.set_content(dumps(self.table))
-                self.protocol.broadcast_message(message)
+                self.broadcast_message(message)
                 break
+
+    def connection_test_send(self):
+        """Este método é executado ciclicamente com o objetivo de
+            verificar se os agentes estão conectados
+        """
+        if self.debug:
+            display_message(self.aid.name,
+                            'Enviando mensagens de verificação da conexão...')
+        for name, aid in self.table.iteritems():
+            if self.debug:
+                display_message(
+                    self.aid.name,
+                    'Tentando conexão com agente ' + name + '...')
+            reactor.connectTCP(aid.host, int(aid.port), self)
+        else:
+            reactor.callLater(1, self.connection_test_send)
+
+    # envia tabela de agentes atualizada a todos os agentes com conexao
+    # ativa com o AMS
+    def broadcast_message(self, message):
+        """Este método é utilizado para o envio de mensagems de atualização da
+            tabela de agentes ativos sempre que um novo agente é connectado.
+        """
+        for name, aid in self.table.iteritems():
+            reactor.connectTCP(
+                aid.host, int(aid.port), self)
+            self.messages.append((aid, message))
 
     # =======================================================================
     # Estes métodos são utilizados para a comunicação do loop

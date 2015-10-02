@@ -1,24 +1,30 @@
-# -*- encoding: utf-8 -*-
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# Framework para Desenvolvimento de Agentes Inteligentes KajuPy
+# Framework para Desenvolvimento de Agentes Inteligentes PADE
 
-# Copyright (C) 2014  Lucas Silveira Melo
+# The MIT License (MIT)
 
-# Este arquivo é parte do programa KajuPy
-#
-# KajuPy é um software livre; você pode redistribuí-lo e/ou 
-# modificá-lo dentro dos termos da Licença Pública Geral GNU como 
-# publicada pela Fundação do Software Livre (FSF); na versão 3 da 
-# Licença, ou (na sua opinião) qualquer versão.
-#
-# Este programa é distribuído na esperança de que possa ser  útil, 
-# mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO a qualquer
-# MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
-# Licença Pública Geral GNU para maiores detalhes.
-#
-# Você deve ter recebido uma cópia da Licença Pública Geral GNU
-# junto com este programa, se não, escreva para a Fundação do Software
-# Livre(FSF) Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# Copyright (c) 2015 Lucas S Melo
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 
 """
     Módulo de protocolos
@@ -38,21 +44,14 @@ from time import time
 
 class Behaviour(object):
 
-    """
-        Classe Behaviopur
-        -----------------
-
-        Classe que declara os metodos essenciais de um comportamento,
+    """Classe que declara os metodos essenciais de um comportamento,
         todo comportamento deve herdar esta classe.
     """
 
     def __init__(self, agent):
-        """
-            Inicializa a classe Behaviour com uma instancia agent
+        """Inicializa a classe Behaviour com uma instancia agent
 
-            Parâmetros
-            ----------
-            agent : instancia do agente que executara os comportamentos
+            :param agent: instancia do agente que executara os comportamentos
                     estabelecidos pelo protocolo
 
         """
@@ -61,54 +60,34 @@ class Behaviour(object):
         self.timeout = 5
 
     def execute(self, message):
-        """
-            execute
-            -------
-
-            Executa o comportamento propriamente dito do protocolo
+        """Executa o comportamento propriamente dito do protocolo
             para cada tipo de mensagem recebida
         """
         pass
 
     def timed_behaviour(self):
-        """
-            timed_behaviour
-            ---------------
-
-            Utilizado quando o protocolo implementado possui restrições
-            de tempo, como por exemplo utilização de timeout
+        """Utilizado quando o protocolo implementado possui restrições
+           de tempo, como por exemplo utilização de timeout
         """
         pass
 
     def on_start(self):
-        """
-            on_start
-            --------
-
-            Executado sempre que o protocolo e Inicializado
+        """Executado sempre que o protocolo e Inicializado
         """
         self.t1 = int(time())
 
 
 class TimedBehaviour(Behaviour):
-    """
-        TimedBehaviour
-        --------------
+    """Classe para implementação de comportamentos temporizados
     """
     def __init__(self, agent, time):
-        """
-            método de inicialização
-            -----------------------
+        """método de inicialização
         """
         super(TimedBehaviour, self).__init__(agent)
         self.time = time
 
     def on_start(self):
-        """
-            on_start
-            --------
-
-            Este método sobrescreve o metoso on_start da classe
+        """Este método sobrescreve o metoso on_start da classe
             Behaviour e implementa configurações adicionais
             à inicialização do comportamento TimedBehaviour
         """
@@ -116,11 +95,7 @@ class TimedBehaviour(Behaviour):
         self.timed_behaviour()
 
     def timed_behaviour(self):
-        """
-            timed_behaviour
-            ---------------
-
-            Este método é implementado sempre que o comportamento a ser 
+        """Este método é implementado sempre que o comportamento a ser 
             implementado necessitar de restrições temporais.
             Neste caso ele faz uso do método callLater do twisted 
             que recebe como parâmetro um método e o atrazo de tempo para
@@ -132,11 +107,7 @@ class TimedBehaviour(Behaviour):
         reactor.callLater(self.time, self.on_time)
 
     def on_time(self):
-        """
-            execute_on_timeout
-            ------------------
-
-            Este método executa o método handle_all_proposes caso nem
+        """Este método executa o método handle_all_proposes caso nem
             todas as mensagens FIPA_CFP enviadas pelo agente obtenham
             resposta
         """
@@ -145,26 +116,19 @@ class TimedBehaviour(Behaviour):
 
 class FipaRequestProtocol(Behaviour):
 
-    """
-        FipaRequestProtocol
-        ---------------------
-
-        Classe que implementa o protocolo FipaRequestProtocol
+    """Classe que implementa o protocolo FipaRequestProtocol
         herdando a classe Behaviour e implementando seus métodos
     """
 
     def __init__(self, agent, message=None, is_initiator=True):
-        """
-            Inicializa a classe que implementa o protocolo
+        """Inicializa a classe que implementa o protocolo
             FipaRequestProtocol
 
-            Parâmetros
-            ----------
-            agent : instância do agente que executara os comportamentos
+            :param agent: instância do agente que executara os comportamentos
                     estebelecidos pelo protocolo
-            message : mensagem a ser enviada pelo agente quando o 
+            :param message: mensagem a ser enviada pelo agente quando o 
                       parâmetro is_initiator for verdadeiro
-            is_initiator : parâmetro do tipo booleano que indica se esta 
+            :param is_initiator: parâmetro do tipo booleano que indica se esta 
                           instancia do protocolo agirá como Initiator
                           ou como participante
 
@@ -193,11 +157,7 @@ class FipaRequestProtocol(Behaviour):
         self.filter_inform.set_performative(ACLMessage.INFORM)
 
     def on_start(self):
-        """
-            on_start
-            --------
-
-            Este método sobrescreve o metoso on_start da classe
+        """Este método sobrescreve o metoso on_start da classe
             Behaviour e implementa configurações adicionais
             à inicialização do protocolo FipaRequestProtocol
         """
@@ -208,93 +168,57 @@ class FipaRequestProtocol(Behaviour):
             self.agent.send(self.message)
 
     def handle_request(self, message):
-        """
-            handle_request
-            --------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_REQUEST
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def handle_refuse(self, message):
-        """
-            handle_refuse
-            -------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_REFUSE
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def handle_agree(self, message):
-        """
-            handle_agree
-            ------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_AGREE
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def handle_failure(self, message):
-        """
-            handle_failure
-            --------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_FAILURE
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def handle_inform(self, message):
-        """
-            handle_inform
-            -------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_INFORM
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message : Mensagem FIPA-ACL
         """
         pass
 
     def execute(self, message):
-        """
-            execute
-            -------
-
-            Este método sobrescreve o metodo execute da classe 
+        """Este método sobrescreve o metodo execute da classe 
             Behaviour. Nele esta implementado a seleção de qual
             método será executado logo após o recebimento de uma
             mensagem
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
 
         self.message = message
@@ -324,11 +248,7 @@ class FipaRequestProtocol(Behaviour):
 
 class FipaContractNetProtocol(Behaviour):
 
-    """
-        FipaContractNetProtocol
-        -------------------------
-
-        Classe que implementa o protocolo FipaContractNetProtocol
+    """Classe que implementa o protocolo FipaContractNetProtocol
         herdando a classe Behaviour e implementando seus métodos
     """
 
@@ -337,13 +257,11 @@ class FipaContractNetProtocol(Behaviour):
             Inicializa a classe que implementa o protocolo
             FipaContractNetProtocol
 
-            Parâmetros
-            ----------
-            agent : instância do agente que executara os comportamentos
+            :param agent: instância do agente que executara os comportamentos
                     estebelecidos pelo protocolo
-            message : mensagem a ser enviada pelo agente quando o
+            :param message: mensagem a ser enviada pelo agente quando o
                       parâmetro is_initiator for verdadeiro
-            is_initiator : parâmetro do tipo booleano que indica se esta
+            :param is_initiator: parâmetro do tipo booleano que indica se esta
                           instancia do protocolo agirá como Initiator
                           ou como participante
 
@@ -382,11 +300,7 @@ class FipaContractNetProtocol(Behaviour):
         self.filter_inform.set_performative(ACLMessage.INFORM)
 
     def on_start(self):
-        """
-            on_start
-            --------
-
-            Este método sobrescreve o metoso on_start da classe
+        """Este método sobrescreve o metoso on_start da classe
             Behaviour e implementa configurações adicionais
             à inicialização do protocolo FipaContractNetProtocol
         """
@@ -402,32 +316,20 @@ class FipaContractNetProtocol(Behaviour):
                 self.timed_behaviour()
 
     def handle_cfp(self, message):
-        """
-            handle_cfp
-            ----------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_CFP
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def handle_propose(self, message):
-        """
-            handle_propose
-            --------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_PROPOSE
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         self.received_qtd += 1
         if self.received_qtd == self.cfp_qtd:
@@ -436,17 +338,11 @@ class FipaContractNetProtocol(Behaviour):
                 call.cancel()
 
     def handle_refuse(self, message):
-        """
-            handle_refuse
-            -------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_REFUSE
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         self.received_qtd += 1
         if self.received_qtd == self.cfp_qtd:
@@ -455,74 +351,46 @@ class FipaContractNetProtocol(Behaviour):
                 call.cancel()
 
     def handle_all_proposes(self, proposes):
-        """
-            handle_all_proposes
-            -------------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado em um dos dois casos:
             * A quantidade de respostas recebidas for igual a quantidade
             de solicitações recebidas
             * O timeout for atingido
 
-            Parâmetros
-            ----------
-            proposes : lista com as respostas das solicitações envidas
+            :param proposes: lista com as respostas das solicitações envidas
                        pelo Initiator
         """
         self.received_qtd = 0
 
     def handle_inform(self, message):
-        """
-            handle_inform
-            -------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_INFORM
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def handle_reject_propose(self, message):
-        """
-            handle_reject_propose
-            ----------------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_REJECT_PROPOSE
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def handle_accept_propose(self, message):
-        """
-            handle_accept_propose
-            ---------------------
-
-            Este método deve ser sobrescrito quando na implementação
+        """Este método deve ser sobrescrito quando na implementação
             do protocolo, sendo executado sempre que o agente receber
             uma mensagem do tipo FIPA_ACCEPT_PROPOSE
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
         pass
 
     def timed_behaviour(self):
-        """
-            timed_behaviour
-            ---------------
-
-            Este método é implementado sempre que o protocolo a ser 
+        """Este método é implementado sempre que o protocolo a ser 
             implementado necessitar de restrições temporais, como é
             o caso do FipaContractNetProtocol. Neste caso ele faz
             uso do metodo callLater do twisted que recebe como 
@@ -535,11 +403,7 @@ class FipaContractNetProtocol(Behaviour):
         reactor.callLater(self.timeout, self.execute_on_timeout)
 
     def execute_on_timeout(self):
-        """
-            execute_on_timeout
-            ------------------
-
-            Este método executa o método handle_all_proposes caso nem
+        """Este método executa o método handle_all_proposes caso nem
             todas as mensagens FIPA_CFP enviadas pelo agente obtenham
             resposta
         """
@@ -547,18 +411,12 @@ class FipaContractNetProtocol(Behaviour):
         self.handle_all_proposes(self.proposes)
 
     def execute(self, message):
-        """
-            execute
-            -------
-
-            Este método sobrescreve o metodo execute da classe 
+        """Este método sobrescreve o metodo execute da classe 
             Behaviour. Nele esta implementado a seleção de qual
             método será executado logo após o recebimento de uma
             mensagem
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
 
         super(FipaContractNetProtocol, self).execute(message)
@@ -610,20 +468,12 @@ class FipaContractNetProtocol(Behaviour):
 
 
 class FipaSubscribeProtocol(Behaviour):
-    """
-        FipaSubscribeProtocol
-        ---------------------
-
-        Classe que implementa o protocolo FipaSubscribeProtocol
+    """Classe que implementa o protocolo FipaSubscribeProtocol
         herdando a classe Behaviour e implementando seus métodos
     """
 
     def __init__(self, agent, message=None, is_initiator=True):
-        """
-            método de inicialização
-            -----------------------
-
-
+        """método de inicialização
         """
 
         super(FipaSubscribeProtocol, self).__init__(agent)
@@ -655,11 +505,7 @@ class FipaSubscribeProtocol(Behaviour):
         self.filter_failure.set_performative(ACLMessage.FAILURE)
 
     def on_start(self):
-        """
-            on_start
-            --------
-
-            Este método sobrescreve o metoso on_start da classe
+        """Este método sobrescreve o metoso on_start da classe
             Behaviour e implementa configurações adicionais
             à inicialização do protocolo FipaContractNetProtocol
         """
@@ -669,56 +515,50 @@ class FipaSubscribeProtocol(Behaviour):
 
             if self.message.performative == ACLMessage.SUBSCRIBE:
                 self.agent.send(self.message)
-                #self.timed_behaviour()
+                # self.timed_behaviour()
 
     def handle_subscribe(self, message):
         """
             handle_subscribe
-            ----------------
+
         """
         pass
 
     def handle_agree(self, message):
         """
             handle_agree
-            ------------
+
         """
         pass
 
     def handle_refuse(self, message):
         """
             handle_refuse
-            -------------
+
         """
         pass
 
     def handle_inform(self, message):
         """
             handle_inform
-            -------------
+
         """
         pass
 
     def handle_cancel(self, message):
         """
             handle_cancel
-            -------------
+
         """
         pass
 
     def execute(self, message):
-        """
-            execute
-            -------
-
-            Este método sobrescreve o metodo execute da classe 
+        """Este método sobrescreve o metodo execute da classe 
             Behaviour. Nele esta implementado a seleção de qual
             método será executado logo após o recebimento de uma
             mensagem
 
-            Parâmetros
-            ----------
-            message : Mensagem FIPA-ACL
+            :param message: Mensagem FIPA-ACL
         """
 
         super(FipaSubscribeProtocol, self).execute(message)
@@ -747,23 +587,20 @@ class FipaSubscribeProtocol(Behaviour):
             return
 
     def register(self, aid):
-        """
-            register
-            --------
+        """register
+
         """
         self.subscribers.add(aid)
 
     def deregister(self, aid):
-        """
-            deregister
-            ----------
+        """deregister
+
         """
         self.subscribers.remove(aid)
 
     def notify(self, message):
-        """
-            notify
-            ------
+        """notify
+
         """
         for sub in self.subscribers:
             message.add_receiver(sub)

@@ -1,25 +1,36 @@
 # -*- coding: utf-8 -*-
 
-# Framework para Desenvolvimento de Agentes Inteligentes KajuPy
+# Framework para Desenvolvimento de Agentes Inteligentes PADE
 
-# Copyright (C) 2014  Lucas Silveira Melo
+# The MIT License (MIT)
 
-# Este arquivo é parte do programa KajuPy
-#
-# KajuPy é um software livre; você pode redistribuí-lo e/ou 
-# modificá-lo dentro dos termos da Licença Pública Geral GNU como 
-# publicada pela Fundação do Software Livre (FSF); na versão 3 da 
-# Licença, ou (na sua opinião) qualquer versão.
-#
-# Este programa é distribuído na esperança de que possa ser  útil, 
-# mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO a qualquer
-# MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
-# Licença Pública Geral GNU para maiores detalhes.
-#
-# Você deve ter recebido uma cópia da Licença Pública Geral GNU
-# junto com este programa, se não, escreva para a Fundação do Software
-# Livre(FSF) Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# Copyright (c) 2015 Lucas S Melo
 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+"""
+    Módulo de Definição do Sniffer
+    ------------------------------
+
+    Neste módulo estão definidos os comportamentos do agente
+    Sniffer.
+"""
 from twisted.internet import protocol, reactor
 
 from pade.core.peer import PeerProtocol
@@ -30,16 +41,15 @@ from pade.acl.aid import AID
 from pade.gui.interface import ControlACLMessageDialog
 from pickle import dumps, loads
 
-from PySide import QtGui
+try:
+    from PySide import QtGui
+except Exception, e:
+    print 'PySide nao esta instalado!'
 
 
 class Sniffer(PeerProtocol):
 
-    """
-        Sniffer
-        -------
-
-        Esta classe implementa o agente Sniffer que tem o objetivo de
+    """Esta classe implementa o agente Sniffer que tem o objetivo de
         enviar mensagens para os agentes ativos e exibir suas mensagens
         por meio de uma GUI.
         Protocolo do Agente GUI paramonitoramento dos agentes
@@ -48,14 +58,6 @@ class Sniffer(PeerProtocol):
 
     def __init__(self, fact):
         PeerProtocol.__init__(self, fact)
-        # conecta o agente ao agente AMS
-        reactor.connectTCP(self.fact.ams['name'],
-                           self.fact.ams['port'],
-                           self.fact)
-        # configura os sinais da interface grafica
-        self.fact.ui.listWidget.currentItemChanged.connect(
-            self.onItemChanged)
-        self.fact.ui.listWidget_2.itemPressed.connect(self.on_item_entered)
 
     def connectionMade(self):
         """
@@ -77,6 +79,7 @@ class Sniffer(PeerProtocol):
             self.fact.state = 'READY'
             self.sendLine(msg.get_message())
             self.transport.loseConnection()
+            display_message(self.fact.aid.localname, "Mensagem de autenticacao enviada")
         else:
             PeerProtocol.connectionMade(self)
 
@@ -94,7 +97,6 @@ class Sniffer(PeerProtocol):
             else:
                 self.fact.agents_messages[agent] = loads(message.content)
 
-            print self.fact.agents_messages[agent]
             self.show_messages(self.fact.agents_messages[agent])
 
             self.message = None
@@ -103,8 +105,7 @@ class Sniffer(PeerProtocol):
         PeerProtocol.send_message(self, message)
 
     def lineReceived(self, line):
-        """
-            Este método é executado sempre que uma mesagem é recebida pelo agente Sniffer
+        """Este método é executado sempre que uma mesagem é recebida pelo agente Sniffer
         """
 
         # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
@@ -131,28 +132,41 @@ class Sniffer(PeerProtocol):
         else:
             PeerProtocol.lineReceived(self, line)
 
-    def onItemChanged(self, current, previous):
-        for name, aid in self.fact.table.iteritems():
-            if name in current.text() and not ('Sniffer' in name):
-                message = ACLMessage(ACLMessage.REQUEST)
-                message.set_sender(self.fact.aid)
-                message.add_receiver(aid)
-                message.set_content('Request messages history')
-
-                self.fact.messages.append((aid, message))
-
-                reactor.connectTCP(aid.host, aid.port, self.fact)
-                break
-
     def show_messages(self, messages):
-        """
-            Este método exibe a lista de mensagens que estão em na lista de mensagens do agente selecionado
+        """Este método exibe a lista de mensagens que estão em na lista de mensagens do agente selecionado
         """
         self.fact.ui.listWidget_2.clear()
         for message in messages:
             serifFont = QtGui.QFont(None, 10, QtGui.QFont.Bold)
             item = Item(message, serifFont)
             self.fact.ui.listWidget_2.addItem(item)
+
+
+class SnifferFactory(protocol.ClientFactory):
+
+    """Esta classe implementa o factory do protocolo do agente Sniffer
+    """
+
+    def __init__(self, aid, ams, ui):
+        self.ui = ui    # instancia da interface grafica
+        self.aid = aid  # identificação do agente
+        self.ams = ams  # identificação do agente ams
+        # armazena os agentes ativos, é um dicionário contendo chaves: nome e
+        # valores: aid
+        self.debug = True
+        self.table = {}
+        self.agents_messages = {}
+        self.state = 'IDENT'
+        self.messages = []  # armazena as mensagens a serem enviadas
+
+        # conecta o agente ao agente AMS
+        reactor.connectTCP(self.ams['name'], self.ams['port'], self)
+        # configura os sinais da interface grafica
+        self.ui.listWidget.currentItemChanged.connect(self.onItemChanged)
+        self.ui.listWidget_2.itemPressed.connect(self.on_item_entered)
+
+    def buildProtocol(self, addr):
+        return Sniffer(self)
 
     def on_item_entered(self, item):
 
@@ -180,31 +194,18 @@ class Sniffer(PeerProtocol):
         gui.ui.replyWithText.setText(item.message.reply_with)
         gui.exec_()
 
+    def onItemChanged(self, current, previous):
+        for name, aid in self.table.iteritems():
+            if name in current.text() and not ('Sniffer' in name):
+                message = ACLMessage(ACLMessage.REQUEST)
+                message.set_sender(self.aid)
+                message.add_receiver(aid)
+                message.set_content('Request messages history')
 
-class SnifferFactory(protocol.ClientFactory):
+                self.messages.append((aid, message))
 
-    """
-        Classe SnifferFactory
-        ---------------------
-
-        Esta classe implementa o factory do protocolo do agente Sniffer
-    """
-
-    def __init__(self, aid, ams, ui):
-        self.ui = ui    # instancia da interface grafica
-        self.aid = aid  # identificação do agente
-        self.ams = ams  # identificação do agente ams
-        # armazena os agentes ativos, é um dicionário contendo chaves: nome e
-        # valores: aid
-        self.debug = False
-        self.table = {}
-        self.agents_messages = {}
-        self.state = 'IDENT'
-        self.messages = []  # armazena as mensagens a serem enviadas
-        self.protocol = Sniffer(self)
-
-    def buildProtocol(self, addr):
-        return self.protocol
+                reactor.connectTCP(aid.host, aid.port, self)
+                break
 
 
 class Item(QtGui.QListWidgetItem):

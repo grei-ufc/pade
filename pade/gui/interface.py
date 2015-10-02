@@ -1,85 +1,107 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'AgentsGUI.ui'
-#
-# Created: Mon Apr 14 10:44:20 2014
-#      by: pyside-uic 0.2.15 running on PySide 1.2.1
-#
-# WARNING! All changes made in this file will be lost!
+# Framework para Desenvolvimento de Agentes Inteligentes PADE
 
-from PySide import QtCore, QtGui
+# The MIT License (MIT)
+
+# Copyright (c) 2015 Lucas S Melo
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
+try:
+    from PySide import QtCore, QtGui
+except Exception, e:
+    print 'PySide nao esta instalado!'
+
 from pade.acl.messages import ACLMessage
 from uuid import uuid1
 import sys
 
+
 class AgentsGui(object):
-    
+
     def setupUi(self, MainWindow):
         # Configura a instancia da classe MainWindow
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(784, 542)
-        
+
         # Instancia e configura o objeto sizePolicy
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Maximum, QtGui.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
-        
+
         # Seta o parametro sizePolicy da instancia da classe MainWindow com o objeto sizePolicy
         MainWindow.setSizePolicy(sizePolicy)
-        
+
         # Instancia o Objeto QWidget que abrigará os outros widgets
         self.widget = QtGui.QWidget(MainWindow)
         self.widget.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.widget.setObjectName("widget")
-        
+
         # Instancia e configura o objeto de layout verticalLayout
         self.verticalLayout_4 = QtGui.QVBoxLayout(self.widget)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
-        
+
         # Instancia e configura o objeto de layout horizontalLayout
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
-        
+
         # Istancia o obejto groupBox
         self.groupBox = QtGui.QGroupBox(self.widget)
         self.groupBox.setObjectName("groupBox")
-        
+
         # Instancia e configura o objeto verticalLayout
         self.verticalLayout_2 = QtGui.QVBoxLayout(self.groupBox)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-        
+
         # Instancia o objeto listWidget
         self.listWidget = QtGui.QListWidget(self.groupBox)
         self.listWidget.setObjectName("listWidget")
         self.verticalLayout_2.addWidget(self.listWidget)
-        
+
         # Adiciona o objeto groupBox ao horizontalLayout
         self.horizontalLayout.addWidget(self.groupBox)
-        
+
         # Instancia o objeto groupBox_2
         self.groupBox_2 = QtGui.QGroupBox(self.widget)
         self.groupBox_2.setObjectName("groupBox_2")
-        
+
         # Instancia e configura o objeto verticalLayout
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.groupBox_2)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        
+
         # Instancia o objeto listWidget_2
         self.listWidget_2 = QtGui.QListWidget(self.groupBox_2)
         self.listWidget_2.setObjectName("listWidget_2")
         self.verticalLayout_3.addWidget(self.listWidget_2)
-        
+
         # Adiciona o objeto groupBox_2 ao horizontalLayout
         self.horizontalLayout.addWidget(self.groupBox_2)
-            
+
         # Adiciona o horizontalLayout ao verticalLayout
         self.verticalLayout_4.addLayout(self.horizontalLayout)
-        
+
         # Seta o objeto self.widget a instancia da classe MainWindow
         MainWindow.setCentralWidget(self.widget)
-        
+
         # Instancia e configura o obejto menubar
         self.menubar = QtGui.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 784, 25))
@@ -87,22 +109,22 @@ class AgentsGui(object):
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 25))
         self.menubar.setNativeMenuBar(True)
         MainWindow.setMenuBar(self.menubar)
-        
+
         # Instancia os objetos menu
         self.fileMenu = QtGui.QMenu('')
         self.preferenciasAction = QtGui.QAction(QtGui.QIcon('./Imagens/preferencias.png'),'',self.fileMenu)
         self.preferenciasAction.triggered.connect(self.showPreferenciasDialog)
-        
+
         self.fileMenu.addAction(self.preferenciasAction)
         # adiciona os menus
         self.menubar.addMenu(self.fileMenu)
-        
+
         # instancia e configura o objeto toolbar
         self.toolbar = QtGui.QToolBar(MainWindow)
         self.toolbar.setObjectName("toolbar")
         self.toolbar.addAction(self.preferenciasAction)
         MainWindow.addToolBar(self.toolbar)
-        
+
         # Instancia e configura o objeto statusbar
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -113,15 +135,16 @@ class AgentsGui(object):
 
     def showPreferenciasDialog(self):
         print 'Abrir Dialog Preferencias'
-        
+
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Interface de Gerenciamento dos Agentes", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Agentes", None, QtGui.QApplication.UnicodeUTF8))
         self.groupBox_2.setTitle(QtGui.QApplication.translate("MainWindow", "Mensagens", None, QtGui.QApplication.UnicodeUTF8))
-        
+
         self.fileMenu.setTitle(QtGui.QApplication.translate("MainWindow", "Arquivo", None, QtGui.QApplication.UnicodeUTF8))
         self.preferenciasAction.setText(QtGui.QApplication.translate("MainWindow", "Preferências", None, QtGui.QApplication.UnicodeUTF8))
-    
+
+
 class ControlAgentsGui(QtGui.QMainWindow):
     def __init__(self):
         super(ControlAgentsGui, self).__init__()
@@ -134,7 +157,7 @@ class ACLMessageDialog(QtGui.QWidget):
         Esta classe cria uma interface gráfica de configuração de 
         uma mensagem do tipo ACLMessage
     '''
-     
+
     def setupUi(self, Dialog):
         
         Dialog.setObjectName("Dialog")

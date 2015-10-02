@@ -3,34 +3,39 @@
 
 # Framework para Desenvolvimento de Agentes Inteligentes PADE
 
-# Copyright (C) 2014  Lucas Silveira Melo
+# The MIT License (MIT)
 
-# Este arquivo é parte do programa PADE
-#
-# PADE é um software livre; você pode redistribuí-lo e/ou 
-# modificá-lo dentro dos termos da Licença Pública Geral GNU como 
-# publicada pela Fundação do Software Livre (FSF); na versão 3 da 
-# Licença, ou (na sua opinião) qualquer versão.
-#
-# Este programa é distribuído na esperança de que possa ser  útil, 
-# mas SEM NENHUMA GARANTIA; sem uma garantia implícita de ADEQUAÇÃO a qualquer
-# MERCADO ou APLICAÇÃO EM PARTICULAR. Veja a
-# Licença Pública Geral GNU para maiores detalhes.
-#
-# Você deve ter recebido uma cópia da Licença Pública Geral GNU
-# junto com este programa, se não, escreva para a Fundação do Software
-# Livre(FSF) Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+# Copyright (c) 2015 Lucas S Melo
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+
 
 """
  Módulo de Implementação de agentes
  ----------------------------------
 
- Este módulo Python faz parte da infraestrutura de comunicação 
- e gerenciamento de agentes que compõem o framework para construção 
- de agentes inteligentes implementado com base na biblioteca para 
+ Este módulo Python faz parte da infraestrutura de comunicação
+ e gerenciamento de agentes que compõem o framework para construção
+ de agentes inteligentes implementado com base na biblioteca para
  implementação de sistemas distribuídos em Python Twisted
 
- @author: lucas
+ @author: Lucas S Melo
 """
 
 from twisted.internet import protocol, reactor
@@ -61,11 +66,7 @@ class AttributeDescriptor(object):
 
 class AgentProtocol(PeerProtocol):
 
-    """
-        Classe AgentProtocol
-        --------------------
-
-        Esta classe implementa o protocolo que será seguido pelos
+    """Esta classe implementa o protocolo que será seguido pelos
         agentes no processo de comunicação. Esta classe modela os
         atos de comunicação entre agente e agente AMS, agente e
         agente Sniffer e entre agentes.
@@ -75,28 +76,17 @@ class AgentProtocol(PeerProtocol):
     """
 
     def __init__(self, fact):
-        """
-            Método de inicializacao da classe AgentProtocol
-            -----------------------------------------------
+        """Inicializa os atributos da classe
 
-            Inicializa os atributos da classe
-
-            Parâmetros
-            ----------
-            fact : instancia fact do protocolo a ser inplementado
+        :param fact: instancia fact do protocolo a ser inplementado
         """
 
         self.fact = fact
-        # esta variavel é setada para a fase de identificação 1
-        self.fact.state = 'IDENT1'
 
     def connectionMade(self):
-        """
-            connectionMade
-            --------------
-
-            Este método é executado sempre que uma conexão é executada entre 
-            um agente no modo cliente e um agente no modo servidor
+        """Este método é executado sempre que uma
+        conexão é executada entre um agente no modo
+        cliente e um agente no modo servidor
         """
 
         # fase 1 de identificação do agente com o AMS
@@ -116,7 +106,6 @@ class AgentProtocol(PeerProtocol):
             # fase 2
             self.fact.state = 'IDENT2'
             self.send_message(msg.get_message())
-
         # se não é a fase de identificação 1 então o agente tenta enviar as mensagens presentes
         # na fila de envio representada pela variável self.fact.messages
         else:
@@ -125,15 +114,9 @@ class AgentProtocol(PeerProtocol):
             PeerProtocol.connectionMade(self)
 
     def connectionLost(self, reason):
-        """
-            connectionLost
-            --------------
+        """Este método executa qualquer coisa quando uma conexão é perdida
 
-            Este método executa qualquer coisa quando uma conexão é perdida
-
-            Parâmetros
-            ----------
-            reason: Identifica o problema na perda de conexão
+        :param reason: Identifica o problema na perda de conexão
         """
         if self.message is not None:
             message = PeerProtocol.connectionLost(self, reason)
@@ -149,20 +132,12 @@ class AgentProtocol(PeerProtocol):
         PeerProtocol.send_message(self, message)
 
     def lineReceived(self, line):
+        """Este método é executado sempre que uma
+        nova mensagem é recebida pelo agente, 
+        tanto no modo cliente quanto no modo servidor
+
+        :param line: mensagem recebida pelo agente
         """
-            lineReceived
-            ------------
-
-            Este método é executado sempre que uma
-            nova mensagem é recebida pelo agente, tanto no modo cliente
-            quanto no modo servidor
-
-            Parâmetros
-            ----------
-            line : mensagem recebida pelo agente
-
-        """
-
 
         # TODO: Melhorar o armazenamento e a troca deste tipo de mensagem
         # entre o agente e o agente Sniffer
@@ -174,17 +149,18 @@ class AgentProtocol(PeerProtocol):
             message.set_message(line)
 
             self.fact.table = loads(message.content)
-            
+
             if self.fact.debug:
                 display_message(
                     self.fact.aid.name, 'Tabela atualizada: ' + str(self.fact.table.keys()))
             else:
                 pass
-            
+
             # alteração do estado de em fase de identificação
             # para pronto para receber mensagens
             self.fact.state = 'READY'
             self.fact.on_start()
+            # self.transport.loseConnection()
         # caso o agente não esteja na fase 2 de identificação, então estará na fase
         # de recebimento de mensagens, e assim estará pronto para executar seus
         # comportamentos
@@ -200,7 +176,7 @@ class AgentProtocol(PeerProtocol):
                         self.fact.aid.name, 'Tabela atualizada: ' + str(self.fact.table.keys()))
                 else:
                     pass
-
+                self.transport.loseConnection()
             # este método é executado caso a mensagem recebida tenha sido enviada pelo Agente Sniffer
             # que requisita a tabela de mensagens do agente
             elif 'Sniffer' in line:
@@ -212,7 +188,7 @@ class AgentProtocol(PeerProtocol):
                 if self.fact.sniffer == None:
                     self.fact.sniffer = {
                         'name': self.fact.ams['name'], 'port': message.sender.port}
-                
+
                 if self.fact.debug:
                     display_message(
                         self.fact.aid.name, 'Solicitação do Sniffer Recebida')
@@ -220,23 +196,17 @@ class AgentProtocol(PeerProtocol):
                     pass
 
                 self.sniffer_message(message)
-
+                self.transport.loseConnection()
             # recebe uma parte da mensagem enviada
             else:
                 PeerProtocol.lineReceived(self, line)
 
     def sniffer_message(self, message):
-        """
-            sniffer_message
-            --------------
+        """Este método trata a mensagem enviada pelo agente Sniffer
+        e cria uma mensagem de resposta ao agente Sniffer
 
-            Este método trata a mensagem enviada pelo agente Sniffer
-            e cria uma mensagem de resposta ao agente Sniffer
-
-            Parâmetros
-            ----------
-            message : mensagem recebida pelo agente, enviada pelo
-                      agente Sniffer
+        :param message: mensagem recebida pelo agente, enviada pelo
+                  agente Sniffer
         """
 
         reply = message.create_reply()
@@ -254,13 +224,10 @@ class AgentProtocol(PeerProtocol):
 
 class AgentFactory(protocol.ClientFactory):
 
-    """
-        AgentFactory
-        ------------
-
-        Esta classe implementa as ações e atributos do protocolo Agent
-        sua principal função é armazenar informações importantes ao 
-        protocolo de comunicação  do agente
+    """Esta classe implementa as ações e atributos do
+    protocolo Agent sua principal função é armazenar
+    informações importantes ao protocolo de comunicação
+    do agente
     """
 
     def __init__(self, aid, ams, debug, react, on_start):
@@ -275,7 +242,7 @@ class AgentFactory(protocol.ClientFactory):
         # usuario
         self.react = react
         # armazena os estados de execução do protocolo agente
-        self.state = 'IDENT'
+        self.state = 'IDENT1'
         # metodo que executa ações definidas pelo usuario quando o agente é
         # iniciado
         self.on_start = on_start
@@ -284,23 +251,17 @@ class AgentFactory(protocol.ClientFactory):
         self.table = {}
         # instancia do protocolo agente
         self.debug = debug
-        self.agentProtocol = AgentProtocol(self)
+
+        self.con = 0
 
     def buildProtocol(self, addr):
+        """Este metodo inicializa o protocolo Agent
         """
-            buildProtocol
-            -------------
-
-            Este metodo inicializa o protocolo Agent
-        """
-        return self.agentProtocol
+        return AgentProtocol(self)
 
     def clientConnectionFailed(self, connector, reason):
-        """
-            clientConnectionFailed
-            ----------------------
-
-            Este método é chamado quando ocorre uma falha na conexão de um cliente com o servidor 
+        """Este método é chamado quando ocorre uma
+        falha na conexão de um cliente com o servidor
         """
         if self.debug:
             display_message(self.aid.name, 'Falha na Conexão')
@@ -310,31 +271,24 @@ class AgentFactory(protocol.ClientFactory):
         reactor.stop()
 
     def clientConnectionLost(self, connector, reason):
-        """
-            clientConnectionLost
-            --------------------
-
-            Este método chamado quando a conexão de um cliente com um servidor é perdida
+        """Este método chamado quando a conexão de
+        um cliente com um servidor é perdida
         """
         pass
 
 
 class Agent(object):
 
-    """
-        Classe Agente
-        -------------
-
-        A classe Agente estabelece as funcionalidades essenciais de um agente como:
-        1. Conexão com o AMS
-        2. Configurações iniciais
-        3. Envio de mensagens
-        4. Adição de comportamentos
-        5. metodo abstrato a ser utilizado na implementação dos comportamentos iniciais 
-        6. metodo abstrato a ser utlizado na implementação dos comportamentos dos agentes quando recebem uma mensagem
+    """A classe Agente estabelece as funcionalidades essenciais de um agente como:
+    1. Conexão com o AMS
+    2. Configurações iniciais
+    3. Envio de mensagens
+    4. Adição de comportamentos
+    5. metodo abstrato a ser utilizado na implementação dos comportamentos iniciais 
+    6. metodo abstrato a ser utlizado na implementação dos comportamentos dos agentes quando recebem uma mensagem
     """
 
-    def __init__(self,aid, debug=False):
+    def __init__(self, aid, debug=False):
 
         self.aid = aid
         self.debug = debug
@@ -383,12 +337,6 @@ class Agent(object):
             except Exception, e:
                 raise e
 
-        self.__agentInstance = AgentFactory(aid=self.aid,
-                                            ams=self.__ams,
-                                            debug=self.__debug,
-                                            react=self.react,
-                                            on_start=self.on_start)
-
     @property
     def agentInstance(self):
         return self.__agentInstance
@@ -396,11 +344,7 @@ class Agent(object):
     @agentInstance.setter
     def agentInstance(self, value):
         if isinstance(value, AgentFactory):
-            self.__agentInstance = AgentFactory(aid=self.aid,
-                                                ams=self.__ams,
-                                                debug=self.__debug,
-                                                react=self.react,
-                                                on_start=self.on_start)
+            self.__agentInstance = value
         else:
             raise ValueError(
                 'O objeto agentInstance precisa ser do tipo AgentFactory')
@@ -419,12 +363,12 @@ class Agent(object):
             self.__behaviours = value
 
     def react(self, message):
-        """
-            react
-            -----
+        """Este metodo deve ser SobreEscrito e será
+        executado todas as vezes que o agente em
+        questão receber algum tipo de dado
 
-            Este metodo deve ser SobreEscrito e será executado todas as vezes que
-            o agente em questão receber algum tipo de dado
+        :param message: ACLMessage
+            mensagem recebida
         """
         # este for executa todos os protocolos FIPA associados a comportmentos
         # implementados neste agente
@@ -432,11 +376,8 @@ class Agent(object):
             behaviour.execute(message)
 
     def send(self, message):
-        """
-            send
-            ----
-
-            Envia uma mensagem ACL para os agentes especificados no campo receivers da mensagem ACL
+        """Envia uma mensagem ACL para os agentes
+        especificados no campo receivers da mensagem ACL
         """
         message.set_sender(self.aid)
         # for percorre os destinatarios da mensagem
@@ -465,12 +406,11 @@ class Agent(object):
         return reactor.callLater(time, metodo, *args)
 
     def send_to_all(self, message):
-        """
-            send_to_all
-            -----------
+        """Envia mensagem de broadcast, ou seja envia mensagem
+        para todos os agentes com registro na tabela de agentes
 
-           Envia mensagem de broadcast, ou seja envia mensagem
-           para todos os agentes com registro na tabela de agentes
+        :param message: mensagem a ser enviada a todos
+        os agentes registrados na tabela do agente
         """
 
         for agent_aid in self.agentInstance.table.values():
@@ -485,11 +425,8 @@ class Agent(object):
                 message.add_receiver(agent_aid)
 
     def on_start(self):
-        """
-            on_start
-            --------
-
-            Metodo que definine os comportamentos iniciais de um agente
+        """Metodo que definine os comportamentos
+        iniciais de um agente
         """
         # Este for adiciona os comportametos padronizados especificados pelo
         # usuário
