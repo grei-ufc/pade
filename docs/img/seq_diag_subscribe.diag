@@ -1,0 +1,12 @@
+seqdiag{
+    activation = none;
+    
+    agente_assinante_1 -> agente_editor[label='SUBSCRIBE']; 
+    agente_assinante_1 <- agente_editor[label='AGREE'];
+    agente_assinante_2 -> agente_editor[label='SUBSCRIBE']; 
+    agente_assinante_2 <- agente_editor[label='AGREE'];
+    agente_assinante_3 -> agente_editor[label='SUBSCRIBE'];
+    agente_assinante_3 <- agente_editor[label='REFUSE'];
+    agente_assinante_1 <- agente_editor[label='INFORM'];
+    agente_assinante_2 <- agente_editor[label='INFORM'];
+}

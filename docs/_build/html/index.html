@@ -1,0 +1,287 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Python Agent DEvelopment framework &mdash; Pade 1.0 documentação</title>
+    
+    <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <link rel="top" title="Pade 1.0 documentação" href="#" />
+    <link rel="next" title="Instalação" href="user/instalacao.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+  <script type="text/javascript" src="https://gumroad.com/js/gumroad.js"></script>
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegação</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice Geral"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Índice de Módulos do Python"
+             >módulos</a> |</li>
+        <li class="right" >
+          <a href="user/instalacao.html" title="Instalação"
+             accesskey="N">próximo</a> |</li>
+        <li><a href="#">Pade 1.0 documentação</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="python-agent-development-framework">
+<h1>Python Agent DEvelopment framework<a class="headerlink" href="#python-agent-development-framework" title="Link permanente para este título">¶</a></h1>
+<div class="section" id="sistemas-multiagentes-para-python">
+<h2>Sistemas Multiagentes para Python!<a class="headerlink" href="#sistemas-multiagentes-para-python" title="Link permanente para este título">¶</a></h2>
+<p>PADE é um framework para desenvolvimento, execução e gerenciamento de sistemas multiagentes em ambientes de computação distribuída.</p>
+<p>PADE é escrito 100% em Python e utiliza as bibliotecas do projeto Twisted para implementar a comunicação entre os nós da rede.</p>
+<p>PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido no ambito da Universidade Federal do Ceará pelo Grupo de Redes Elétricas Inteligentes (GREI) que pertence ao departamento de Engenharia Elétrica.</p>
+<p>Qualquer um que queira contribuir com o projeto é convidado a baixar, executar, testar e enviar feedback a respeito das impressões tiradas da plataforma.</p>
+<div class="section" id="pade-e-divertido">
+<h3>PADE é divertido!<a class="headerlink" href="#pade-e-divertido" title="Link permanente para este título">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># este e o arquivo start_ams.py</span>
+<span class="kn">from</span> <span class="nn">pade.misc.common</span> <span class="kn">import</span> <span class="n">set_ams</span><span class="p">,</span> <span class="n">start_loop</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">set_ams</span><span class="p">(</span><span class="s">&#39;localhost&#39;</span><span class="p">,</span> <span class="mi">8000</span><span class="p">)</span>
+    <span class="n">start_loop</span><span class="p">(</span><span class="nb">list</span><span class="p">(),</span> <span class="n">gui</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="e-facil-de-instalar">
+<h3>E fácil de instalar!<a class="headerlink" href="#e-facil-de-instalar" title="Link permanente para este título">¶</a></h3>
+<p>Para instalar o PADE basta executar o seguinte comando em um terminal linux:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ pip install pade
+$ python start_ams.py
+</pre></div>
+</div>
+</div>
+<div class="section" id="creditos">
+<h3>Créditos<a class="headerlink" href="#creditos" title="Link permanente para este título">¶</a></h3>
+<p>PADE é software livre e é desenvolvido pela equipe do grupo de redes elétricas inteligentes:</p>
+<p><strong>Lucas Melo</strong>: Ditador Benevolente Vitalício (Benevolent Dictator for Life) do PADE</p>
+<p><strong>Professora Ruth Leão</strong>: Coordenadora do Grupo de Redes Elétricas Inteligentes da UFC</p>
+<p><strong>Professor Raimundo Furtado</strong>: Coordenador do Grupo de Redes Elétricas Inteligentes da UFC</p>
+<p><strong>Professor Giovanni Cordeiro</strong>: Colaborador do projeto PADE</p>
+</div>
+</div>
+<div class="section" id="guia-do-usuario">
+<h2>Guia do Usuário<a class="headerlink" href="#guia-do-usuario" title="Link permanente para este título">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="user/instalacao.html">Instalação</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/instalacao.html#instalacao-via-pip">Instalação via PIP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/instalacao.html#instalacao-via-github">Instalação via GitHub</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/hello-world.html">Alô Mundo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/meu-primeiro-agente.html">Meu Primeiro Agente</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/meu-primeiro-agente.html#construindo-meu-primeiro-agente">Construindo meu primeiro agente</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/agentes-temporais.html">Agentes Temporais</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/agentes-temporais.html#execucao-de-um-agente-temporal">Execução de um agente temporal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/agentes-temporais.html#execucao-de-dois-agentes-temporais">Execução de dois agentes temporais</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/enviando-mensagens.html">Enviando Mensagens</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/enviando-mensagens.html#mensagens-fipa-acl-no-pade">Mensagens FIPA-ACL no PADE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/enviando-mensagens.html#enviando-uma-mensagem-com-pade">Enviando uma mensagem com PADE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/enviando-mensagens.html#mensagem-no-padrao-fipa-acl">Mensagem no padrão FIPA-ACL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/enviando-mensagens.html#mensagem-no-padrao-xml">Mensagem no padrão XML</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/recebendo-mensagens.html">Recebendo Mensagens</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/recebendo-mensagens.html#recebendo-mensagens-fipa-acl-com-pade">Recebendo mensagens FIPA-ACL com PADE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/recebendo-mensagens.html#visualizacao-via-interface-grafica">Visualização via Interface Gráfica</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/um-momento.html">Um momento Por Favor!</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/um-momento.html#como-utilizar-o-metodo-call-later">Como utilizar o método call_later()</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/enviando-objetos.html">Enviando Objetos</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/enviando-objetos.html#enviando-objetos-serializados-com-pickle">Enviando objetos serializados com pickle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/enviando-objetos.html#recebendo-objetos-serializados-com-pickle">Recebendo objetos serializados com pickle</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/selecao-de-mensagens.html">Seleção de Mensagens</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/selecao-de-mensagens.html#filtrando-mensagens-com-o-modulo-filters">Filtrando mensagens com o módulo filters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="user/interface-grafica.html">Interface Gráfica</a></li>
+<li class="toctree-l1"><a class="reference internal" href="user/protocolos.html">Protocolos</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="user/protocolos.html#fipa-request">FIPA-Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/protocolos.html#fipa-contract-net">FIPA-Contract-Net</a></li>
+<li class="toctree-l2"><a class="reference internal" href="user/protocolos.html#fipa-subscribe">FIPA-Subscribe</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="referencia-da-api-do-pade">
+<h2>Referência da API do PADE<a class="headerlink" href="#referencia-da-api-do-pade" title="Link permanente para este título">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API PADE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api.html#modulo-de-implementacao-de-agentes">Módulo de Implementação de agentes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#modulo-de-definicao-do-ams">Módulo de Definição do AMS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#modulo-de-definicao-do-sniffer">Módulo de Definição do Sniffer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#modulo-de-criacao-e-manipulacao-de-mensagens-fipa-acl">Módulo de criação e manipulação de mensagens FIPA-ACL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api.html#modulo-de-protocolos">Módulo de protocolos</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="#">
+    <img class="logo" src="_static/pade_logo.png" title="Multiagentes para Python!"/>
+  </a>
+</p>
+
+<p>
+  PADE é um framework simples e elegante para desenvolvimento de sistemas multiagentes em Python.
+</p>
+
+
+<h3>Get Updates</h3>
+<p>Receive updates on new releases and upcoming projects.</p>
+
+<p><a href="http://tinyletter.com/lucassm">Subscribe to Newsletter</a></p>
+
+<h3>Useful Links</h3>
+<ul>
+  <p></p>
+
+  <li><a href="http://github.com/lucassm/Pade">Pade @ GitHub</a></li>
+  <li><a href="http://pypi.python.org/pypi/pade">Pade @ PyPI</a></li>
+  <li><a href="http://github.com/lucassm/Pade/issues">Issue Tracker</a></li>
+</ul>
+  <h3>Esta Página</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Exibir Fonte</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Pesquisa rápida</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Ir" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Digite os termos da busca ou o nome de um módulo, classe ou função.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2015, Lucas Melo.
+    </div>
+    <a href="https://github.com/lucassm/Pade" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript" src="https://gumroad.com/js/gumroad.js"></script>
+
+    <script type="text/javascript">
+    /* <![CDATA[ */
+        (function() {
+            var s = document.createElement('script'), t = document.getElementsByTagName('script')[0];
+            s.type = 'text/javascript';
+            s.async = true;
+            s.src = 'http://api.flattr.com/js/0.6/load.js?mode=auto';
+            t.parentNode.insertBefore(s, t);
+        })();
+    /* ]]> */
+    </script>
+        <script type="text/javascript">
+    setTimeout(function(){var a=document.createElement("script");
+    var b=document.getElementsByTagName("script")[0];
+    a.src=document.location.protocol+"//dnn506yrbagrg.cloudfront.net/pages/scripts/0013/7219.js?"+Math.floor(new Date().getTime()/3600000);
+    a.async=true;a.type="text/javascript";b.parentNode.insertBefore(a,b)}, 1);
+    </script>
+
+    <script type="text/javascript">
+        new HelloBar(36402,48802);
+    </script>
+
+
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-8742933-11']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+
+    <script type="text/javascript">
+      (function() {
+        var t   = document.createElement('script');
+        t.type  = 'text/javascript';
+        t.async = true;
+        t.id    = 'gauges-tracker';
+        t.setAttribute('data-site-id',
+                       '4ddc27f6613f5d186d000007');
+        t.src = '//secure.gaug.es/track.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(t, s);
+      })();
+    </script>
+
+    <script type="text/javascript">
+  (function() {
+    window._pa = window._pa || {};
+    _pa.productId = "requests-docs";
+    var pa = document.createElement('script'); pa.type = 'text/javascript'; pa.async = true;
+    pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/5226171f87bc6890da0000a0.js";
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
+  })();
+</script>
+  </body>
+</html>

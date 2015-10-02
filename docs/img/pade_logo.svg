@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="955.23962"
+   height="311.74484"
+   id="svg3950"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="pade_logo.eps"
+   inkscape:export-filename="/home/lucas/Imagens/pade_logo.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs3952">
+    <filter
+       id="filter4753"
+       inkscape:label="Drop Shadow"
+       color-interpolation-filters="sRGB">
+      <feFlood
+         id="feFlood4755"
+         flood-opacity="0.3"
+         flood-color="rgb(0,0,0)"
+         result="flood" />
+      <feComposite
+         id="feComposite4757"
+         in2="SourceGraphic"
+         in="flood"
+         operator="in"
+         result="composite1" />
+      <feGaussianBlur
+         id="feGaussianBlur4759"
+         stdDeviation="5"
+         result="blur" />
+      <feOffset
+         id="feOffset4761"
+         dx="4.1"
+         dy="4"
+         result="offset" />
+      <feComposite
+         id="feComposite4763"
+         in2="offset"
+         in="SourceGraphic"
+         operator="over"
+         result="composite2" />
+    </filter>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="490.68237"
+     inkscape:cy="-20.314043"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1301"
+     inkscape:window-height="744"
+     inkscape:window-x="65"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata3955">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Camada 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-625.18638,-369.19996)">
+    <path
+       inkscape:connector-curvature="0"
+       id="path4691"
+       d="m 780.16604,369.20842 c -4.36457,-0.13017 -8.47652,1.2396 -11.44749,4.21059 l -139.34373,139.4095 c -3.13223,3.13223 -4.45331,7.47212 -4.14478,12.1054 l 119.27769,-1.11843 80.46147,-118.6198 -28.22403,-28.22401 c -4.91693,-4.91695 -10.96752,-7.59602 -16.57913,-7.76325 z m 61.11912,52.30324 -45.32946,80.26408 56.25065,115.98819 80.46146,-80.46145 c 6.79082,-6.79085 5.18855,-19.28543 -3.55268,-28.02666 L 841.28516,421.51166 z M 638.45388,546.44731 765.23166,673.22509 c 8.74124,8.74124 21.2358,10.27773 28.02664,3.4869 l 41.8426,-41.8426 -45.72423,-77.5009 -150.92279,-10.92118 z"
+       style="fill:#ff0000;fill-opacity:1;stroke:none;display:inline;enable-background:new" />
+    <text
+       id="text4693"
+       y="486.84766"
+       x="711.32971"
+       style="font-size:25.26344872px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;display:inline;enable-background:new;font-family:Latin Modern Roman;-inkscape-font-specification:Latin Modern Roman"
+       xml:space="preserve"><tspan
+         style="font-size:58.94804764px;font-weight:bold;-inkscape-font-specification:'Latin Modern Roman, Bold'"
+         y="486.84766"
+         x="711.32971"
+         id="tspan4695"
+         sodipodi:role="line">P</tspan></text>
+    <text
+       id="text4697"
+       y="512.15497"
+       x="849.77539"
+       style="font-size:58.94804764px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;display:inline;enable-background:new;font-family:Latin Modern Roman;-inkscape-font-specification:'Latin Modern Roman, Bold'"
+       xml:space="preserve"><tspan
+         y="512.15497"
+         x="849.77539"
+         id="tspan4699"
+         sodipodi:role="line">A</tspan></text>
+    <text
+       id="text4701"
+       y="610.22595"
+       x="704.06702"
+       style="font-size:58.94804764px;font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;display:inline;enable-background:new;font-family:Latin Modern Roman;-inkscape-font-specification:'Latin Modern Roman, Bold'"
+       xml:space="preserve"><tspan
+         y="610.22595"
+         x="704.06702"
+         id="tspan4703"
+         sodipodi:role="line">DE</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="907.95728"
+       y="612.59088"
+       id="text3763"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3765"
+         x="907.95728"
+         y="612.59088"
+         style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ff0000;fill-opacity:1;font-family:Serif;-inkscape-font-specification:Serif">Python Agent DEvelopment </tspan><tspan
+         sodipodi:role="line"
+         x="907.95728"
+         y="672.59088"
+         id="tspan3767"
+         style="font-size:48px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;fill:#ff0000;fill-opacity:1;font-family:Serif;-inkscape-font-specification:Serif">framework</tspan></text>
+  </g>
+</svg>

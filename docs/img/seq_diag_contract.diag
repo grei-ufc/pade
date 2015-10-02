@@ -1,0 +1,11 @@
+seqdiag{
+    activation = none;
+    
+    agente_iniciante -> agente_participante_1 [label='CFP']; 
+    agente_iniciante -> agente_participante_2 [label='CFP']; 
+    agente_iniciante <- agente_participante_1 [label='PROPOSE'];
+    agente_iniciante <- agente_participante_2 [label='PROPOSE'];
+    agente_iniciante -> agente_participante_1 [label='ACCEPT-PROPOSE'];
+    agente_iniciante -> agente_participante_2 [label='REJECT-PROPOSE'];
+    agente_iniciante <- agente_participante_1 [label='INFORM'];
+}

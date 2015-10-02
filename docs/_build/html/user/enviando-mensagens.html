@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Enviando Mensagens &mdash; Pade 1.0 documentação</title>
+    
+    <link rel="stylesheet" href="../_static/flasky.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <link rel="top" title="Pade 1.0 documentação" href="../index.html" />
+    <link rel="next" title="Recebendo Mensagens" href="recebendo-mensagens.html" />
+    <link rel="prev" title="Agentes Temporais" href="agentes-temporais.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+  <script type="text/javascript" src="https://gumroad.com/js/gumroad.js"></script>
+
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegação</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="Índice Geral"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Índice de Módulos do Python"
+             >módulos</a> |</li>
+        <li class="right" >
+          <a href="recebendo-mensagens.html" title="Recebendo Mensagens"
+             accesskey="N">próximo</a> |</li>
+        <li class="right" >
+          <a href="agentes-temporais.html" title="Agentes Temporais"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="../index.html">Pade 1.0 documentação</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="enviando-mensagens">
+<h1>Enviando Mensagens<a class="headerlink" href="#enviando-mensagens" title="Link permanente para este título">¶</a></h1>
+<p>Para enviar uma mensagem com o PADE é muito simples! As mensagens enviadas pelos agentes desenvolvidos com PADE seguem o padrão FIPA-ACL e têm os seguintes campos:</p>
+<ul class="simple">
+<li><em>conversation-id:</em> identidade única de uma conversa;</li>
+<li><em>performative:</em> rótulo da mensagem;</li>
+<li><em>sender:</em> remetente da mensagem;</li>
+<li><em>receivers:</em> destinatários da mensagem;</li>
+<li><em>content:</em> conteúdo da mensagem;</li>
+<li><em>protocol:</em> protocolo da mensagem;</li>
+<li><em>language:</em> linguagem utilizada;</li>
+<li><em>encoding:</em> codificação da mensagem;</li>
+<li><em>ontology:</em> ontologia utilizada;</li>
+<li><em>reply-with:</em> Expressão utilizada pelo agente de resposta a identificar a mensagem;</li>
+<li><em>reply-by:</em> A referência a uma ação anterior em que a mensagem é uma resposta;</li>
+<li><em>in-reply-to:</em> Data/hora indicando quando uma resposta deve ser recebida..</li>
+</ul>
+<div class="section" id="mensagens-fipa-acl-no-pade">
+<h2>Mensagens FIPA-ACL no PADE<a class="headerlink" href="#mensagens-fipa-acl-no-pade" title="Link permanente para este título">¶</a></h2>
+<p>Uma mensagem FIPA-ACL pode ser montada no pade da seguinte forma:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pade.acl.messages</span> <span class="kn">import</span> <span class="n">ACLMessage</span><span class="p">,</span> <span class="n">AID</span>
+<span class="n">message</span> <span class="o">=</span> <span class="n">ACLMessage</span><span class="p">(</span><span class="n">ACLMessage</span><span class="o">.</span><span class="n">INFORM</span><span class="p">)</span>
+<span class="n">message</span><span class="o">.</span><span class="n">set_protocol</span><span class="p">(</span><span class="n">ACLMessage</span><span class="o">.</span><span class="n">FIPA_REQUEST_PROTOCOL</span><span class="p">)</span>
+<span class="n">message</span><span class="o">.</span><span class="n">add_receiver</span><span class="p">(</span><span class="n">AID</span><span class="p">(</span><span class="s">&#39;agente_destino&#39;</span><span class="p">))</span>
+<span class="n">message</span><span class="o">.</span><span class="n">set_content</span><span class="p">(</span><span class="s">&#39;Ola Agente&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="enviando-uma-mensagem-com-pade">
+<h2>Enviando uma mensagem com PADE<a class="headerlink" href="#enviando-uma-mensagem-com-pade" title="Link permanente para este título">¶</a></h2>
+<p>Uma vez que se está dentro de uma instância da classe <cite>Agent()</cite> a mensagem pode ser enviada, simplesmente utilizando o comando:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="bp">self</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mensagem-no-padrao-fipa-acl">
+<h2>Mensagem no padrão FIPA-ACL<a class="headerlink" href="#mensagem-no-padrao-fipa-acl" title="Link permanente para este título">¶</a></h2>
+<p>Realizando o comando <cite>print message</cite> a mensagem no padão FIPA ACL será impressa na tela:</p>
+<div class="highlight-python"><div class="highlight"><pre>(inform
+    :conversationID b2e806b8-50a0-11e5-b3b6-e8b1fc5c3cdf
+    :receiver
+        (set
+            (agent-identifier
+                :name agente_destino@localhost:51645
+                :addresses
+                    (sequence
+                    localhost:51645
+                    )
+            )
+
+        )
+    :content &quot;Ola Agente&quot;
+    :protocol fipa-request protocol
+)
+</pre></div>
+</div>
+</div>
+<div class="section" id="mensagem-no-padrao-xml">
+<h2>Mensagem no padrão XML<a class="headerlink" href="#mensagem-no-padrao-xml" title="Link permanente para este título">¶</a></h2>
+<p>Mas também é possível obter a mensagem no formato XML por meio do comando <cite>print message.as_xml()</cite></p>
+<div class="highlight-xml"><div class="highlight"><pre><span class="cp">&lt;?xml version=&quot;1.0&quot; ?&gt;</span>
+<span class="nt">&lt;ACLMessage</span> <span class="na">date=</span><span class="s">&quot;01/09/2015 as 08:58:03:113891&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;performative&gt;</span>inform<span class="nt">&lt;/performative&gt;</span>
+        <span class="nt">&lt;sender/&gt;</span>
+        <span class="nt">&lt;receivers&gt;</span>
+                <span class="nt">&lt;receiver&gt;</span>agente_destino@localhost:51645<span class="nt">&lt;/receiver&gt;</span>
+        <span class="nt">&lt;/receivers&gt;</span>
+        <span class="nt">&lt;reply-to/&gt;</span>
+        <span class="nt">&lt;content&gt;</span>Ola Agente<span class="nt">&lt;/content&gt;</span>
+        <span class="nt">&lt;language/&gt;</span>
+        <span class="nt">&lt;enconding/&gt;</span>
+        <span class="nt">&lt;ontology/&gt;</span>
+        <span class="nt">&lt;protocol&gt;</span>fipa-request protocol<span class="nt">&lt;/protocol&gt;</span>
+        <span class="nt">&lt;conversationID&gt;</span>b2e806b8-50a0-11e5-b3b6-e8b1fc5c3cdf<span class="nt">&lt;/conversationID&gt;</span>
+        <span class="nt">&lt;reply-with/&gt;</span>
+        <span class="nt">&lt;in-reply-to/&gt;</span>
+        <span class="nt">&lt;reply-by/&gt;</span>
+<span class="nt">&lt;/ACLMessage&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper"><p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/pade_logo.png" title="Logo do PADE"/>
+  </a>
+</p>
+
+<p>
+  PADE é um framework simples e elegante para desenvolvimento de sistemas multiagentes em Python.
+</p>
+
+<h3>Get Updates</h3>
+<p>Receive updates on new releases and upcoming projects.</p>
+
+<p><a href="http://tinyletter.com/kennethreitz">Subscribe to Newsletter</a></p>
+  <h3><a href="../index.html">Tabela de Conteúdo</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Enviando Mensagens</a><ul>
+<li><a class="reference internal" href="#mensagens-fipa-acl-no-pade">Mensagens FIPA-ACL no PADE</a></li>
+<li><a class="reference internal" href="#enviando-uma-mensagem-com-pade">Enviando uma mensagem com PADE</a></li>
+<li><a class="reference internal" href="#mensagem-no-padrao-fipa-acl">Mensagem no padrão FIPA-ACL</a></li>
+<li><a class="reference internal" href="#mensagem-no-padrao-xml">Mensagem no padrão XML</a></li>
+</ul>
+</li>
+</ul>
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="agentes-temporais.html" title="capítulo anterior">Agentes Temporais</a></li>
+      <li>Next: <a href="recebendo-mensagens.html" title="próximo capítulo">Recebendo Mensagens</a></li>
+  </ul></li>
+</ul>
+  <h3>Esta Página</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/user/enviando-mensagens.txt"
+           rel="nofollow">Exibir Fonte</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Pesquisa rápida</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Ir" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Digite os termos da busca ou o nome de um módulo, classe ou função.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2015, Lucas Melo.
+    </div>
+    <a href="https://github.com/lucassm/Pade" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+
+    <script type="text/javascript" src="https://gumroad.com/js/gumroad.js"></script>
+
+    <script type="text/javascript">
+    /* <![CDATA[ */
+        (function() {
+            var s = document.createElement('script'), t = document.getElementsByTagName('script')[0];
+            s.type = 'text/javascript';
+            s.async = true;
+            s.src = 'http://api.flattr.com/js/0.6/load.js?mode=auto';
+            t.parentNode.insertBefore(s, t);
+        })();
+    /* ]]> */
+    </script>
+        <script type="text/javascript">
+    setTimeout(function(){var a=document.createElement("script");
+    var b=document.getElementsByTagName("script")[0];
+    a.src=document.location.protocol+"//dnn506yrbagrg.cloudfront.net/pages/scripts/0013/7219.js?"+Math.floor(new Date().getTime()/3600000);
+    a.async=true;a.type="text/javascript";b.parentNode.insertBefore(a,b)}, 1);
+    </script>
+
+    <script type="text/javascript">
+        new HelloBar(36402,48802);
+    </script>
+
+
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-8742933-11']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+
+    <script type="text/javascript">
+      (function() {
+        var t   = document.createElement('script');
+        t.type  = 'text/javascript';
+        t.async = true;
+        t.id    = 'gauges-tracker';
+        t.setAttribute('data-site-id',
+                       '4ddc27f6613f5d186d000007');
+        t.src = '//secure.gaug.es/track.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(t, s);
+      })();
+    </script>
+
+    <script type="text/javascript">
+  (function() {
+    window._pa = window._pa || {};
+    _pa.productId = "requests-docs";
+    var pa = document.createElement('script'); pa.type = 'text/javascript'; pa.async = true;
+    pa.src = ('https:' == document.location.protocol ? 'https:' : 'http:') + "//tag.perfectaudience.com/serve/5226171f87bc6890da0000a0.js";
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(pa, s);
+  })();
+</script>
+  </body>
+</html>
