@@ -32,24 +32,24 @@ Podemos criar o seguinte filtro:
     f.performative = ACLMessage.REQUEST
 
 
-Em uma sessão IPython é possível observar o efeito da aplicação do filtro sobre a mensagem:
+Em uma sessão do interpretador Python é possível observar o efeito da aplicação do filtro sobre a mensagem:
 
-::
+.. code-block:: python
 
     >> f.filter(message)
-    >> False
+    False
 
 
 Ajustando agora o filtro para outra condição:
 
-::
+.. code-block:: python
 
     f.performative = ACLMessage.INFORM
 
 E aplicando o filtro novamente sobre a mensagem, obtemos um novo resultado:
 
-.. sourcecode:: ipython
+.. code-block:: python
 
     >> f.filter(message)
-    >> True
-    
+    True
+     

@@ -64,7 +64,7 @@
 <div class="section" id="instalacao-via-pip">
 <h2>Instalação via PIP<a class="headerlink" href="#instalacao-via-pip" title="Link permanente para este título">¶</a></h2>
 <p>Para instalar o PADE via PIP basta digitar em um terminal:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ pip install pade
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> pip install pade
 </pre></div>
 </div>
 <p>Pronto! O Pade está instalado!</p>
@@ -72,13 +72,51 @@
 <div class="section" id="instalacao-via-github">
 <h2>Instalação via GitHub<a class="headerlink" href="#instalacao-via-github" title="Link permanente para este título">¶</a></h2>
 <p>Se você quiser ter acesso ao fonte do PADE e instala-lo a partir do fonte, basta digitar as seguintes linhas no terminal:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ git clone https://github.com/lucassm/Pade
-$ cd Pade
-$ python setup.py install
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> git clone https://github.com/lucassm/Pade
+<span class="gp">$</span> <span class="nb">cd </span>Pade
+<span class="gp">$</span> python setup.py install
 </pre></div>
 </div>
-<p>Pronto o PADE está pronto para ser utilizado, faça um teste no IPython digitando:</p>
+<p>Pronto o PADE está pronto para ser utilizado, faça um teste no interpretador Python digitando:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pade.misc.utility</span> <span class="kn">import</span> <span class="n">display_message</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="instalando-o-pade-em-um-ambiente-virtual">
+<h2>Instalando o PADE em um ambiente virtual<a class="headerlink" href="#instalando-o-pade-em-um-ambiente-virtual" title="Link permanente para este título">¶</a></h2>
+<p>Quando se trabalha com módulos Python é importante saber criar e manipular ambientes virtuais para gerenciar as dependências do projeto de uma maneira mais organizada. Aqui iremos mostrar como criar um ambiente virtual python, ativá-lo e utilizar o pip para instalar o PADE. Para uma visão mais detalhada sobre ambientes virtuais Python, acesse: <a class="reference external" href="http://docs.python-guide.org/en/latest/dev/virtualenvs/">Python Guide</a>.</p>
+<p>Primeiro você irá precisar ter o pacote virtualenv instalado em seu PC, instale-o digitando o comando:</p>
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> pip install virtualenv
+</pre></div>
+</div>
+<p>Após instalado o virtualenv é hora de criar um ambiente virtual, por meio do seguinte comando:</p>
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> <span class="nb">cd </span>my_project_folder
+<span class="gp">$</span> virtualenv venv
+</pre></div>
+</div>
+<p>Para ativar o ambiente virtual criado, digite o comando:</p>
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> <span class="nb">source </span>venv/bin/activate
+</pre></div>
+</div>
+<p>Agora basta instalar o pade, por meio do pip:</p>
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> pip install pade
+</pre></div>
+</div>
+</div>
+<div class="section" id="ativando-a-interface-grafica">
+<h2>Ativando a interface gráfica<a class="headerlink" href="#ativando-a-interface-grafica" title="Link permanente para este título">¶</a></h2>
+<p>Para que a interface gráfica do PADE funcione é necessário que o pacote PySide, um binding do Qt, esteja instalado. Como não existem binários do PySide disponíveis para Linux e o procedimento de compilação é bastante demorado, é necessário fazer o seguinte procedimento:</p>
+<ol class="arabic simple">
+<li>Instale o PySide via linha de comando:</li>
+</ol>
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> sudo apt-get install python-pyside
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li>Copie a pasta com a instalação do PySide da pasta site-packages, onde fica a instalação padrão do Python em seu sistema operacional, e então coloque dentro da pasta onde ficam instalados os pacotes padrões do ambiente virtual, no nosso caso: venv/lib/python2.7/site-packages.</li>
+</ol>
+<p>Pronto a instalação do PySide no ambiente virtual está concluída, mas outro procedimento que deve ser realizado é a instalação do reactor que interage com o loop de eventos do PySide, para isso, digite:</p>
+<div class="highlight-console"><div class="highlight"><pre><span class="gp">$</span> sudo apt-get install python-qt4reactor
 </pre></div>
 </div>
 </div>
@@ -108,6 +146,8 @@ $ python setup.py install
 <li><a class="reference internal" href="#">Instalação</a><ul>
 <li><a class="reference internal" href="#instalacao-via-pip">Instalação via PIP</a></li>
 <li><a class="reference internal" href="#instalacao-via-github">Instalação via GitHub</a></li>
+<li><a class="reference internal" href="#instalando-o-pade-em-um-ambiente-virtual">Instalando o PADE em um ambiente virtual</a></li>
+<li><a class="reference internal" href="#ativando-a-interface-grafica">Ativando a interface gráfica</a></li>
 </ul>
 </li>
 </ul>

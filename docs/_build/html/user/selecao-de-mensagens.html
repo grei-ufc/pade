@@ -82,9 +82,9 @@
 <span class="n">f</span><span class="o">.</span><span class="n">performative</span> <span class="o">=</span> <span class="n">ACLMessage</span><span class="o">.</span><span class="n">REQUEST</span>
 </pre></div>
 </div>
-<p>Em uma sessão IPython é possível observar o efeito da aplicação do filtro sobre a mensagem:</p>
-<div class="highlight-python"><div class="highlight"><pre>&gt;&gt; f.filter(message)
-&gt;&gt; False
+<p>Em uma sessão do interpretador Python é possível observar o efeito da aplicação do filtro sobre a mensagem:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="o">&gt;&gt;</span> <span class="n">f</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="bp">False</span>
 </pre></div>
 </div>
 <p>Ajustando agora o filtro para outra condição:</p>
@@ -92,8 +92,8 @@
 </pre></div>
 </div>
 <p>E aplicando o filtro novamente sobre a mensagem, obtemos um novo resultado:</p>
-<div class="highlight-ipython"><div class="highlight"><pre>&gt;&gt; f.filter(message)
-&gt;&gt; True
+<div class="highlight-python"><div class="highlight"><pre><span class="o">&gt;&gt;</span> <span class="n">f</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="bp">True</span>
 </pre></div>
 </div>
 </div>
