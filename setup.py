@@ -28,7 +28,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pade',
-      version='1.0.4',
+      version='1.6',
       description='Framework para desenvolvimento de \
       sistemas multiagentes em Python',
       author='Lucas S Melo',
@@ -36,5 +36,5 @@ setup(name='pade',
       install_requires=['twisted'],
       license='MIT',
       keywords='multiagents distributed systems',
-      url='http://lucassm.github.io/Pade',
+      url='http://pade.readthedocs.org',
       packages=find_packages())
