@@ -133,7 +133,7 @@ class AgentProtocol(PeerProtocol):
 
     def lineReceived(self, line):
         """Este método é executado sempre que uma
-        nova mensagem é recebida pelo agente, 
+        nova mensagem é recebida pelo agente,
         tanto no modo cliente quanto no modo servidor
 
         :param line: mensagem recebida pelo agente
@@ -185,9 +185,6 @@ class AgentProtocol(PeerProtocol):
                 # self.fact.sniffer
                 message = ACLMessage()
                 message.set_message(line)
-                if self.fact.sniffer == None:
-                    self.fact.sniffer = {
-                        'name': self.fact.ams['name'], 'port': message.sender.port}
 
                 if self.fact.debug:
                     display_message(
@@ -215,11 +212,9 @@ class AgentProtocol(PeerProtocol):
         reply.set_content(dumps(self.fact.recent_message_history))
         self.fact.recent_message_history = []
 
-        sniffer_aid = AID(name='Sniffer_Agent' + '@' + self.fact.sniffer[
-                          'name'] + ':' + str(self.fact.sniffer['port']))
+        sniffer_aid = message.sender
         self.fact.messages.append((sniffer_aid, reply))
-        reactor.connectTCP(self.fact.sniffer['name'], int(
-            self.fact.sniffer['port']), self.fact)
+        reactor.connectTCP(sniffer_aid.host, sniffer_aid.port, self.fact)
 
 
 class AgentFactory(protocol.ClientFactory):

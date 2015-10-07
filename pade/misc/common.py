@@ -80,6 +80,7 @@ def start_loop(agents, gui=False):
 
         # instancia um AID para o agente Sniffer
         aid = AID('Sniffer_Agent')
+        aid.setHost(AMS['name'])
         # instancia um objeto Factory para o agente Sniffer
         snifferFactory = SnifferFactory(aid, AMS, controlAgentsGui.ui)
         # lança o agente como servidor na porta gerada pelo objeto AID
