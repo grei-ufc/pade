@@ -201,10 +201,13 @@ latex_elements = {
 #'papersize': 'letterpaper',
 
 # The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+'pointsize': '12pt',
+
+# Font Type
+'fontpkg' : r'\usepackage{mathpazo}',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+'preamble': r'\usepackage{flaskstyle}',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -235,6 +238,7 @@ latex_documents = [
 # If false, no module index is generated.
 #latex_domain_indices = True
 
+latex_additional_files = ['flaskstyle.sty', 'logo.pdf']
 
 # -- Options for manual page output ---------------------------------------
 
