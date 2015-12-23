@@ -30,7 +30,7 @@ class AgenteHelloWorld(Agent):
 
 if __name__ == '__main__':
 
-    set_ams('localhost', 8000, debug=False)
+    set_ams('localhost', 8000, debug=True)
 
     agents = list()
 
@@ -43,4 +43,4 @@ if __name__ == '__main__':
     agents.append(agente_1)
     agents.append(agente_2)
 
-    start_loop(agents, gui=True)
+    start_loop(agents)

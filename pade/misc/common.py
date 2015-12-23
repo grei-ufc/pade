@@ -31,9 +31,9 @@
 
  Este módulo Python disponibiliza métodos de configuração
  do loop twisted onde os agentes serão executados e caso se utilize
- interface gráfica, é neste módulo que o loop Qt4 é integrado ao 
+ interface gráfica, é neste módulo que o loop Qt4 é integrado ao
  loop Twisted, além de disponibilizar métodos para lançamento do AMS
- e Sniffer por linha de comando e para exibição de informações no 
+ e Sniffer por linha de comando e para exibição de informações no
  terminal
 
  @author: lucas
@@ -42,6 +42,7 @@
 import twisted.internet
 from pade.acl.aid import AID
 from pade.core.ams import AgentManagementFactory
+from pade.core.sniffer import SnifferFactory
 
 import optparse
 
@@ -54,7 +55,7 @@ AMS = {'name': 'localhost', 'port': 8000}
 
 def set_ams(name, port, debug=False):
     """
-        Metodo utilizado na inicialização do laço de execução do AMS 
+        Metodo utilizado na inicialização do laço de execução do AMS
     """
     global AMS
 
@@ -64,26 +65,19 @@ def set_ams(name, port, debug=False):
     twisted.internet.reactor.listenTCP(port, amsFactory)
 
 
-def start_loop(agents, gui=False):
+def start_loop(agents):
     """
         Lança o loop do twisted integrado com o loop do Qt se a opção GUI for
         verdadeira, se não lança o loop do Twisted
     """
     global AMS
 
-    if gui:
-        from pade.core.sniffer import SnifferFactory
-        from pade.gui.interface import ControlAgentsGui
-
-        controlAgentsGui = ControlAgentsGui()
-        controlAgentsGui.show()
-
-        # instancia um AID para o agente Sniffer
-        aid = AID('Sniffer_Agent')
-        # instancia um objeto Factory para o agente Sniffer
-        snifferFactory = SnifferFactory(aid, AMS, controlAgentsGui.ui)
-        # lança o agente como servidor na porta gerada pelo objeto AID
-        twisted.internet.reactor.listenTCP(aid.port, snifferFactory)
+    # instancia um AID para o agente Sniffer
+    # aid = AID('Sniffer_Agent')
+    # instancia um objeto Factory para o agente Sniffer
+    # snifferFactory = SnifferFactory(aid, AMS)
+    # lança o agente como servidor na porta gerada pelo objeto AID
+    # twisted.internet.reactor.listenTCP(aid.port, snifferFactory)
 
     i = 1
     for agent in agents:

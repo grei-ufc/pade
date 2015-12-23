@@ -11,12 +11,12 @@ from pade.acl.aid import AID
 
 class AgenteHelloWorld(Agent):
     def __init__(self, aid):
-        super(AgenteHelloWorld, self).__init__(aid=aid, debug=False)
+        super(AgenteHelloWorld, self).__init__(aid=aid, debug=True)
         display_message(self.aid.localname, 'Hello World!')
 
 if __name__ == '__main__':
 
-    set_ams('localhost', 8000, debug=False)
+    set_ams('localhost', 8000, debug=True)
 
     agents = list()
 
@@ -24,4 +24,4 @@ if __name__ == '__main__':
     agente_hello.ams = {'name': 'localhost', 'port': 8000}
     agents.append(agente_hello)
 
-    start_loop(agents, gui=True)
+    start_loop(agents)

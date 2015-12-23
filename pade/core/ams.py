@@ -91,13 +91,20 @@ class AgentManagementProtocol(PeerProtocol):
 
     def connectionLost(self, reason):
         """Este método é executado sempre que uma conexão é perdida
-            com o agente AMS
+            com o agente AMS. Isso geralmente acontece quando o
+            recebimento de uma mensagem é encerrado
         """
         if self.message is not None:
             message = PeerProtocol.connectionLost(self, reason)
 
-            # como o agente AMS só recebe mensagens
-            self.handle_identif(loads(message.content))
+            # TODO: identificar se a mensagem é de identificação
+            # ou de envio de mensagens
+            content = loads(message.content)
+            if content['ref'] == 'IDENT':
+                self.handle_identif(content['aid'])
+            elif content['ref'] == 'MESSAGE':
+                self.handle_store_messages(content['message'])
+
             self.message = None
 
     def send_message(self, message):
@@ -106,7 +113,7 @@ class AgentManagementProtocol(PeerProtocol):
     def lineReceived(self, line):
         """Quando uma mensagem é enviada ao AMS este método é executado.
             Quando em fase de identificação, o AMS registra o agente
-            em sua tabele de agentes ativos
+            em sua tabela de agentes ativos
         """
 
         # recebe uma parte da mensagem enviada
@@ -143,11 +150,13 @@ class AgentManagementProtocol(PeerProtocol):
         message.set_content(dumps(self.fact.table))
         self.fact.broadcast_message(message)
 
+    def handle_store_messages(self, message):
+        display_message(self.fact.aid.name, 'Message stored')
 
 class AgentManagementFactory(protocol.ClientFactory):
 
     """Esta classe implementa as ações e atributos do protocolo AMS
-        sua principal função é armazenar informações importantes ao protocolo de comunicação 
+        sua principal função é armazenar informações importantes ao protocolo de comunicação
         do agente AMS
     """
 
@@ -175,6 +184,7 @@ class AgentManagementFactory(protocol.ClientFactory):
         self.d = self.createAgentsTable()
         self.d.addCallback(self.insert_agent)
 
+        # Inicialização do comportamento de verificação das conexões
         reactor.callLater(5, self.connection_test_send)
 
     def buildProtocol(self, addr):

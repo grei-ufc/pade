@@ -91,7 +91,7 @@ def main():
     a.ams = {'name': 'localhost', 'port': 8000}
     agentes.append(a)
 
-    start_loop(agentes, gui=True)
+    start_loop(agentes)
 
 if __name__ == '__main__':
     main()
