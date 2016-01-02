@@ -360,6 +360,7 @@ class Agent(object):
         especificados no campo receivers da mensagem ACL
         """
         message.set_sender(self.aid)
+        message.set_message_id()
         # for percorre os destinatarios da mensagem
         for receiver in message.receivers:
             for name in self.agentInstance.table:

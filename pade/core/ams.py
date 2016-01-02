@@ -34,14 +34,16 @@
 
 from twisted.internet import protocol, reactor
 from twisted.enterprise import adbapi
+
 from pickle import dumps, loads
 from uuid import uuid4
+import datetime
 
 from pade.core.peer import PeerProtocol
-
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.misc.utility import display_message
+from pade.web.flask_server import db, Agent, Message
 
 
 class AgentManagementProtocol(PeerProtocol):
@@ -97,14 +99,17 @@ class AgentManagementProtocol(PeerProtocol):
         if self.message is not None:
             message = PeerProtocol.connectionLost(self, reason)
 
-            # TODO: identificar se a mensagem é de identificação
-            # ou de envio de mensagens
+            # carrega o conteudo da mensagem recebida
             content = loads(message.content)
+            # se a mensagem for de identificação, lança o comportamento de
+            # identificação
             if content['ref'] == 'IDENT':
                 self.handle_identif(content['aid'])
+            # se não, lança o comportamento de armazenamento de mensagens
             elif content['ref'] == 'MESSAGE':
-                self.handle_store_messages(content['message'])
+                self.handle_store_messages(content['message'], message.sender)
 
+            # reinicia a variável que armazena a mensagem recebida
             self.message = None
 
     def send_message(self, message):
@@ -150,7 +155,28 @@ class AgentManagementProtocol(PeerProtocol):
         message.set_content(dumps(self.fact.table))
         self.fact.broadcast_message(message)
 
-    def handle_store_messages(self, message):
+    def handle_store_messages(self, message, sender):
+        m = Message(sender=message.sender.localname,
+        date=datetime.datetime.now(),
+        performative=message.performative,
+        protocol=message.protocol,
+        content=message.content,
+        conversation_id=message.conversationID,
+        message_id=message.messageID,
+        ontology=message.ontology,
+        language=message.language)
+
+        receivers = list()
+        for receiver in message.receivers:
+            receivers.append(receiver.localname)
+        m.receivers = receivers
+
+        a = Agent.query.filter_by(name=sender.localname).all()[0]
+        m.agent_id = a.id
+
+        db.session.add(m)
+        db.session.commit()
+
         display_message(self.fact.aid.name, 'Message stored')
 
 class AgentManagementFactory(protocol.ClientFactory):
@@ -176,7 +202,7 @@ class AgentManagementFactory(protocol.ClientFactory):
         self.aid = AID(name='AMS' + '@' + 'localhost' + ':' + str(port))
 
         display_message(
-            'AMS', 'AMS esta servindo na porta' + str(self.aid.port))
+            'AMS', 'AMS esta servindo na porta ' + str(self.aid.port))
 
         # instancia o objeto que realizará a conexão com o banco de dados
         self.conn = adbapi.ConnectionPool(

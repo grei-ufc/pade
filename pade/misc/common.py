@@ -44,14 +44,33 @@ from pade.acl.aid import AID
 from pade.core.ams import AgentManagementFactory
 from pade.core.sniffer import SnifferFactory
 
+from pade.web.flask_server import app, db
+from pade.web.flask_server import Session, Agent
+
 import optparse
+import multiprocessing
+import uuid
+import datetime
+
+AMS = {'name': 'localhost', 'port': 8000}
+
+
+class FlaskServerProcess(multiprocessing.Process):
+    """
+        Esta classe implementa a thread que executa
+        o servidor web com o aplicativo Flask
+    """
+    def __init__(self, app):
+        multiprocessing.Process.__init__(self)
+        self.app = app
+
+    def run(self):
+        self.app.run(host='0.0.0.0', port=5000, debug=None)
+
 
 # =========================================================================
 # Metodos Utilitarios
 # =========================================================================
-
-AMS = {'name': 'localhost', 'port': 8000}
-
 
 def set_ams(name, port, debug=False):
     """
@@ -63,7 +82,6 @@ def set_ams(name, port, debug=False):
 
     amsFactory = AgentManagementFactory(port, debug)
     twisted.internet.reactor.listenTCP(port, amsFactory)
-
 
 def start_loop(agents):
     """
@@ -79,13 +97,31 @@ def start_loop(agents):
     # lança o agente como servidor na porta gerada pelo objeto AID
     # twisted.internet.reactor.listenTCP(aid.port, snifferFactory)
 
+    # instancia a classe que lança o processo
+    # com o servidor web com o aplicativo Flask
+    p1 = FlaskServerProcess(app)
+    p1.daemon = True
+
+    p1.start()
+
+    db.drop_all()
+    db.create_all()
+
+    s = Session(name=str(uuid.uuid1())[:13], date=datetime.datetime.now(), state = 'Ativo')
+    db.session.add(s)
+    db.session.commit()
+
     i = 1
+    agents_db = list()
     for agent in agents:
         twisted.internet.reactor.callLater(i, listen_agent, agent)
+        a = Agent(name=agent.aid.localname, session_id=s.id, date=datetime.datetime.now(), state = 'Ativo')
+        agents_db.append(a)
         i += 0.2
+    db.session.add_all(agents_db)
+    db.session.commit()
 
     # lança o loop do Twisted
-    # twisted.internet.reactor.startRunning(init)
     twisted.internet.reactor.run()
 
 
@@ -104,7 +140,6 @@ def main():
     options, arguments = p.parse_args()
 
     set_ams('localhost', port=int(options.port))
-    start_loop(agents=[], gui=True)
 
 if __name__ == '__main__':
     main()
