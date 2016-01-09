@@ -1,0 +1,35 @@
+{% include 'header.html' %}
+
+<body>
+
+    {% block content %}
+
+    <div class="container">
+        <div class="page-header">
+            <h1>Agents Diagram!</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="diagram"></div>
+    </div>
+
+    {% endblock %}
+
+</body>
+
+<script src="/static/underscore-min.js"></script>
+<script src="/static/raphael-min.js"></script>
+<script src="/static/sequence-diagram-min.js"></script>
+
+<script>
+    var text = "";
+    {% for message in messages %}
+        {% for receiver in message.receivers %}
+            text = text.concat("{{ message.sender }}->{{ receiver }}: {{ message.performative }}\n");
+        {% endfor %}
+    {% endfor %}
+    var diagram = Diagram.parse(text);
+    diagram.drawSVG("diagram", {theme: 'simple'});
+    console.log(text);
+</script>

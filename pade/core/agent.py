@@ -95,12 +95,14 @@ class AgentProtocol(PeerProtocol):
             msg = ACLMessage()
             msg.add_receiver(
                 AID(
-                    name='AMS' + '@' + self.fact.ams['name'] +
+                    name='AMS@' + self.fact.ams['name'] +
                     ':' + str(self.fact.ams['port'])
                 ))
             msg.set_sender(self.fact.aid)
             msg.set_performative(ACLMessage.INFORM)
-            msg.set_content(dumps(self.fact.aid))
+            msg.set_content(dumps({
+            'ref' : 'IDENT',
+            'aid' : self.fact.aid}))
 
             # envia a mensagem ao AMS e atualiza a flag de identificação para a
             # fase 2
@@ -121,10 +123,30 @@ class AgentProtocol(PeerProtocol):
         if self.message is not None:
             message = PeerProtocol.connectionLost(self, reason)
 
-            # armazena a mensagem recebida
-            self.fact.messages_history.append(message)
-            self.fact.recent_message_history.append(message)
+            # envia mensagem recebida para o AMS
 
+            # montagem da mensagem a ser enviada ao AMS
+            _message = ACLMessage(ACLMessage.INFORM)
+            ams_aid = AID(
+                name='AMS@' + self.fact.ams['name'] +
+                ':' + str(self.fact.ams['port'])
+            )
+            _message.add_receiver(ams_aid)
+            _message.set_sender(self.fact.aid)
+            _message.set_content(dumps({
+            'ref' : 'MESSAGE',
+            'message' : message}))
+            # fim da montagem da mensagem
+
+            # armazenamento da mensagem para envio
+            self.fact.messages.append((ams_aid, _message))
+
+            # estabelecimento de conexão com AMS
+            reactor.connectTCP(self.fact.ams['name'], int(
+                self.fact.ams['port']), self.fact)
+
+            # execução do comportamento Agent.react à mensagem
+            # recebida
             self.message = None
             self.fact.react(message)
 
@@ -138,9 +160,6 @@ class AgentProtocol(PeerProtocol):
 
         :param line: mensagem recebida pelo agente
         """
-
-        # TODO: Melhorar o armazenamento e a troca deste tipo de mensagem
-        # entre o agente e o agente Sniffer
 
         # fase 2 de identificação do agente com o AMS. Nesta fase o agente AMS retorna uma mensagem
         # ao agente com uma tabela de todos os agentes presentes na rede
@@ -165,8 +184,8 @@ class AgentProtocol(PeerProtocol):
         # de recebimento de mensagens, e assim estará pronto para executar seus
         # comportamentos
         else:
-            # este método é executado caso a mensagem recebida tenha sido enviada pelo AMS
-            # para atualização da tabela de agentes disponíveis
+            # este método é executado caso a mensagem recebida tenha sido
+            # enviada pelo AMS para atualização da tabela de agentes disponíveis
             if 'AMS' in line:
                 message = ACLMessage()
                 message.set_message(line)
@@ -177,45 +196,10 @@ class AgentProtocol(PeerProtocol):
                 else:
                     pass
                 self.transport.loseConnection()
-            # este método é executado caso a mensagem recebida tenha sido enviada pelo Agente Sniffer
-            # que requisita a tabela de mensagens do agente
-            elif 'Sniffer' in line:
-                # se for a primeira mensagem recebida do agente Sniffer, então seu endereço, isto é nome
-                # e porta, é armazenado na variável do tipo dicionário
-                # self.fact.sniffer
-                message = ACLMessage()
-                message.set_message(line)
 
-                if self.fact.debug:
-                    display_message(
-                        self.fact.aid.name, 'Solicitação do Sniffer Recebida')
-                else:
-                    pass
-
-                self.sniffer_message(message)
-                self.transport.loseConnection()
             # recebe uma parte da mensagem enviada
             else:
                 PeerProtocol.lineReceived(self, line)
-
-    def sniffer_message(self, message):
-        """Este método trata a mensagem enviada pelo agente Sniffer
-        e cria uma mensagem de resposta ao agente Sniffer
-
-        :param message: mensagem recebida pelo agente, enviada pelo
-                  agente Sniffer
-        """
-
-        reply = message.create_reply()
-        reply.set_performative(ACLMessage.INFORM)
-        reply.set_sender(self.fact.aid)
-        reply.set_content(dumps(self.fact.recent_message_history))
-        self.fact.recent_message_history = []
-
-        sniffer_aid = message.sender
-        self.fact.messages.append((sniffer_aid, reply))
-        reactor.connectTCP(sniffer_aid.host, sniffer_aid.port, self.fact)
-
 
 class AgentFactory(protocol.ClientFactory):
 
@@ -279,7 +263,7 @@ class Agent(object):
     2. Configurações iniciais
     3. Envio de mensagens
     4. Adição de comportamentos
-    5. metodo abstrato a ser utilizado na implementação dos comportamentos iniciais 
+    5. metodo abstrato a ser utilizado na implementação dos comportamentos iniciais
     6. metodo abstrato a ser utlizado na implementação dos comportamentos dos agentes quando recebem uma mensagem
     """
 
@@ -375,6 +359,7 @@ class Agent(object):
         especificados no campo receivers da mensagem ACL
         """
         message.set_sender(self.aid)
+        message.set_message_id()
         # for percorre os destinatarios da mensagem
         for receiver in message.receivers:
             for name in self.agentInstance.table:

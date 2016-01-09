@@ -34,14 +34,16 @@
 
 from twisted.internet import protocol, reactor
 from twisted.enterprise import adbapi
+
 from pickle import dumps, loads
 from uuid import uuid4
+import datetime
 
 from pade.core.peer import PeerProtocol
-
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.misc.utility import display_message
+from pade.web.flask_server import db, Agent, Message
 
 
 class AgentManagementProtocol(PeerProtocol):
@@ -91,13 +93,23 @@ class AgentManagementProtocol(PeerProtocol):
 
     def connectionLost(self, reason):
         """Este método é executado sempre que uma conexão é perdida
-            com o agente AMS
+            com o agente AMS. Isso geralmente acontece quando o
+            recebimento de uma mensagem é encerrado
         """
         if self.message is not None:
             message = PeerProtocol.connectionLost(self, reason)
 
-            # como o agente AMS só recebe mensagens
-            self.handle_identif(loads(message.content))
+            # carrega o conteudo da mensagem recebida
+            content = loads(message.content)
+            # se a mensagem for de identificação, lança o comportamento de
+            # identificação
+            if content['ref'] == 'IDENT':
+                self.handle_identif(content['aid'])
+            # se não, lança o comportamento de armazenamento de mensagens
+            elif content['ref'] == 'MESSAGE':
+                self.handle_store_messages(content['message'], message.sender)
+
+            # reinicia a variável que armazena a mensagem recebida
             self.message = None
 
     def send_message(self, message):
@@ -106,7 +118,7 @@ class AgentManagementProtocol(PeerProtocol):
     def lineReceived(self, line):
         """Quando uma mensagem é enviada ao AMS este método é executado.
             Quando em fase de identificação, o AMS registra o agente
-            em sua tabele de agentes ativos
+            em sua tabela de agentes ativos
         """
 
         # recebe uma parte da mensagem enviada
@@ -143,11 +155,34 @@ class AgentManagementProtocol(PeerProtocol):
         message.set_content(dumps(self.fact.table))
         self.fact.broadcast_message(message)
 
+    def handle_store_messages(self, message, sender):
+        m = Message(sender=message.sender.localname,
+        date=datetime.datetime.now(),
+        performative=message.performative,
+        protocol=message.protocol,
+        content=message.content,
+        conversation_id=message.conversationID,
+        message_id=message.messageID,
+        ontology=message.ontology,
+        language=message.language)
+
+        receivers = list()
+        for receiver in message.receivers:
+            receivers.append(receiver.localname)
+        m.receivers = receivers
+
+        a = Agent.query.filter_by(name=sender.localname).all()[0]
+        m.agent_id = a.id
+
+        db.session.add(m)
+        db.session.commit()
+
+        display_message(self.fact.aid.name, 'Message stored')
 
 class AgentManagementFactory(protocol.ClientFactory):
 
     """Esta classe implementa as ações e atributos do protocolo AMS
-        sua principal função é armazenar informações importantes ao protocolo de comunicação 
+        sua principal função é armazenar informações importantes ao protocolo de comunicação
         do agente AMS
     """
 
@@ -167,7 +202,7 @@ class AgentManagementFactory(protocol.ClientFactory):
         self.aid = AID(name='AMS' + '@' + 'localhost' + ':' + str(port))
 
         display_message(
-            'AMS', 'AMS esta servindo na porta' + str(self.aid.port))
+            'AMS', 'AMS esta servindo na porta ' + str(self.aid.port))
 
         # instancia o objeto que realizará a conexão com o banco de dados
         self.conn = adbapi.ConnectionPool(
@@ -175,6 +210,7 @@ class AgentManagementFactory(protocol.ClientFactory):
         self.d = self.createAgentsTable()
         self.d.addCallback(self.insert_agent)
 
+        # Inicialização do comportamento de verificação das conexões
         reactor.callLater(5, self.connection_test_send)
 
     def buildProtocol(self, addr):
