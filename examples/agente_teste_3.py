@@ -80,15 +80,18 @@ class AgenteRelogio(Agent):
 
 
 def main():
+
+    AMS = {'name' : 'localhost', 'port' : 8000}
+    set_ams(AMS['name'], AMS['port'])
+
     agentes = list()
-    set_ams('localhost', 8000, debug=False)
 
     a = AgenteHorario(AID(name='horario'))
-    a.ams = {'name': 'localhost', 'port': 8000}
+    a.ams = AMS
     agentes.append(a)
 
     a = AgenteRelogio(AID(name='relogio'))
-    a.ams = {'name': 'localhost', 'port': 8000}
+    a.ams = AMS
     agentes.append(a)
 
     start_loop(agentes)

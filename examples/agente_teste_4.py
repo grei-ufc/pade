@@ -181,16 +181,17 @@ class AgenteParticipante(Agent):
 
 if __name__ == "__main__":
 
-    set_ams('localhost', 8000, debug=False)
+    AMS = {'name' : 'localhost', 'port' : 8000}
+    set_ams(AMS['name'], AMS['port'])
 
     aa_1 = AgenteIniciante(AID(name='AI1'))
-    aa_1.ams = {'name': 'localhost', 'port': 8000}
+    aa_1.ams = AMS
 
     aa_2 = AgenteParticipante(AID(name='AP1'), 150.0)
-    aa_2.ams = {'name': 'localhost', 'port': 8000}
+    aa_2.ams = AMS
 
     aa_3 = AgenteParticipante(AID(name='AP2'), 100.0)
-    aa_3.ams = {'name': 'localhost', 'port': 8000}
+    aa_3.ams = AMS
 
     agents_list = list([aa_1, aa_2, aa_3])
 
