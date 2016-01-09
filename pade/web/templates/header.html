@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js">
     </script>
     <title>Python Agent DEvelopment framework</title>
 </head>
@@ -28,6 +27,13 @@
                 <li><a href="/">Home</a></li>
                 <li><a href="/diagrams">Diagrams</a></li>
                 <li><a href="/">Manage Agents</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
+            {% else %}
+                <li><a href="{{ url_for('login') }}">Sign In</a></li>
+            {% endif %}
             </ul>
         </div>
     </div>

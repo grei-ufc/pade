@@ -44,15 +44,13 @@ from pade.acl.aid import AID
 from pade.core.ams import AgentManagementFactory
 from pade.core.sniffer import SnifferFactory
 
-from pade.web.flask_server import app, db
-from pade.web.flask_server import Session, Agent
+from pade.web.flask_server import run_server, db
+from pade.web.flask_server import Session, Agent, User
 
 import optparse
 import multiprocessing
 import uuid
 import datetime
-
-AMS = {'name': 'localhost', 'port': 8000}
 
 
 class FlaskServerProcess(multiprocessing.Process):
@@ -60,46 +58,55 @@ class FlaskServerProcess(multiprocessing.Process):
         Esta classe implementa a thread que executa
         o servidor web com o aplicativo Flask
     """
-    def __init__(self, app):
+    def __init__(self):
         multiprocessing.Process.__init__(self)
-        self.app = app
 
     def run(self):
-        self.app.run(host='0.0.0.0', port=5000, debug=None)
+        run_server()
+
+class PSession(object):
+
+    agents = list()
+    users = list()
+
+    def __init__(self, name=None, ams=None):
+        if name is not None:
+            self.name = name
+        else:
+            self.name = str(uuid.uuid1())[:13]
+
+        if ams is not None:
+            self.ams = ams
+        else:
+            self.ams = {'name': 'localhost', 'port': 8000}
+
+    def add_agent(self, agent):
+        agent.ams = self.ams
+        self.agents.append(agent)
 
 
-# =========================================================================
-# Metodos Utilitarios
-# =========================================================================
+    def add_all_agents(self, agents):
+        for agent in agents:
+            agent.ams = self.ams
+        self.agents = self.agents + agents
 
-def set_ams(name, port, debug=False):
-    """
-        Metodo utilizado na inicialização do laço de execução do AMS
-    """
-    global AMS
+    def register_user(self, username, email, password):
+        self.users.append({'username' : username, 'email' : email, 'password' : password})
 
-    AMS = {'name': name, 'port': port}
-
-    amsFactory = AgentManagementFactory(port, debug)
-    twisted.internet.reactor.listenTCP(port, amsFactory)
-
-def start_loop(agents):
+def start_loop(session, debug=False):
     """
         Lança o loop do twisted integrado com o loop do Qt se a opção GUI for
         verdadeira, se não lança o loop do Twisted
     """
-    global AMS
 
-    # instancia um AID para o agente Sniffer
-    # aid = AID('Sniffer_Agent')
-    # instancia um objeto Factory para o agente Sniffer
-    # snifferFactory = SnifferFactory(aid, AMS)
-    # lança o agente como servidor na porta gerada pelo objeto AID
-    # twisted.internet.reactor.listenTCP(aid.port, snifferFactory)
+    # instancia o factory do agente AMS e chama o metodo listenTCP
+    # do Twisted para o agente AMS
+    amsFactory = AgentManagementFactory(session.ams['port'], debug)
+    twisted.internet.reactor.listenTCP(session.ams['port'], amsFactory)
 
     # instancia a classe que lança o processo
     # com o servidor web com o aplicativo Flask
-    p1 = FlaskServerProcess(app)
+    p1 = FlaskServerProcess()
     p1.daemon = True
 
     p1.start()
@@ -107,18 +114,39 @@ def start_loop(agents):
     db.drop_all()
     db.create_all()
 
-    s = Session(name=str(uuid.uuid1())[:13], date=datetime.datetime.now(), state = 'Ativo')
+    # registra uma nova sessão no banco de dados
+    s = Session(name=session.name,
+                date=datetime.datetime.now(),
+                state = 'Ativo')
     db.session.add(s)
     db.session.commit()
 
+    # registra os agentes no banco de dados
+
     i = 1
     agents_db = list()
-    for agent in agents:
+    for agent in session.agents:
         twisted.internet.reactor.callLater(i, listen_agent, agent)
-        a = Agent(name=agent.aid.localname, session_id=s.id, date=datetime.datetime.now(), state = 'Ativo')
+        a = Agent(name=agent.aid.localname,
+                  session_id=s.id,
+                  date=datetime.datetime.now(),
+                  state = 'Ativo')
         agents_db.append(a)
         i += 0.2
+
     db.session.add_all(agents_db)
+    db.session.commit()
+
+    # registra os usuarios no banco de dados
+    users_db = list()
+    for user in session.users:
+        u = User(username=user['username'],
+                 email=user['email'],
+                 password=user['password'],
+                 session_id=s.id)
+        users_db.append(u)
+
+    db.session.add_all(users_db)
     db.session.commit()
 
     # lança o loop do Twisted
@@ -131,15 +159,3 @@ def listen_agent(agent):
         agent.ams['name'], agent.ams['port'], agent.agentInstance)
     # Conecta o agente à porta que será utilizada para comunicação
     twisted.internet.reactor.listenTCP(agent.aid.port, agent.agentInstance)
-
-
-def main():
-    p = optparse.OptionParser()
-    p.add_option('--port', '-p', default=8000)
-    p.add_option('--gui', '-g', default=False)
-    options, arguments = p.parse_args()
-
-    set_ams('localhost', port=int(options.port))
-
-if __name__ == '__main__':
-    main()

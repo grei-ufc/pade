@@ -1,8 +1,16 @@
 import os
 from flask import Flask
-from flask import request, render_template
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask import request, render_template, flash, redirect, url_for
 from flask.ext.bootstrap import Bootstrap
+from flask.ext.login import LoginManager, login_required, login_user, logout_user
+from flask.ext.wtf import Form
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import Required, Email, Length
+
+from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.login import UserMixin
+from werkzeug import generate_password_hash, check_password_hash
+
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -13,6 +21,20 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
 os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+
+# configiracao para utilizacao de chave de seguranca
+# em formularios submetidos pelo metodo POST
+app.config['SECRET_KEY'] = 'h5xzTxz2ksytu8GJjei37KHI8t0unJKN7EQ8KOPU3Khkjhkjguv'
+
+# configuracao para utilizacao offline do Bootstrap
+app.config['BOOTSTRAP_SERVE_LOCAL'] = True
+
+# configuracao do sistema de login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.session_protection = 'strong'
+login_manager.login_view = 'login'
+
 db = SQLAlchemy(app)
 
 bootstrap = Bootstrap(app)
@@ -24,9 +46,33 @@ class Session(db.Model):
     date = db.Column(db.DateTime)
     state = db.Column(db.String(64))
     agents = db.relationship('Agent', backref='session')
+    users = db.relationship('User', backref='session')
 
     def __repr__(self):
         return "Session %s" % self.name
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    session_id = db.Column(db.Integer, db.ForeignKey('sessions.id'))
+    username = db.Column(db.String(64), unique=True)
+    email = db.Column(db.String(64), unique=True)
+    password_hash = db.Column(db.String(128))
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute!')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return 'Username: %s' % self.username
 
 
 class Agent(db.Model):
@@ -39,7 +85,7 @@ class Agent(db.Model):
     state = db.Column(db.String(64))
     messages = db.relationship('Message', backref='agent')
     def __repr__(self):
-        return "Agent %s" % self.name
+        return 'Agent %s' % self.name
 
 
 class Message(db.Model):
@@ -58,36 +104,79 @@ class Message(db.Model):
     language = db.Column(db.String)
 
     def __repr__(self):
-        return "Message %s" % self.id
+        return 'Message %s' % self.id
+
+class LoginForm(Form):
+    email = StringField('Email', validators=[Required(), Length(1, 64),
+                                 Email()])
+    password = PasswordField('Password', validators=[Required()])
+    remember_me = BooleanField('Keep me logged in')
+    submit = SubmitField('Log In')
+
 
 @app.before_first_request
 def create_database():
     db.create_all()
     print '[flask-server] >>> Database created.'
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user is not None and user.verify_password(form.password.data):
+            login_user(user, form.remember_me.data)
+            return redirect(url_for('index'))
+        flash('Invalid username or password.')
+    else:
+        user = request.args.get('email', type=str)
+        password = request.args.get('password', type=str)
+        remember = request.args.get('remember', type=bool)
+        user = User.query.filter_by(email=user).first()
+        if user is not None and user.verify_password(password):
+            login_user(user, remember)
+            return redirect(url_for('index'))
+        else:
+            return render_template('login.html', form=form)
+
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    logout_user()
+    flash('You have been logged out')
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     sessions = Session.query.all()
     return render_template('index.html', sessions=sessions)
 
 @app.route('/session/<session_id>')
+@login_required
 def session_page(session_id):
     session = Session.query.filter_by(id=session_id).all()[0]
     agents = session.agents
     return render_template('agentes.html', session=session.name, agents=agents)
 
 @app.route('/session/agent/<agent_id>')
+@login_required
 def agent_page(agent_id):
     agent = Agent.query.filter_by(id=agent_id).all()[0]
     messages = agent.messages
     return render_template('messages.html', messages=messages)
 
 @app.route('/session/agent/message/<message_id>')
+@login_required
 def message_page(message_id):
     message = Message.query.filter_by(id=message_id).all()[0]
     return render_template('message.html', message=message)
 
 @app.route('/diagrams')
+@login_required
 def diagrams():
     messages = Message.query.order_by(Message.date).all()
     _messages = list()
