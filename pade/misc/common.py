@@ -39,15 +39,13 @@
  @author: lucas
 """
 
-import twisted.internet
-from pade.acl.aid import AID
-from pade.core.ams import AgentManagementFactory
-from pade.core.sniffer import SnifferFactory
+from twisted.internet import reactor
 
 from pade.web.flask_server import run_server, db
 from pade.web.flask_server import Session, Agent, User
 
-import optparse
+from pade.core.new_ams import AMS
+
 import multiprocessing
 import uuid
 import datetime
@@ -63,6 +61,7 @@ class FlaskServerProcess(multiprocessing.Process):
 
     def run(self):
         run_server()
+
 
 class PSession(object):
 
@@ -84,25 +83,27 @@ class PSession(object):
         agent.ams = self.ams
         self.agents.append(agent)
 
-
     def add_all_agents(self, agents):
         for agent in agents:
             agent.ams = self.ams
         self.agents = self.agents + agents
 
     def register_user(self, username, email, password):
-        self.users.append({'username' : username, 'email' : email, 'password' : password})
+        self.users.append(
+            {'username': username, 'email': email, 'password': password})
+
 
 def start_loop(session, debug=False):
     """
         Lança o loop do twisted integrado com o loop do Qt se a opção GUI for
         verdadeira, se não lança o loop do Twisted
     """
-
-    # instancia o factory do agente AMS e chama o metodo listenTCP
-    # do Twisted para o agente AMS
-    amsFactory = AgentManagementFactory(session.ams['port'], debug)
-    twisted.internet.reactor.listenTCP(session.ams['port'], amsFactory)
+    # instancia o agente AMS e chama o metodo listenTCP
+    # do Twisted para lancar o agente
+    # TODO: atribuir os parametros do ams de acordo
+    # com a entrada do usuario
+    ams_agent = AMS(host='127.0.0.1', port=8000)
+    reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
     # instancia a classe que lança o processo
     # com o servidor web com o aplicativo Flask
@@ -117,7 +118,7 @@ def start_loop(session, debug=False):
     # registra uma nova sessão no banco de dados
     s = Session(name=session.name,
                 date=datetime.datetime.now(),
-                state = 'Ativo')
+                state='Ativo')
     db.session.add(s)
     db.session.commit()
 
@@ -125,11 +126,11 @@ def start_loop(session, debug=False):
     i = 1
     agents_db = list()
     for agent in session.agents:
-        twisted.internet.reactor.callLater(i, listen_agent, agent)
+        reactor.callLater(i, listen_agent, agent)
         a = Agent(name=agent.aid.localname,
                   session_id=s.id,
                   date=datetime.datetime.now(),
-                  state = 'Ativo')
+                  state='Ativo')
         agents_db.append(a)
         i += 0.2
 
@@ -149,12 +150,11 @@ def start_loop(session, debug=False):
     db.session.commit()
 
     # lança o loop do Twisted
-    twisted.internet.reactor.run()
+    reactor.run()
 
 
 def listen_agent(agent):
     # Conecta o agente ao AMS
-    twisted.internet.reactor.connectTCP(
-        agent.ams['name'], agent.ams['port'], agent.agentInstance)
+    agent.on_start()
     # Conecta o agente à porta que será utilizada para comunicação
-    twisted.internet.reactor.listenTCP(agent.aid.port, agent.agentInstance)
+    reactor.listenTCP(agent.aid.port, agent.agentInstance)
