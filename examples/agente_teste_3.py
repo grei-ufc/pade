@@ -1,4 +1,4 @@
-from pade.misc.common import start_loop, set_ams
+from pade.misc.common import PSession, start_loop
 from pade.misc.utility import display_message
 from pade.core.agent import Agent
 from pade.acl.messages import ACLMessage
@@ -73,28 +73,29 @@ class AgenteRelogio(Agent):
         message.set_content('time')
 
         self.comport_request = CompRequest2(self, message)
-        self.comport_temp = ComportTemporal(self, 1.0, message)
+        self.comport_temp = ComportTemporal(self, 5.0, message)
 
         self.behaviours.append(self.comport_request)
         self.behaviours.append(self.comport_temp)
 
 
-def main():
+def config_agents():
 
-    AMS = {'name' : 'localhost', 'port' : 8000}
-    set_ams(AMS['name'], AMS['port'])
-
-    agentes = list()
+    agents = list()
 
     a = AgenteHorario(AID(name='horario'))
-    a.ams = AMS
-    agentes.append(a)
+    agents.append(a)
 
     a = AgenteRelogio(AID(name='relogio'))
-    a.ams = AMS
-    agentes.append(a)
+    agents.append(a)
 
-    start_loop(agentes)
+    s = PSession()
+    s.add_all_agents(agents)
+    s.register_user(username='lucassm',
+                    email='lucas@gmail.com',
+                    password='12345')
+
+    return s
 
 if __name__ == '__main__':
-    main()
+    start_loop(config_agents())
