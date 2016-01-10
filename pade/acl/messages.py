@@ -93,10 +93,10 @@ class ACLMessage(ET.Element):
             FIPA, podendo ser do tipo INFORM, CFP, AGREE, PROPOSE...
             Todos estes tipos são atributos da classe ACLMessage
         """
-        super(ACLMessage, self).__init__('ACLMessage',
-            attrib = {'date' : datetime.now().strftime('%d/%m/%Y as %H:%M:%S:%f')})
+        super(ACLMessage, self).__init__('ACLMessage')
 
         self.append(ET.Element('performative'))
+        self.append(ET.Element('system-message'))
         self.append(ET.Element('sender'))
         self.append(ET.Element('receivers'))
         self.append(ET.Element('reply-to'))
@@ -110,7 +110,9 @@ class ACLMessage(ET.Element):
         self.append(ET.Element('reply-with'))
         self.append(ET.Element('in-reply-to'))
         self.append(ET.Element('reply-by'))
-
+        self.append(ET.Element('reply-by'))
+        self.append(ET.Element('datetime'))
+        
         if performative != None:
             if performative.lower() in self.performaives:
                 self.performative = performative.lower()
@@ -122,9 +124,11 @@ class ACLMessage(ET.Element):
         self.messageID = str(uuid1())
         self.find('messageID').text = self.messageID
 
+        self.system_message = False
+        self.datetime = None
         self.sender = None
-        self.receivers = []
-        self.reply_to = []
+        self.receivers = list()
+        self.reply_to = list()
         self.content = None
         self.language = None
         self.encoding = None
@@ -133,6 +137,8 @@ class ACLMessage(ET.Element):
         self.reply_with = None
         self.in_reply_to = None
         self.reply_by = None
+
+        self.set_datetime_now()
 
     def set_performative(self, performative):
         """Método que seta o parâmetro Performtive da mensagem ACL
@@ -143,6 +149,36 @@ class ACLMessage(ET.Element):
         """
         self.performative = performative
         self.find('performative').text = str(performative).lower()
+
+    def set_system_message(self, is_system_message):
+        self.system_message = is_system_message
+        self.find('system-message').text = str(is_system_message)
+
+
+    def set_datetime_now(self):
+        self.datetime = datetime.now()
+        datetime_tag = self.find('datetime')
+        day = ET.Element('day')
+        day.text = str(self.datetime.day)
+        datetime_tag.append(day)
+        month = ET.Element('month')
+        month.text = str(self.datetime.month)
+        datetime_tag.append(month)
+        year = ET.Element('year')
+        year.text = str(self.datetime.year)
+        datetime_tag.append(year)
+        hour = ET.Element('hour')
+        hour.text = str(self.datetime.hour)
+        datetime_tag.append(hour)
+        minute = ET.Element('minute')
+        minute.text = str(self.datetime.minute)
+        datetime_tag.append(minute)
+        second = ET.Element('second')
+        second.text = str(self.datetime.second)
+        datetime_tag.append(second)
+        microsecond = ET.Element('microsecond')
+        microsecond.text  = str(self.datetime.microsecond)
+        datetime_tag.append(microsecond)
 
     def set_sender(self, aid):
         """Método utilizado para definir o agente que irá enviar a mensagem
@@ -300,6 +336,17 @@ class ACLMessage(ET.Element):
             pass
 
         try:
+            system_message = aclmsg.find('system-message').text
+            if system_message == 'True':
+                self.system_message = True
+                self.find('system-message').text = system_message
+            else:
+                self.system_message = False
+                self.find('system-message').text = system_message
+        except:
+            pass
+
+        try:
             self.conversationID = aclmsg.find('conversationID').text
             self.find('conversationID').text = self.conversationID
         except:
@@ -311,6 +358,35 @@ class ACLMessage(ET.Element):
         except:
             pass
 
+        try:
+            datetime_tag = aclmsg.find('datetime')
+            my_datetime_tag = self.find('datetime')
+
+            day = int(datetime_tag.findtext('day'))
+            my_datetime_tag.find('day').text = str(day)
+            month = int(datetime_tag.findtext('month'))
+            my_datetime_tag.find('month').text = str(month)
+            year = int(datetime_tag.findtext('year'))
+            my_datetime_tag.find('year').text = str(year)
+            hour = int(datetime_tag.findtext('hour'))
+            my_datetime_tag.find('hour').text = str(hour)
+            minute = int(datetime_tag.findtext('minute'))
+            my_datetime_tag.find('minute').text = str(minute)
+            second = int(datetime_tag.findtext('second'))
+            my_datetime_tag.find('second').text = str(second)
+            microsecond = int(datetime_tag.findtext('microsecond'))
+            my_datetime_tag.find('microsecond').text = str(microsecond)
+
+            self.datetime = datetime(year=year,
+                                     month=month,
+                                     day=day,
+                                     hour=hour,
+                                     minute=minute,
+                                     second=second,
+                                     microsecond=microsecond)
+        except:
+            pass
+        
         try:
             self.sender = AID(name = aclmsg.find('sender').text)
             self.find('sender').text = self.sender.name
@@ -398,6 +474,7 @@ class ACLMessage(ET.Element):
         message = ACLMessage()
 
         message.set_performative(self.performative)
+        message.set_system_message(is_system_message=self.system_message)
 
         if self.language:
             message.set_language(self.language)
@@ -422,7 +499,7 @@ class ACLMessage(ET.Element):
 if __name__ == '__main__':
 
     msg = ACLMessage()
-    msg.set_message('<?xml version="1.0" ?><ACLMessage date="19/03/2014 - 15:51:03:207172"><performative>inform</performative><sender>Lucas@localhost:7352</sender><receivers><receiver>Allana@localhost:5851</receiver></receivers><reply-to/><content>51A Feeder 21I5</content><language/><enconding/><ontology/><protocol/><conversationID/><reply-with/><in-reply-to/><reply-by/></ACLMessage>')
+    msg.set_message('<?xml version="1.0" ?><ACLMessage"><performative>inform</performative><sender>Lucas@localhost:7352</sender><receivers><receiver>Allana@localhost:5851</receiver></receivers><reply-to/><content>51A Feeder 21I5</content><language/><enconding/><ontology/><protocol/><conversationID/><reply-with/><in-reply-to/><reply-by/></ACLMessage>')
     # msg.set_sender(AID(name='Lucas'))
     # msg.add_receiver(AID(name='Allana'))
     # msg.set_content('51A Feeder 21I5')
