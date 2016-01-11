@@ -124,38 +124,6 @@ class ACLMessage(ET.Element):
         self.messageID = str(uuid1())
         self.find('messageID').text = self.messageID
 
-        self.system_message = False
-        self.datetime = None
-        self.sender = None
-        self.receivers = list()
-        self.reply_to = list()
-        self.content = None
-        self.language = None
-        self.encoding = None
-        self.ontology = None
-        self.protocol = None
-        self.reply_with = None
-        self.in_reply_to = None
-        self.reply_by = None
-
-        self.set_datetime_now()
-
-    def set_performative(self, performative):
-        """Método que seta o parâmetro Performtive da mensagem ACL
-
-           :param performative: tipo da performative da mensagem,
-           podendo ser qualquer um dos atributos da classe
-           ACLMessage.
-        """
-        self.performative = performative
-        self.find('performative').text = str(performative).lower()
-
-    def set_system_message(self, is_system_message):
-        self.system_message = is_system_message
-        self.find('system-message').text = str(is_system_message)
-
-
-    def set_datetime_now(self):
         self.datetime = datetime.now()
         datetime_tag = self.find('datetime')
         day = ET.Element('day')
@@ -179,6 +147,46 @@ class ACLMessage(ET.Element):
         microsecond = ET.Element('microsecond')
         microsecond.text  = str(self.datetime.microsecond)
         datetime_tag.append(microsecond)
+
+        self.system_message = False
+        self.datetime = None
+        self.sender = None
+        self.receivers = list()
+        self.reply_to = list()
+        self.content = None
+        self.language = None
+        self.encoding = None
+        self.ontology = None
+        self.protocol = None
+        self.reply_with = None
+        self.in_reply_to = None
+        self.reply_by = None
+
+    def set_performative(self, performative):
+        """Método que seta o parâmetro Performtive da mensagem ACL
+
+           :param performative: tipo da performative da mensagem,
+           podendo ser qualquer um dos atributos da classe
+           ACLMessage.
+        """
+        self.performative = performative
+        self.find('performative').text = str(performative).lower()
+
+    def set_system_message(self, is_system_message):
+        self.system_message = is_system_message
+        self.find('system-message').text = str(is_system_message)
+
+    def set_datetime_now(self):
+        self.datetime = datetime.now()
+        datetime_tag = self.find('datetime')
+
+        datetime_tag.find('day').text = str(self.datetime.day)
+        datetime_tag.find('month').text = str(self.datetime.month)
+        datetime_tag.find('year').text = str(self.datetime.year)
+        datetime_tag.find('hour').text = str(self.datetime.hour)
+        datetime_tag.find('minute').text = str(self.datetime.minute)
+        datetime_tag.find('second').text = str(self.datetime.second)
+        datetime_tag.find('microsecond').text = str(self.datetime.microsecond)
 
     def set_sender(self, aid):
         """Método utilizado para definir o agente que irá enviar a mensagem
