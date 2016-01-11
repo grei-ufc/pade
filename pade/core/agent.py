@@ -314,7 +314,6 @@ class Agent_(object):
         """
 
         for agent_aid in self.agentInstance.table.values():
-            if 'Sniffer_Agent' not in agent_aid.localname:
                 message.add_receiver(agent_aid)
 
         self.send(message)
