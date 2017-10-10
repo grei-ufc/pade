@@ -5,7 +5,7 @@
 
 from pade.behaviours.protocols import TimedBehaviour
 from pade.misc.utility import display_message
-from pade.misc.common import PSession, start_loop
+from pade.misc.common import PadeSession
 from pade.core.agent import Agent
 from pade.acl.aid import AID
 
@@ -37,11 +37,14 @@ def config_agents():
     agents.append(agente_1)
     agents.append(agente_2)
 
-    s = PSession()
+    s = PadeSession()
     s.add_all_agents(agents)
-    s.register_user(username='lucassm', email='lucas@gmail.com', password='12345')
+    s.register_user(username='lucassm',
+                    email='lucas@gmail.com',
+                    password='12345')
 
     return s
 
 if __name__ == '__main__':
-    start_loop(config_agents())
+    s = config_agents()
+    s.start_loop()

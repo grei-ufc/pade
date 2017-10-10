@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from pade.misc.common import PSession, start_loop
+from pade.misc.common import PadeSession
 from pade.misc.utility import display_message
 from pade.core.agent import Agent
 from pade.acl.messages import ACLMessage
@@ -198,4 +198,5 @@ def config_agents():
 
 if __name__ == "__main__":
 
-    start_loop(config_agents())
+    s = config_agents()
+    s.start_loop()

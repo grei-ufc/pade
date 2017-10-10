@@ -1,4 +1,4 @@
-from pade.misc.common import PSession, start_loop
+from pade.misc.common import PadeSession
 from pade.misc.utility import display_message
 from pade.core.agent import Agent
 from pade.acl.messages import ACLMessage
@@ -89,7 +89,7 @@ def config_agents():
     a = AgenteRelogio(AID(name='relogio'))
     agents.append(a)
 
-    s = PSession()
+    s = PadeSession()
     s.add_all_agents(agents)
     s.register_user(username='lucassm',
                     email='lucas@gmail.com',
@@ -98,4 +98,5 @@ def config_agents():
     return s
 
 if __name__ == '__main__':
-    start_loop(config_agents())
+    s = config_agents()
+    s.start_loop()

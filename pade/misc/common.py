@@ -63,7 +63,7 @@ class FlaskServerProcess(multiprocessing.Process):
         run_server()
 
 
-class PSession(object):
+class PadeSession(object):
 
     agents = list()
     users = list()
@@ -93,68 +93,67 @@ class PSession(object):
             {'username': username, 'email': email, 'password': password})
 
 
-def start_loop(session, debug=False):
-    """
-        Lança o loop do twisted integrado com o loop do Qt se a opção GUI for
-        verdadeira, se não lança o loop do Twisted
-    """
-    # instancia o agente AMS e chama o metodo listenTCP
-    # do Twisted para lancar o agente
-    # TODO: atribuir os parametros do ams de acordo
-    # com a entrada do usuario
-    ams_agent = AMS(host='127.0.0.1', port=8000)
-    reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
+    def start_loop(self, debug=False):
+        """
+            Lança o loop do twisted
+        """
+        # instancia o agente AMS e chama o metodo listenTCP
+        # do Twisted para lancar o agente
+        # TODO: atribuir os parametros do ams de acordo
+        # com a entrada do usuario
+        ams_agent = AMS(host='127.0.0.1', port=8000)
+        reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
-    # instancia a classe que lança o processo
-    # com o servidor web com o aplicativo Flask
-    p1 = FlaskServerProcess()
-    p1.daemon = True
+        # instancia a classe que lança o processo
+        # com o servidor web com o aplicativo Flask
+        p1 = FlaskServerProcess()
+        p1.daemon = True
 
-    p1.start()
+        p1.start()
 
-    db.drop_all()
-    db.create_all()
+        db.drop_all()
+        db.create_all()
 
-    # registra uma nova sessão no banco de dados
-    s = Session(name=session.name,
-                date=datetime.datetime.now(),
-                state='Ativo')
-    db.session.add(s)
-    db.session.commit()
+        # registra uma nova sessão no banco de dados
+        s = Session(name=self.name,
+                    date=datetime.datetime.now(),
+                    state='Ativo')
+        db.session.add(s)
+        db.session.commit()
 
-    # registra os agentes no banco de dados
-    i = 1
-    agents_db = list()
-    for agent in session.agents:
-        reactor.callLater(i, listen_agent, agent)
-        a = Agent(name=agent.aid.localname,
-                  session_id=s.id,
-                  date=datetime.datetime.now(),
-                  state='Ativo')
-        agents_db.append(a)
-        i += 0.2
+        # registra os agentes no banco de dados
+        i = 1
+        agents_db = list()
+        for agent in self.agents:
+            reactor.callLater(i, self._listen_agent, agent)
+            a = Agent(name=agent.aid.localname,
+                      session_id=s.id,
+                      date=datetime.datetime.now(),
+                      state='Ativo')
+            agents_db.append(a)
+            i += 0.2
 
-    db.session.add_all(agents_db)
-    db.session.commit()
+        db.session.add_all(agents_db)
+        db.session.commit()
 
-    # registra os usuarios no banco de dados
-    users_db = list()
-    for user in session.users:
-        u = User(username=user['username'],
-                 email=user['email'],
-                 password=user['password'],
-                 session_id=s.id)
-        users_db.append(u)
+        # registra os usuarios no banco de dados
+        users_db = list()
+        for user in self.users:
+            u = User(username=user['username'],
+                     email=user['email'],
+                     password=user['password'],
+                     session_id=s.id)
+            users_db.append(u)
 
-    db.session.add_all(users_db)
-    db.session.commit()
+        db.session.add_all(users_db)
+        db.session.commit()
 
-    # lança o loop do Twisted
-    reactor.run()
+        # lança o loop do Twisted
+        reactor.run()
 
 
-def listen_agent(agent):
-    # Conecta o agente ao AMS
-    agent.on_start()
-    # Conecta o agente à porta que será utilizada para comunicação
-    reactor.listenTCP(agent.aid.port, agent.agentInstance)
+    def _listen_agent(self, agent):
+        # Conecta o agente ao AMS
+        agent.on_start()
+        # Conecta o agente à porta que será utilizada para comunicação
+        reactor.listenTCP(agent.aid.port, agent.agentInstance)
