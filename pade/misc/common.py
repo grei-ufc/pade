@@ -100,92 +100,91 @@ class PadeSession(object):
         self.user_login['email'] = email
         self.user_login['password'] = password
 
+
     def start_loop(self, debug=False):
         """
             Lança o loop do twisted
         """
-        # instancia o agente AMS e chama o metodo listenTCP
-        # do Twisted para lancar o agente
-        # TODO: atribuir os parametros do ams de acordo
-        # com a entrada do usuario
-        ams_agent = AMS(host='127.0.0.1', port=8000)
-        reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
-        # instancia a classe que lança o processo
-        # com o servidor web com o aplicativo Flask
-        p1 = FlaskServerProcess()
-        p1.daemon = True
+        # pesquisa no banco de dados se existe uma sessao com este nome
+        session = Session.query.filter_by(name=self.name).first()
 
-        p1.start()
+        # caso nao exista uma sessao com este nome
+        if session is None:
 
-        # limpa o banco de dados e cria novos registros
-        db.drop_all()
-        db.create_all()
+            # instancia a classe que lança o processo
+            # com o servidor web com o aplicativo Flask
+            p1 = FlaskServerProcess()
+            p1.daemon = True
 
-        # registra uma nova sessão no banco de dados
+            p1.start()
 
-        s = Session(name=self.name,
-                    date=datetime.datetime.now(),
-                    state='Ativo')
-        db.session.add(s)
-        db.session.commit()
+            # limpa o banco de dados e cria novos registros
+            db.drop_all()
+            db.create_all()
 
-        # instancia o agente AMS e chama o metodo listenTCP
-        # do Twisted para lancar o agente
-        ams_agent = AMS(host=self.ams['name'],
-                        port=self.ams['port'],
-                        session=s)
-        reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
-
-        # registra os usuarios, se houverem, no banco de dados
-        if len(self.users) != 0:
-            users_db = list()
-            for user in self.users:
-                u = User(username=user['username'],
-                         email=user['email'],
-                         password=user['password'],
-                         session_id=s.id)
-                users_db.append(u)
-
-            db.session.add_all(users_db)
+            # registra uma nova sessão no banco de dados
+            s = Session(name=self.name,
+                        date=datetime.datetime.now(),
+                        state='Ativo')
+            db.session.add(s)
             db.session.commit()
 
-    # caso exista uma sessao com este nome
-    else:
-        s = session
-        # caso seja uma sessao ativa
-        if s.state == 'Ativo':
-            users = s.users
-            # percorre os usuarios cadastrados no banco de dados
-            for user in users:
-                if user.username == self.user_login['username']:
-                    if user.verify_password(session_.user_login['password']):
-                        break
-                    else:
-                        raise UserWarning('The password is wrong!')
-            else:
-                raise UserWarning('The username is wrong!')
-        # caso nao seja uma sessao ativa
+            # instancia o agente AMS e chama o metodo listenTCP
+            # do Twisted para lancar o agente
+            ams_agent = AMS(host=self.ams['name'],
+                            port=self.ams['port'],
+                            session=s)
+            reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
+
+            # registra os usuarios, se houverem, no banco de dados
+            if len(self.users) != 0:
+                users_db = list()
+                for user in self.users:
+                    u = User(username=user['username'],
+                             email=user['email'],
+                             password=user['password'],
+                             session_id=s.id)
+                    users_db.append(u)
+
+                db.session.add_all(users_db)
+                db.session.commit()
+
+        # caso exista uma sessao com este nome
         else:
-            raise UserWarning('This session name has been used before, please, choose another!')
+            s = session
+            # caso seja uma sessao ativa
+            if s.state == 'Ativo':
+                users = s.users
+                # percorre os usuarios cadastrados no banco de dados
+                for user in users:
+                    if user.username == self.user_login['username']:
+                        if user.verify_password(self.user_login['password']):
+                            break
+                        else:
+                            raise UserWarning('The password is wrong!')
+                else:
+                    raise UserWarning('The username is wrong!')
+            # caso nao seja uma sessao ativa
+            else:
+                raise UserWarning('This session name has been used before, please, choose another!')
 
-    i = 1
-    for agent in self.agents:
-        reactor.callLater(i, self._listen_agent, agent)
-        i += 0.2
+        i = 1.0
+        for agent in self.agents:
+            reactor.callLater(i, self._listen_agent, agent)
+            i += 0.2
 
-    # lança o loop do Twisted
-    reactor.run()
+        # lança o loop do Twisted
+        reactor.run()
 
 
-    def _listen_agent(agent):
+    def _listen_agent(self, agent):
         # Conecta o agente ao AMS
         agent.on_start()
         # Conecta o agente à porta que será utilizada para comunicação
         reactor.listenTCP(agent.aid.port, agent.agentInstance)
 
 
-# TODO: Lancamento de agentes em dispositivos diferentes
 def verifica_ip(ip):
     output = subprocess.check_output('ifconfig', shell=True)
     interfaces = output.split('\n\n')
