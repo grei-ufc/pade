@@ -158,21 +158,21 @@ def index():
 @app.route('/session/<session_id>')
 @login_required
 def session_page(session_id):
-    session = Session.query.filter_by(id=session_id).all()[0]
+    session = Session.query.filter_by(id=session_id).first()
     agents = session.agents
-    return render_template('agentes.html', session=session.name, agents=agents)
+    return render_template('agentes.html', session=session, agents=agents)
 
 @app.route('/session/agent/<agent_id>')
 @login_required
 def agent_page(agent_id):
-    agent = Agent.query.filter_by(id=agent_id).all()[0]
+    agent = Agent.query.filter_by(id=agent_id).first()
     messages = agent.messages
-    return render_template('messages.html', messages=messages)
+    return render_template('messages.html', messages=messages, agent=agent)
 
 @app.route('/session/agent/message/<message_id>')
 @login_required
 def message_page(message_id):
-    message = Message.query.filter_by(id=message_id).all()[0]
+    message = Message.query.filter_by(id=message_id).first()
     return render_template('message.html', message=message)
 
 @app.route('/diagrams')
@@ -188,7 +188,11 @@ def diagrams():
             continue
         msgs_id.append(msg.message_id)
 
-    return render_template('diagrams.html', messages=messages)
+    messages_diagram = ''
+    for msg in messages:
+        for receiver in msg.receivers:
+            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(msg.performative) + '\n'
+    return render_template('diagrams.html', messages=messages_diagram)
 
 @app.route('/post',  methods=['POST', 'GET'])
 def my_post():

@@ -139,12 +139,7 @@ class AgentFactory(protocol.ClientFactory):
         """Este método é chamado quando ocorre uma
         falha na conexão de um cliente com o servidor
         """
-        if self.debug:
-            display_message(self.aid.name, 'Falha na Conexão')
-        else:
-            pass
-
-        reactor.stop()
+        display_message(self.aid.name, 'Connection Failed...')
 
     def clientConnectionLost(self, connector, reason):
         """Este método chamado quando a conexão de
@@ -292,8 +287,12 @@ class Agent_(object):
                     receiver.setHost(self.agentInstance.table[name].host)
                     # se conecta ao agente e envia a mensagem
                     self.agentInstance.messages.append((receiver, message))
-                    reactor.connectTCP(self.agentInstance.table[
-                                       name].host, self.agentInstance.table[name].port, self.agentInstance)
+                    try:
+                        reactor.connectTCP(self.agentInstance.table[
+                                           name].host, self.agentInstance.table[name].port, self.agentInstance)
+                    except:
+                        self.agentInstance.messages.pop()
+                        display_message(self.aid.name, 'Error delivery message!')
                     break
             else:
                 if self.debug:
@@ -338,6 +337,10 @@ class Agent_(object):
 # Comportamentos PADE que compõem a classe Agent
 
 class SubscribeBehaviour(FipaSubscribeProtocol):
+    """
+        Esta classe implementa o comportamento 
+        do agente que identifica-o junto ao AMS
+    """
     def __init__(self, agent, message):
         super(SubscribeBehaviour, self).__init__(agent,
                                                  message,
@@ -355,8 +358,12 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
 
 
 class CompConnection(FipaRequestProtocol):
-    """Comportamento FIPA Request
-    do agente Horario"""
+    """
+        Esta classe implementa o comportamento
+        do agente que responde as solicitacoes
+        do AMS para detectar se o agente está ou
+        não conectado. 
+    """
     def __init__(self, agent):
         super(CompConnection, self).__init__(agent=agent,
                                              message=None,
@@ -403,5 +410,3 @@ class Agent(Agent_):
         'message' : message}))
         _message.set_system_message(is_system_message=True)
         self.send(_message)
-        print 'mensagem enviada para ams'
-        # fim da montagem da mensagem

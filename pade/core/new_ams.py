@@ -43,6 +43,9 @@ class ComportVerifyConnTimed(TimedBehaviour):
                 desconnect_agents.append(agent_name)
                 self.agent.agentInstance.table.pop(agent_name)
 
+        for agent_name in desconnect_agents:
+            self.agent.agents_conn_time.pop(agent_name)
+
         display_message(self.agent.aid.name, 'verifing connections...')
         table = AsciiTable(table)
         print table.table
@@ -64,6 +67,16 @@ class CompConnectionVerify(FipaRequestProtocol):
 
 
 class PublisherBehaviour(FipaSubscribeProtocol):
+    """Comportamento FipaSubscribe tipo Publisher que implementa
+       uma comunicacao publisher-subscriber, onde o publisher eh o
+       agente AMS e os subscribers sao os agentes da plataforma.
+       Neste comportamento dois procedimentos sao implementados:
+         - O primeiro dos procedimentos eh o de identificacao em que
+           a disponibilidade eh verificada no banco de dados e se dispo-
+           nivel, armazenada.
+         - O segundo procedimento eh a atualizacao das tabelas distribuidas
+           que contem os enderecos dos agentes presentes na plataforma, sempre
+           que um agente entra ou sai da rede."""
 
     def __init__(self, agent):
         super(PublisherBehaviour, self).__init__(agent,
@@ -75,8 +88,8 @@ class PublisherBehaviour(FipaSubscribeProtocol):
         sender = message.sender
 
         if sender in self.agent.agentInstance.table.values():
-            display_message(
-               self.agent.aid.name , 'Falha na Identificacao do agente ' + sender.name)
+            display_message(self.agent.aid.name,
+                            'Falha na Identificacao do agente ' + sender.name)
 
             # prepara mensagem de resposta
             reply = message.create_reply()
@@ -85,6 +98,15 @@ class PublisherBehaviour(FipaSubscribeProtocol):
             # envia mensagem
             self.agent.send(reply)
         else:
+            # registra o agente no banco de dados
+
+            a = Agent(name=sender.localname,
+                      session_id=self.agent.session.id,
+                      date=datetime.now(),
+                      state='Ativo')
+            db.session.add(a)
+            db.session.commit()
+
             # cadastra o agente na tabela de agentes
             self.agent.agentInstance.table[sender.name] = sender
             # registra no agente como assinante no protocolo
@@ -102,14 +124,13 @@ class PublisherBehaviour(FipaSubscribeProtocol):
                 'Agente Identificado com sucesso.')
             self.agent.send(reply)
 
-            # prepara e envia mensagem de atualização para
+            # prepara e envia mensagem de atualizacao para
             # todos os agentes cadastrados
             message = ACLMessage(ACLMessage.INFORM)
             message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
             message.set_content(dumps(self.agent.agentInstance.table))
             message.set_system_message(is_system_message=True)            
             self.notify(message)
-
 
     def handle_cancel(self, message):
         self.deregister(self, message.sender)
@@ -120,12 +141,14 @@ class PublisherBehaviour(FipaSubscribeProtocol):
 
 
 class AMS(Agent_):
-    """Esta e a classe que implementa o agente AMS"""
-    def __init__(self, host, port, is_main_ams=False, debug=False):
+    """Esta e a classe que implementa o agente AMS."""
+
+    def __init__(self, host, port, session, is_main_ams=False, debug=False):
         ams_aid = AID('ams@' + str(host) + ':' + str(port))
         super(AMS, self).__init__(ams_aid)
         self.host = host
         self.port = port
+        self.session = session
         self.is_main_ams = is_main_ams
 
         self.agents_conn_time = dict()

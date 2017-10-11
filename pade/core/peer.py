@@ -76,4 +76,7 @@ class PeerProtocol(LineReceiver):
         else:
             self.sendLine(message)
 
-        self.transport.loseConnection()
+        try:
+            self.transport.loseConnection()
+        except:
+            pass
