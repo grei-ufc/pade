@@ -65,7 +65,7 @@ class FlaskServerProcess(multiprocessing.Process):
         run_server()
 
 
-class PSession(object):
+class PadeSession(object):
 
     agents = list()
     users = list()
@@ -100,30 +100,16 @@ class PSession(object):
         self.user_login['email'] = email
         self.user_login['password'] = password
 
-
-def verifica_ip(ip):
-    output = subprocess.check_output('ifconfig', shell=True)
-    interfaces = output.split('\n\n')
-    for interface in interfaces:
-        if str(ip + ' ') in interface:
-            interface_name = interface.split(' ')[0]
-            break
-    else:
-        return (False, None)
-    return (True, interface_name)
-
-
-def start_loop(session_, debug=False):
-    """
-        Lança o loop do twisted integrado com o loop do Qt se a opção GUI for
-        verdadeira, se não lança o loop do Twisted
-    """
-
-    # pesquisa no banco de dados se existe uma sessao com este nome
-    session = Session.query.filter_by(name=session_.name).first()
-
-    # caso nao exista uma sessao com este nome
-    if session is None:
+    def start_loop(self, debug=False):
+        """
+            Lança o loop do twisted
+        """
+        # instancia o agente AMS e chama o metodo listenTCP
+        # do Twisted para lancar o agente
+        # TODO: atribuir os parametros do ams de acordo
+        # com a entrada do usuario
+        ams_agent = AMS(host='127.0.0.1', port=8000)
+        reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
         # instancia a classe que lança o processo
         # com o servidor web com o aplicativo Flask
@@ -137,7 +123,8 @@ def start_loop(session_, debug=False):
         db.create_all()
 
         # registra uma nova sessão no banco de dados
-        s = Session(name=session_.name,
+
+        s = Session(name=self.name,
                     date=datetime.datetime.now(),
                     state='Ativo')
         db.session.add(s)
@@ -145,15 +132,15 @@ def start_loop(session_, debug=False):
 
         # instancia o agente AMS e chama o metodo listenTCP
         # do Twisted para lancar o agente
-        ams_agent = AMS(host=session_.ams['name'],
-                        port=session_.ams['port'],
+        ams_agent = AMS(host=self.ams['name'],
+                        port=self.ams['port'],
                         session=s)
         reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
         # registra os usuarios, se houverem, no banco de dados
-        if len(session_.users) != 0:
+        if len(self.users) != 0:
             users_db = list()
-            for user in session_.users:
+            for user in self.users:
                 u = User(username=user['username'],
                          email=user['email'],
                          password=user['password'],
@@ -171,7 +158,7 @@ def start_loop(session_, debug=False):
             users = s.users
             # percorre os usuarios cadastrados no banco de dados
             for user in users:
-                if user.username == session_.user_login['username']:
+                if user.username == self.user_login['username']:
                     if user.verify_password(session_.user_login['password']):
                         break
                     else:
@@ -183,16 +170,29 @@ def start_loop(session_, debug=False):
             raise UserWarning('This session name has been used before, please, choose another!')
 
     i = 1
-    for agent in session_.agents:
-        reactor.callLater(i, listen_agent, agent)
+    for agent in self.agents:
+        reactor.callLater(i, self._listen_agent, agent)
         i += 0.2
 
     # lança o loop do Twisted
     reactor.run()
 
 
-def listen_agent(agent):
-    # Conecta o agente ao AMS
-    agent.on_start()
-    # Conecta o agente à porta que será utilizada para comunicação
-    reactor.listenTCP(agent.aid.port, agent.agentInstance)
+    def _listen_agent(agent):
+        # Conecta o agente ao AMS
+        agent.on_start()
+        # Conecta o agente à porta que será utilizada para comunicação
+        reactor.listenTCP(agent.aid.port, agent.agentInstance)
+
+
+# TODO: Lancamento de agentes em dispositivos diferentes
+def verifica_ip(ip):
+    output = subprocess.check_output('ifconfig', shell=True)
+    interfaces = output.split('\n\n')
+    for interface in interfaces:
+        if str(ip + ' ') in interface:
+            interface_name = interface.split(' ')[0]
+            break
+    else:
+        return (False, None)
+    return (True, interface_name)

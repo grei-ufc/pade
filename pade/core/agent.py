@@ -50,6 +50,8 @@ from pade.acl.aid import AID
 from pade.misc.utility import display_message
 from pickle import dumps, loads
 
+# Clase que implementa o protocolo que permite
+# a troca de mensagens entre agentes
 
 class AgentProtocol(PeerProtocol):
 
@@ -101,6 +103,9 @@ class AgentProtocol(PeerProtocol):
         :param line: mensagem recebida pelo agente
         """
         PeerProtocol.lineReceived(self, line)
+
+# Classe que implementa o ProtolFactory, padrao
+# do twisted para protocolos personalisados
 
 class AgentFactory(protocol.ClientFactory):
 

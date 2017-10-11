@@ -4,7 +4,7 @@
 # Criado por Lucas S Melo em 21 de julho de 2015 - Fortaleza, Ceará - Brasil
 
 from pade.misc.utility import display_message
-from pade.misc.common import PSession, start_loop
+from pade.misc.common import PadeSession
 from pade.core.agent import Agent
 from pade.acl.aid import AID
 
@@ -22,7 +22,7 @@ def config_agents():
     agente_hello = AgenteHelloWorld(AID(name='agente_hello'))
     agents.append(agente_hello)
 
-    s = PSession()
+    s = PadeSession()
     s.add_all_agents(agents)
     s.register_user(username='lucassm', email='lucas@gmail.com', password='12345')
 
@@ -30,4 +30,5 @@ def config_agents():
 
 if __name__ == '__main__':
 
-    start_loop(config_agents())
+    s = config_agents()
+    s.start_loop()
