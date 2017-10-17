@@ -28,7 +28,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pade',
-      version='1.6',
+      version='1.6.1',
       description='Framework para desenvolvimento de \
       sistemas multiagentes em Python',
       author='Lucas S Melo',

@@ -4,7 +4,7 @@ from pade.acl.aid import AID
 from pade.behaviours.protocols import TimedBehaviour, FipaRequestProtocol, FipaSubscribeProtocol
 from pade.misc.utility import display_message
 from pade.acl.filters import Filter
-from pade.web.flask_server import db, Agent, Message
+from pade.web.flask_server import db, AgentModel, Message, Session
 
 from pickle import dumps, loads
 from datetime import datetime
@@ -100,7 +100,7 @@ class PublisherBehaviour(FipaSubscribeProtocol):
         else:
             # registra o agente no banco de dados
 
-            a = Agent(name=sender.localname,
+            a = AgentModel(name=sender.localname,
                       session_id=self.agent.session.id,
                       date=datetime.now(),
                       state='Ativo')
@@ -140,19 +140,73 @@ class PublisherBehaviour(FipaSubscribeProtocol):
         super(PublisherBehaviour, self).notify(message)
 
 
+class CompVerifyRegister(FipaRequestProtocol):
+    def __init__(self, agent):
+        """Comportamento FIPA Request para
+        verificacao de registro de usuario"""
+        super(CompVerifyRegister, self).__init__(agent=agent,
+                                                 message=None,
+                                                 is_initiator=False)
+
+    def handle_request(self, message):
+        super(CompVerifyRegister, self).handle_request(message)
+        content = loads(message.content)
+        display_message(self.agent.aid.name,
+                        'Validando sessao do agente ' + message.sender.name)
+        if type(content) == dict:
+            if content['ref'] == "REGISTER":
+                user_login = content['content']['user_login']
+                session_name = content['content']['session_name']
+
+                # procedimento de verificacao de dados da sessao
+                # e do usuario da sessao solicitada
+
+                # pesquisa no banco de dados se existe uma sessao com este nome
+                session = Session.query.filter_by(name=session_name).first()
+                if session is None:
+                    reply = message.create_reply()
+                    reply.set_performative(ACLMessage.INFORM)
+                    reply.set_content(dumps({'ref': 'REGISTER',
+                                             'content': False}))
+                    self.agent.call_later(1.0, self.agent.send, reply)
+                else:
+                    # verifica se o usuario esta logado na sessao
+                    users = session.users
+                    for user in users:
+                        if user.username == user_login['username']:
+                            if user.verify_password(user_login['password']):
+                                validation = True
+                                display_message(self.agent.aid.name,
+                                                'Sessao validada com sucesso.')
+                                break
+                            else:
+                                validation = False
+                                display_message(self.agent.aid.name,
+                                                'Sessao nao validada -> Senha incorreta.')
+                                break
+                    else:
+                        display_message(self.agent.aid.name,
+                                        'Sessao nap validada-> Usuario nao existe.')
+                        validation = False
+
+                    reply = message.create_reply()
+                    reply.set_performative(ACLMessage.INFORM)
+                    reply.set_content(dumps({'ref': 'REGISTER',
+                                             'content': validation}))
+                    self.agent.send(reply)
+
 class AMS(Agent_):
     """Esta e a classe que implementa o agente AMS."""
 
-    def __init__(self, host, port, session, is_main_ams=False, debug=False):
-        ams_aid = AID('ams@' + str(host) + ':' + str(port))
-        super(AMS, self).__init__(ams_aid)
+    def __init__(self, host, port, session, main_ams=True, debug=False):
+        self.ams_aid = AID('ams@' + str(host) + ':' + str(port))
+        super(AMS, self).__init__(self.ams_aid)
         self.host = host
         self.port = port
         self.session = session
-        self.is_main_ams = is_main_ams
+        self.main_ams = main_ams
 
         self.agents_conn_time = dict()
-
         self.comport_ident = PublisherBehaviour(self)
 
         # mensagem para verificacao de conexcao
@@ -165,12 +219,13 @@ class AMS(Agent_):
         self.comport_conn_verify = CompConnectionVerify(self, message)
         self.comport_send_conn_messages = ComportSendConnMessages(self, message, 4.0)
         self.comport_conn_verify_timed = ComportVerifyConnTimed(self, 10.0)
+        self.comport_conn_verify_reg = CompVerifyRegister(self)
 
         self.system_behaviours.append(self.comport_ident)
         self.system_behaviours.append(self.comport_conn_verify)
         self.system_behaviours.append(self.comport_send_conn_messages)
         self.system_behaviours.append(self.comport_conn_verify_timed)
-
+        self.system_behaviours.append(self.comport_conn_verify_reg)
         self.on_start()
 
     def handle_store_messages(self, message, sender):
@@ -190,7 +245,7 @@ class AMS(Agent_):
             receivers.append(receiver.localname)
         m.receivers = receivers
 
-        a = Agent.query.filter_by(name=sender.localname).all()[0]
+        a = AgentModel.query.filter_by(name=sender.localname).all()[0]
         m.agent_id = a.id
 
         db.session.add(m)
@@ -209,3 +264,4 @@ class AMS(Agent_):
                     self.handle_store_messages(_message, message.sender)
         except:
             pass
+

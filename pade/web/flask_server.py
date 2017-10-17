@@ -45,7 +45,7 @@ class Session(db.Model):
     name = db.Column(db.String(64), unique=True)
     date = db.Column(db.DateTime)
     state = db.Column(db.String(64))
-    agents = db.relationship('Agent', backref='session')
+    agents = db.relationship('AgentModel', backref='session')
     users = db.relationship('User', backref='session')
 
     def __repr__(self):
@@ -75,7 +75,7 @@ class User(UserMixin, db.Model):
         return 'Username: %s' % self.username
 
 
-class Agent(db.Model):
+class AgentModel(db.Model):
 
     __tablename__ = 'agents'
     id = db.Column(db.Integer, primary_key=True)
@@ -165,7 +165,7 @@ def session_page(session_id):
 @app.route('/session/agent/<agent_id>')
 @login_required
 def agent_page(agent_id):
-    agent = Agent.query.filter_by(id=agent_id).first()
+    agent = AgentModel.query.filter_by(id=agent_id).first()
     messages = agent.messages
     return render_template('messages.html', messages=messages, agent=agent)
 
