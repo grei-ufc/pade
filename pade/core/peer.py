@@ -49,6 +49,7 @@ class PeerProtocol(LineReceiver):
                    str(message[0].host) == str(peer.host):
                     self.send_message(message[1].get_message())
                     sended_message = message
+                    break
         if sended_message is not None:
             self.fact.messages.remove(sended_message)
 
@@ -74,4 +75,8 @@ class PeerProtocol(LineReceiver):
                 self.sendLine(m)
         else:
             self.sendLine(message)
-        self.transport.loseConnection()
+
+        try:
+            self.transport.loseConnection()
+        except:
+            pass

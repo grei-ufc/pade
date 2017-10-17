@@ -17,7 +17,7 @@ PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido n
 
 Qualquer um que queira contribuir com o projeto é convidado a baixar, executar, testar e enviar feedback a respeito das impressões tiradas da plataforma. 
 
-PADE é divertido!
+PADE é simples!
 ~~~~~~~~~~~~~~~~~
 
 ::
@@ -40,18 +40,39 @@ Para instalar o PADE basta executar o seguinte comando em um terminal linux:
     $ pip install pade
     $ python start_ams.py
 
-Créditos
-~~~~~~~~
+Funcionalidades
+~~~~~~~~~~~~~~~
 
-PADE é software livre e é desenvolvido pela equipe do grupo de redes elétricas inteligentes:
+O PADE foi desenvolvido tendo em vista os requisitos para sistema de automação. PADE oferece os seguintes recursos em sua biblioteca para desenvolvimento de sistemas multiagentes:
 
-**Lucas Melo**: Ditador Benevolente Vitalício (Benevolent Dictator for Life) do PADE
 
-**Professora Ruth Leão**: Coordenadora do Grupo de Redes Elétricas Inteligentes da UFC
+**Orientação a Objetos**
+  Abstração para construção de agentes e seus comportamentos utilizando conceitos de orientação a objetos;
 
-**Professor Raimundo Furtado**: Coordenador do Grupo de Redes Elétricas Inteligentes da UFC
+**Ambiente de execução**
+  Módulo para inicialização do ambiente de execução de agentes, inteiramente em código Python;
 
-**Professor Giovanni Cordeiro**: Colaborador do projeto PADE
+**Mensagens no padrão FIPA-ACL**
+  Módulo para construção e tratamento de mensagens no padrão FIPA-ACL;
+
+**Filtragem de Mensagens**
+  Módulo para filtragem de mensagens;
+
+**Protocolos FIPA**
+  Módulo para a implementação dos protocolos definidos pela FIPA;
+
+**Comportamentos Cíclicos e Temporais**
+  Módulo para implementação de comportamentos cíclicos e temporais;
+
+**Banco de Dados**
+  Módulo para interação com banco de dados;
+
+**Envio de Objetos Serializados**
+  Possibilidade de envio de objetos serializados como conteúdo das mensagens FIPA-ACL.
+
+
+Além dessas funcionalidades, o PADE é de fácil instalação e configuração, multiplataforma, podendo ser instalado e utilizado em hardwares embarcados que executam sistema operacional Linux, como Raspberry Pi e BeagleBone Black, bem como sistema operacional Windows.
+
 
 
 Guia do Usuário
@@ -71,6 +92,7 @@ Guia do Usuário
    user/selecao-de-mensagens
    user/interface-grafica
    user/protocolos
+   user/desenvolvedores
 
 
 

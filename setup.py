@@ -28,13 +28,21 @@
 from setuptools import setup, find_packages
 
 setup(name='pade',
-      version='1.0.4',
+      version='1.6.1',
       description='Framework para desenvolvimento de \
       sistemas multiagentes em Python',
       author='Lucas S Melo',
       author_email='lucassmelo@dee.ufc.br',
-      install_requires=['twisted'],
+      package_data={'': ['*.html', '*.js', '*.css', '*.sqlite']},
+      include_package_data=True,
+      install_requires=['twisted',
+                        'flask',
+                        'flask-bootstrap',
+                        'flask-login',
+                        'flask-wtf',
+                        'flask-sqlalchemy',
+                        'terminaltables'],
       license='MIT',
       keywords='multiagents distributed systems',
-      url='http://lucassm.github.io/Pade',
+      url='http://pade.readthedocs.org',
       packages=find_packages())

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from pade.misc.common import start_loop, set_ams
+from pade.misc.common import PadeSession
 from pade.misc.utility import display_message
 from pade.core.agent import Agent
 from pade.acl.messages import ACLMessage
@@ -179,19 +179,24 @@ class AgenteParticipante(Agent):
 
         self.behaviours.append(comp)
 
-if __name__ == "__main__":
 
-    set_ams('localhost', 5000, debug=False)
-
+def config_agents():
     aa_1 = AgenteIniciante(AID(name='AI1'))
-    aa_1.ams = {'name': 'localhost', 'port': 5000}
 
     aa_2 = AgenteParticipante(AID(name='AP1'), 150.0)
-    aa_2.ams = {'name': 'localhost', 'port': 5000}
 
     aa_3 = AgenteParticipante(AID(name='AP2'), 100.0)
-    aa_3.ams = {'name': 'localhost', 'port': 5000}
 
-    agents_list = list([aa_1, aa_2, aa_3])
+    agents = list([aa_1, aa_2, aa_3])
 
-    start_loop(agents_list, gui=True)
+    s = PSession()
+    s.add_all_agents(agents)
+    s.register_user(username='lucassm',
+                    email='lucas@gmail.com',
+                    password='12345')
+    return s
+
+if __name__ == "__main__":
+
+    s = config_agents()
+    s.start_loop()

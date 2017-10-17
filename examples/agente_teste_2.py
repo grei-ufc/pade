@@ -5,7 +5,7 @@
 
 from pade.behaviours.protocols import TimedBehaviour
 from pade.misc.utility import display_message
-from pade.misc.common import set_ams, start_loop
+from pade.misc.common import PadeSession
 from pade.core.agent import Agent
 from pade.acl.aid import AID
 
@@ -28,19 +28,23 @@ class AgenteHelloWorld(Agent):
         self.behaviours.append(comp_temp)
 
 
-if __name__ == '__main__':
-
-    set_ams('localhost', 8000, debug=False)
-
+def config_agents():
     agents = list()
 
     agente_1 = AgenteHelloWorld(AID(name='agente_1'))
-    agente_1.ams = {'name': 'localhost', 'port': 8000}
-
     agente_2 = AgenteHelloWorld(AID(name='agente_2'))
-    agente_2.ams = {'name': 'localhost', 'port': 8000}
 
     agents.append(agente_1)
     agents.append(agente_2)
 
-    start_loop(agents, gui=True)
+    s = PadeSession()
+    s.add_all_agents(agents)
+    s.register_user(username='lucassm',
+                    email='lucas@gmail.com',
+                    password='12345')
+
+    return s
+
+if __name__ == '__main__':
+    s = config_agents()
+    s.start_loop()

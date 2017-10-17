@@ -15,6 +15,9 @@ Para instalar o PADE via PIP basta digitar em um terminal:
 
 Pronto! O Pade está instalado!
 
+.. warning::
+    Atenção! O PADE é oficalmente testado no ambiente Ubuntu 14.04 LTS. Sendo necessário a instalação dos pacotes python-twisted-qt4reactor e pyside
+
 Instalação via GitHub
 ---------------------
 
