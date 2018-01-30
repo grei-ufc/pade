@@ -282,8 +282,8 @@ class AID(object):
 if __name__ == '__main__':
     
     agentname = AID('lucas')
-    print agentname.getName()
-    print agentname.getHost()
-    print agentname.getPort()
-    print agentname.as_xml()
-    print agentname.__str__()
+    print(agentname.getName())
+    print(agentname.getHost())
+    print(agentname.getPort())
+    print(agentname.as_xml())
+    print(agentname.__str__())

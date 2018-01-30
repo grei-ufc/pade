@@ -1,14 +1,14 @@
 import os
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for
-from flask.ext.bootstrap import Bootstrap
-from flask.ext.login import LoginManager, login_required, login_user, logout_user
-from flask.ext.wtf import Form
+from flask_bootstrap import Bootstrap
+from flask_login import LoginManager, login_required, login_user, logout_user
+from flask_wtf import Form
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import Required, Email, Length
 
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 from werkzeug import generate_password_hash, check_password_hash
 
 
@@ -117,7 +117,7 @@ class LoginForm(Form):
 @app.before_first_request
 def create_database():
     db.create_all()
-    print '[flask-server] >>> Database created.'
+    print('[flask-server] >>> Database created.')
 
 @login_manager.user_loader
 def load_user(user_id):

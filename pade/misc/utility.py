@@ -33,4 +33,4 @@ def display_message(name, data):
     """
     date = datetime.now()
     date = date.strftime('%d/%m/%Y %H:%M:%S --> ')
-    print '[' + name + '] ' + date + str(data)
+    print('[' + name + '] ' + date + str(data))

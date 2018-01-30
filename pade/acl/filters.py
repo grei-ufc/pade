@@ -78,6 +78,6 @@ if __name__ == '__main__':
     filtro.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
     
     if filtro.filter(message):
-        print message.as_xml()
+        print(message.as_xml())
     else:
-        print 'A mensagem foi barrada pelo protocolo'
+        print('A mensagem foi barrada pelo protocolo')

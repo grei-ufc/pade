@@ -234,7 +234,7 @@ class CompRegisterUser(FipaRequestProtocol):
         if type(content) == dict:
             if content['ref'] == "REGISTER":
                 user_login = content['content']
-                print user_login
+                print(user_login)
                 if user_login:
                     reactor.stop()
                 else:

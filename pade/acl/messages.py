@@ -74,7 +74,7 @@ class ACLMessage(ET.Element):
     FIPA_CONTRACT_NET_PROTOCOL = 'fipa-contract-net protocol'
     FIPA_SUBSCRIBE_PROTOCOL = 'fipa-subscribe-protocol'
 
-    performaives = ['accept-proposal', 'agree', 'cancel',
+    performatives = ['accept-proposal', 'agree', 'cancel',
                     'cfp', 'call-for-proposal', 'confirm', 'disconfirm',
                     'failure', 'inform', 'not-understood',
                     'propose', 'query-if', 'query-ref',
@@ -114,9 +114,11 @@ class ACLMessage(ET.Element):
         self.append(ET.Element('datetime'))
         
         if performative != None:
-            if performative.lower() in self.performaives:
+            if performative.lower() in self.performatives:
                 self.performative = performative.lower()
                 self.find('performative').text = self.performative
+        else:
+            self.performative = None
 
         self.conversationID = str(uuid1())
         self.find('conversationID').text = self.conversationID
@@ -504,6 +506,18 @@ class ACLMessage(ET.Element):
 
         return message
 
+    def __setstate__(self, state):
+        self.__init__()
+        self.__dict__.update(state)
+
+    def __getstate__(self):
+        # Copy the object's state from self.__dict__ which contains
+        # all our instance attributes. Always use the dict.copy()
+        # method to avoid modifying the original state.
+        state = self.__dict__.copy()
+        # Remove the unpicklable entries.
+        return state
+
 if __name__ == '__main__':
 
     msg = ACLMessage()
@@ -513,6 +527,6 @@ if __name__ == '__main__':
     # msg.set_content('51A Feeder 21I5')
     # msg.ACLMessageRepresentation = ACLMessage.ACLMessageAsXML
 
-    print msg.get_message()
-    print msg.sender
-    print msg.receivers[0]
+    print(msg.get_message())
+    print(msg.sender)
+    print(msg.receivers[0])

@@ -35,7 +35,7 @@ class ComportVerifyConnTimed(TimedBehaviour):
         super(ComportVerifyConnTimed, self).on_time()
         desconnect_agents = list()
         table = list([['agente', 'delta']])
-        for agent_name, date in self.agent.agents_conn_time.iteritems():
+        for agent_name, date in self.agent.agents_conn_time.items():
             now = datetime.now()
             delta = now - date
             table.append([agent_name, str(delta.total_seconds())])
@@ -48,7 +48,7 @@ class ComportVerifyConnTimed(TimedBehaviour):
 
         display_message(self.agent.aid.name, 'verifing connections...')
         table = AsciiTable(table)
-        print table.table
+        print(table.table)
 
 
 class CompConnectionVerify(FipaRequestProtocol):

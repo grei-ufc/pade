@@ -214,7 +214,7 @@ class Agent_(object):
             try:
                 self.__ams['name'] = value['name']
                 self.__ams['port'] = value['port']
-            except Exception, e:
+            except (Exception, e):
                 raise e
 
     @property
