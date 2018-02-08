@@ -26,14 +26,14 @@
 # THE SOFTWARE.
 
 """
- Módulo de Utilidades
+ Utility Module
  --------------------
 
- Este módulo Python disponibiliza métodos de configuração
- do loop twisted onde os agentes serão executados e caso se utilize
- interface gráfica, é neste módulo que o loop Qt4 é integrado ao
- loop Twisted, além de disponibilizar métodos para lançamento do AMS
- e Sniffer por linha de comando e para exibição de informações no
+ This Python module provides configuration methods of twisted loop
+ where the agents will be executed. This module integrates Qt4 loop
+ and twisted loop in case the graphic interface is used. Furthermore,
+ this module provoides methods to launch AMS and Sniffer by command line
+ and methods for displaying information on terminal.
  terminal
 
  @author: lucas
@@ -57,8 +57,8 @@ from pickle import dumps, loads
 
 class FlaskServerProcess(multiprocessing.Process):
     """
-        Esta classe implementa a thread que executa
-        o servidor web com o aplicativo Flask
+        This class implements the thread that executes
+        the web server with Flask application.
     """
     def __init__(self):
         multiprocessing.Process.__init__(self)
@@ -106,7 +106,7 @@ class PadeSession(object):
         self.user_login['password'] = password
 
 
-    def _verifica_sessao_remota(self):
+    def _verify_remote_session(self):
         vua_aid = AID('valid_user_agent')
         vua_aid.setHost(self.agents[0].aid.host)
         valid_user_agent = ValidadeUserAgent(vua_aid,
@@ -115,11 +115,11 @@ class PadeSession(object):
         reactor.callLater(1.0, self._listen_agent, valid_user_agent)
         reactor.run()
 
-    def _verifica_usuario_na_sessao(self, db_session):
-        # caso seja uma sessao ativa
-        if db_session.state == 'Ativo':
+    def _verify_user_in_session(self, db_session):
+        # in case it is an active session
+        if db_session.state == 'Active':
             users = db_session.users
-            # percorre os usuarios cadastrados no banco de dados
+            # iterates through registered users in the database.S
             for user in users:
                 if user.username == self.user_login['username']:
                     if user.verify_password(self.user_login['password']):
@@ -128,39 +128,39 @@ class PadeSession(object):
                         raise UserWarning('The password is wrong!')
             else:
                 raise UserWarning('The username is wrong!')
-        # caso nao seja uma sessao ativa
+        # in case it is not an active session
         else:
-            raise UserWarning('This session name has been used before, please, choose another!')
+            raise UserWarning('This session name has been used before. Please, choose another!')
 
-    def _inicializa_banco_de_dados(self):
+    def _initialize_database(self):
 
         db.create_all()
-        # pesquisa no banco de dados se existe uma sessao 
-        # com este nome
+        # searches in the database if there is a session with 
+        # this name
         db_session = Session.query.filter_by(name=self.name).first()
 
-        # caso nao exista uma sessao com este nome
+        # in case there is not a session with this name
         if db_session is None:
 
-            # limpa o banco de dados e cria novos registros
+            # clear out the database and creates new registers
             db.drop_all()
             db.create_all()
 
-            # registra uma nova sessão no banco de dados
+            # registers a new session in the database
             db_session = Session(name=self.name,
                                  date=datetime.datetime.now(),
-                                 state='Ativo')
+                                 state='Active')
             db.session.add(db_session)
             db.session.commit()
 
-            # instancia o agente AMS e chama o metodo listenTCP
-            # do Twisted para lancar o agente
+            # instantiates AMS agent and calls listenTCP method
+            # from Twisted to launch the agent
             ams_agent = AMS(host=self.ams['name'],
                             port=self.ams['port'],
                             session=db_session)
             reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
-            # registra os usuarios, se houverem, no banco de dados
+            # registers the users, in case they exist, in the database
             if len(self.users) != 0:
                 users_db = list()
                 for user in self.users:
@@ -173,55 +173,55 @@ class PadeSession(object):
                 db.session.add_all(users_db)
                 db.session.commit()
 
-        # caso exista uma sessao com este nome
+        # in case there is a session with this name
         else:
-            self._verifica_usuario_na_sessao(db_session)
+            self._verify_user_in_session(db_session)
 
     def start_loop(self, debug=False):
         """
-            Lança o loop do twisted
+            Runs twisted loop
         """
         if self.remote_ams:
             
-            self._verifica_sessao_remota()
+            self._verify_remote_session()
             
         else:
 
-            # instancia a classe que lança o processo
-            # com o servidor web com o aplicativo Flask
+            # instantiates the class responsible for launching the web
+            # server process with the Flask application
             p1 = FlaskServerProcess()
             p1.daemon = True
 
             p1.start()
 
-            # verifica sessao no banco de dados.
-            # Se nao for uma sessao existente
-            # cria uma, inicializa o AMS e 
-            # cadastra os usuarios da sessao.
-            # Caso seja uma sessao existente
-            # verifica o usuario que pretente
-            # fazer login na sessao. 
+            # verifies the session in the database.
+            # If there is not a session, one is created,
+            # the AMS is initialized, and the 
+            # users are registered.
+            # If there is an existing session,
+            # verifies the user that intends to
+            # log in.
             # 
-            self._inicializa_banco_de_dados()
+            self._initialize_database()
 
             i = 1.0
             for agent in self.agents:
                 reactor.callLater(i, self._listen_agent, agent)
                 i += 0.2
 
-            # lança o loop do Twisted
+            # launch Twisted loop
             reactor.run()
 
     def _listen_agent(self, agent):
-        # Conecta o agente ao AMS
+        # Connects agent to AMS
         agent.on_start()
-        # Conecta o agente à porta que será utilizada para comunicação
+        # Connects agent to port used in communication
         reactor.listenTCP(agent.aid.port, agent.agentInstance)
 
 
 class CompRegisterUser(FipaRequestProtocol):
-    """Comportamento FIPA Request para
-    registro de usuario"""
+    """FIPA Request Behaviour to register the user
+    uario"""
     def __init__(self, agent, message):
         super(CompRegisterUser, self).__init__(agent=agent,
                                                message=message,
@@ -239,7 +239,7 @@ class CompRegisterUser(FipaRequestProtocol):
                     reactor.stop()
                 else:
                     reactor.stop()
-                    raise Exception('Falha na autenticacao do usuario')
+                    raise Exception('User authentication failed.')
                     
 
 

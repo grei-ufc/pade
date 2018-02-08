@@ -27,7 +27,7 @@ class InitiatorProtocol(FipaContractNetProtocol):
     def handle_all_proposes(self, proposes):
         FipaContractNetProtocol.handle_all_proposes(self, proposes)
         
-        display_message(self.agent.aid.name, 'Analisando Propostas...')
+        display_message(self.agent.aid.name, 'Analysing Proposals...')
         better_propose = loads(proposes[0].content)
         better_propositor = proposes[0]
         for propose in proposes:
@@ -38,14 +38,14 @@ class InitiatorProtocol(FipaContractNetProtocol):
         
         response_1 = better_propositor.create_reply()
         response_1.set_performative(ACLMessage.ACCEPT_PROPOSAL)
-        response_1.set_content('Proposta ACEITA')
+        response_1.set_content('Proposal ACCEPTED')
         self.agent.send(response_1)
         
         for propose in proposes:
             if propose != better_propositor:
                 response = propose.create_reply()
                 response.set_performative(ACLMessage.REJECT_PROPOSAL)
-                response.set_content('Proposta RECUSADA')
+                response.set_content('Proposal REJECTED')
                 self.agent.send(response)
                 
     
@@ -72,7 +72,7 @@ class ParticipantProtocol(FipaContractNetProtocol):
         FipaContractNetProtocol.handle_accept_propose(self, message)
         response = message.create_reply()
         response.set_performative(ACLMessage.INFORM)
-        response.set_content('RECOMPOSICAO AUTORIZADA')
+        response.set_content('RECOMPOSITION APPROVED')
         self.agent.send(response)
         display_message(self.agent.aid.name, message.content)
     
@@ -85,10 +85,10 @@ class InitiatorAgent(Agent):
     def __init__(self, aid):
         Agent.__init__(self, aid)
         
-        pedido = {'tipo' : 'pedido', 'qtd' : 100.0}
+        order = {'type' : 'order', 'qty' : 100.0}
         message = ACLMessage(ACLMessage.CFP)
         message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
-        message.set_content(dumps(pedido))
+        message.set_content(dumps(order))
         message.add_receiver('participant_agent_1')
         message.add_receiver('participant_agent_2')
         behaviour = InitiatorProtocol(self, message)

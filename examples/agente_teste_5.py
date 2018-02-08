@@ -1,4 +1,5 @@
-from pade.misc.common import start_loop, set_ams
+#from pade.misc.common import start_loop, 
+from pade.misc.common import PadeSession
 from pade.misc.utility import display_message
 from pade.core.agent import Agent
 from pade.acl.aid import AID
@@ -34,7 +35,7 @@ class SubscribeParticipant(FipaSubscribeProtocol):
 
         resposta = message.create_reply()
         resposta.set_performative(ACLMessage.AGREE)
-        resposta.set_content('Pedido de subscricao aceito')
+        resposta.set_content('Subscribe message accepted')
         self.agent.send(resposta)
 
     def handle_cancel(self, message):
@@ -62,18 +63,18 @@ class Time(TimedBehaviour):
         self.inc += 0.1
 
 
-class AgenteInitiator(Agent):
+class AgentInitiator(Agent):
 
     def __init__(self, aid, message):
-        super(AgenteInitiator, self).__init__(aid)
+        super(AgentInitiator, self).__init__(aid)
         self.protocol = SubscribeInitiator(self, message)
         self.behaviours.append(self.protocol)
 
 
-class AgenteParticipante(Agent):
+class AgentParticipant(Agent):
 
     def __init__(self, aid):
-        super(AgenteParticipante, self).__init__(aid)
+        super(AgentParticipant, self).__init__(aid)
 
         self.protocol = SubscribeParticipant(self)
         self.timed = Time(self, self.protocol.notify)
@@ -83,22 +84,29 @@ class AgenteParticipante(Agent):
 
 if __name__ == '__main__':
 
-    set_ams('localhost', 5000, debug=False)
+    #set_ams('localhost', 5000, debug=False)
 
-    editor = AgenteParticipante(AID('editor'))
-    editor.ams = {'name': 'localhost', 'port': 5000}
+    editor = AgentParticipant(AID('editor'))
+    #editor.ams = {'name': 'localhost', 'port': 5000}
 
     msg = ACLMessage(ACLMessage.SUBSCRIBE)
     msg.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
-    msg.set_content('Pedido de subscricao')
+    msg.set_content('Subscription request')
     msg.add_receiver('editor')
 
-    ass1 = AgenteInitiator(AID('assinante_1'), msg)
-    ass1.ams = {'name': 'localhost', 'port': 5000}
+    subs1 = AgentInitiator(AID('subscriber_1'), msg)
+   # subs1.ams = {'name': 'localhost', 'port': 5000}
 
-    ass2 = AgenteInitiator(AID('assinante_2'), msg)
-    ass2.ams = {'name': 'localhost', 'port': 5000}
+    subs2 = AgentInitiator(AID('subscriber_2'), msg)
+   #subs2.ams = {'name': 'localhost', 'port': 5000}
 
-    agentes = [editor, ass1, ass2]
+    agents = [editor, subs1, subs2]
 
-    start_loop(agentes, gui=True)
+    s = PadeSession()
+    s.add_all_agents(agents)
+    s.register_user(username='lucassm',
+                    email='lucas@gmail.com',
+                    password='12345')
+    s.start_loop()
+
+    #start_loop(agents, gui=True)

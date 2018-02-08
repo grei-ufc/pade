@@ -26,12 +26,12 @@
 # THE SOFTWARE.
 
 """
-    Módulo de criação e manipulação de mensagens FIPA-ACL
+    FIPA-ACL message creation and handling module
     -----------------------------------------------------
 
-    Este módulo contém a classe que implementa um objeto do tipo
-    ACLMessage, que é a mensagem padronizada pela FIPA utilizada
-    na troca de mensagens entre os agentes.
+    This module contains a class which implements an ACLMessage
+    type object. This object is the standard FIPA message used
+    in the exchange of messages between agents.
 
 """
 
@@ -43,7 +43,7 @@ from pade.acl.aid import AID
 
 
 class ACLMessage(ET.Element):
-    """Classe que implementa uma mensagem do tipo ACLMessage
+    """Class that implements a ACLMessage message type
     """
 
     ACCEPT_PROPOSAL = 'accept-proposal'
@@ -86,12 +86,11 @@ class ACLMessage(ET.Element):
                  'fipa-contract-net protocol']
 
     def __init__(self, performative=None):
-        """Este método inicializa um objeto do tipo ACLMessage quando este é
-            instanciado.
+        """ This method initializes a ACLMessage object when it is instantiated.
 
-            :param performative: Tipo da mensagem a ser criada de acordo com a padronização da
-            FIPA, podendo ser do tipo INFORM, CFP, AGREE, PROPOSE...
-            Todos estes tipos são atributos da classe ACLMessage
+            :param performative: Type of the message to be created according to FIPA standard.
+            It can be INFORM, CFP, AGREE, PROPOSE...
+            All these types are attributes of ACLMessafe class.
         """
         super(ACLMessage, self).__init__('ACLMessage')
 
@@ -165,11 +164,10 @@ class ACLMessage(ET.Element):
         self.reply_by = None
 
     def set_performative(self, performative):
-        """Método que seta o parâmetro Performtive da mensagem ACL
+        """Method to set the Performative parameter of the ACL message.
 
-           :param performative: tipo da performative da mensagem,
-           podendo ser qualquer um dos atributos da classe
-           ACLMessage.
+           :param performative: performative type of the message.
+           It can be any of the attributes of the ACLMessage class.
         """
         self.performative = performative
         self.find('performative').text = str(performative).lower()
@@ -191,9 +189,9 @@ class ACLMessage(ET.Element):
         datetime_tag.find('microsecond').text = str(self.datetime.microsecond)
 
     def set_sender(self, aid):
-        """Método utilizado para definir o agente que irá enviar a mensagem
+        """Method to set the agent that will send the message.
 
-        :param aid: objeto do tipo AID que identifica o agente que enviará a mensagem
+        :param aid: AID type object that identifies the agent that will send the message.
         """
         if isinstance(aid, AID):
             self.sender = aid
@@ -202,10 +200,9 @@ class ACLMessage(ET.Element):
             self.set_sender(AID(name=aid))
 
     def add_receiver(self, aid):
-        """Método utilizado para adicionar receptores para a mensagem que está
-        sendo montada
+        """Method used to add recipients for the message being created.
 
-        :param aid: objeto do tipo AID que identifica o agente que receberá a mensagem
+        :param aid: AID type object that identifies the agent that will receive the message.
         """
 
         if isinstance(aid, AID):
@@ -218,11 +215,9 @@ class ACLMessage(ET.Element):
             self.add_receiver(AID(name=aid))
 
     def add_reply_to(self, aid):
-        """Método utilizado para adicionar agentes que devem receber
-        a resposta desta mensagem
+        """Method used to add the agents that should receive the answer of the message.
 
-        :param aid: objeto do tipo AID que identifica o agente que receberá a resposta
-        desta mensagem
+        :param aid: AID type object that identifies the agent that will receive the answer of this message.
 
         """
         if isinstance(aid, AID):

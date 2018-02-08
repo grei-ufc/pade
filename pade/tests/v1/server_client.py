@@ -9,16 +9,16 @@ class Sniffer(protocol.Protocol):
         if self.factory.isClient:
             self.transport.write('Connection is made with ' + str(self.transport.getPeer()))
         else:
-            self.transport.write('Voce e um cliente e esta conectado!')
+            self.transport.write('You are a client and you are connected!')
         
     def dataReceived(self, data):
         if 'quit' in data:
             self.transport.loseConnection()
         else:
             if self.factory.isClient:
-                print 'Mensagem recebida: ', data
+                print 'Menssage received: ', data
             else:
-                print 'Tentando conectar'
+                print 'Trying to connect'
                 reactor.connectTCP('localhost', 1234, SnifferFactory(isClient=True))
 
 class SnifferFactory(protocol.ClientFactory):
