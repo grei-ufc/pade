@@ -59,7 +59,7 @@ class PeerProtocol(LineReceiver):
             return message
 
     def lineReceived(self, line):
-        # recebe uma parte da mensagem enviada
+        # receives part of the sent message.
         if self.message is not None:
             self.message += line
         else:

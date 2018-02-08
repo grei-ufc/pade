@@ -11,23 +11,23 @@ from pickle import loads, dumps
 from time import sleep
 
 #===============================================================================
-# Note, o que é necessário para criar um agente com comportamentos padronizados
-# em protocolos?
-# Primeiro, é preciso definir a classe protocolo
-# Segundo é preciso associar esta classe protocolo como um comportamento do 
-# agente
+# What is needed to create an agent with standardized protocols behaviours?
+# First, the protocol class needs to be defined
+# Second, this protocol class needs to be associated with the agent's 
+# behaviour
 #===============================================================================
 
 
-class ComportamentoAgenteConsumidor(FipaContractNetProtocol):
+
+class ConsumerAgentBehaviour(FipaContractNetProtocol):
     def __init__(self, agent, message):
-        super(ComportamentoAgenteConsumidor, self).__init__(agent, message, is_initiator=True)
+        super(ConsumerAgentBehaviour, self).__init__(agent, message, is_initiator=True)
         self.bestPropose = None
         self.bestBookStore = None
         
     def handle_propose(self, message):
         FipaContractNetProtocol.handle_propose(self, message)
-        display_message(self.agent.aid.name, 'Proposta Recebida')
+        display_message(self.agent.aid.name, 'Proposal Received')
     
     def handle_all_proposes(self, proposes):
         FipaContractNetProtocol.handle_all_proposes(self, proposes)
@@ -43,46 +43,46 @@ class ComportamentoAgenteConsumidor(FipaContractNetProtocol):
                     
             response = self.bestPropose.create_reply()
             response.set_performative(ACLMessage.ACCEPT_PROPOSAL)
-            response.set_content('Proposta Aceita')
+            response.set_content('Proposal Accepted')
             self.agent.send(response)
             
             for propose in proposes:
                 if propose != self.bestPropose:
                     response = propose.create_reply()
                     response.set_performative(ACLMessage.REJECT_PROPOSAL)
-                    response.set_content('Proposta Recusada')
+                    response.set_content('Proposal Rejected')
                     self.agent.send(response)
         except:
-            display_message(self.agent.aid.name, 'O Processamento não foi possivel porque nenhuma mensagem foi retornada.')
+            display_message(self.agent.aid.name, 'Unable to process because no message has returned.')
         
     def handle_inform(self, message):
         FipaContractNetProtocol.handle_inform(self, message)
-        display_message(self.agent.aid.name, 'Compra Autorizada')
+        display_message(self.agent.aid.name, 'Purchase Approved')
 
-class AgenteConsumidor(Agent):
+class ConsumerAgent(Agent):
     
-    def __init__(self, aid, bookStores, pedido):
+    def __init__(self, aid, bookStores, order):
         Agent.__init__(self, aid)
     
         self.bookStores = bookStores
-        self.pedido = pedido
+        self.order = order
         
         cfp_message = ACLMessage(ACLMessage.CFP)
         cfp_message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
         for i in self.bookStores:
             cfp_message.add_receiver(i)
-        cfp_message.set_content(dumps(self.pedido))
+        cfp_message.set_content(dumps(self.order))
         
-        comportamento = ComportamentoAgenteConsumidor(self, cfp_message)
-        self.addBehaviour(comportamento)
+        behav_ = ConsumerAgentBehaviour(self, cfp_message)
+        self.addBehaviour(behav_)
 
 if __name__ == '__main__':
     
     agents = []
-    pedido = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 5}
+    order = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 5}
        
-    #consumidor = AgenteConsumidor(AID('Lucas@192.168.0.100:2004'), ['Saraiva', 'Cultura', 'Nobel'], pedido)
-    consumidor = AgenteConsumidor(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'], pedido)
+    #consumidor = ConsumerAgent(AID('Lucas@192.168.0.100:2004'), ['Saraiva', 'Cultura', 'Nobel'], order)
+    consumidor = ConsumerAgent(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'], order)
     
     consumidor.set_ams()
     agents.append(consumidor)

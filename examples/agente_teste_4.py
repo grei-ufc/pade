@@ -10,11 +10,10 @@ from pade.behaviours.protocols import FipaContractNetProtocol
 class CompContNet1(FipaContractNetProtocol):
     '''CompContNet1
 
-       Comportamento FIPA-ContractNet Iniciante que envia mensagens
-       CFP para outros agentes alimentadores solicitando propostas
-       de restauração. Este comportamento também faz a analise das
-       das propostas e analisa-as selecionando a que julga ser a
-       melhor'''
+       Initial FIPA-ContractNet Behaviour that sends CFP messages
+       to other feeder agents asking for restoration proposals.
+       This behaviour also analyzes the proposals and selects the
+       one it judges to be the best.'''
 
     def __init__(self, agent, message):
         super(CompContNet1, self).__init__(
@@ -27,85 +26,84 @@ class CompContNet1(FipaContractNetProtocol):
 
         super(CompContNet1, self).handle_all_proposes(proposes)
 
-        melhor_propositor = None
-        maior_potencia = 0.0
-        demais_propositores = list()
-        display_message(self.agent.aid.name, 'Analisando propostas...')
+        best_proposer = None
+        higher_power = 0.0
+        other_proposers = list()
+        display_message(self.agent.aid.name, 'Analyzing proposals...')
 
         i = 1
 
-        # lógica de seleção de propostas pela maior potência disponibilizada
+        # logic to select proposals by the higher available power.
         for message in proposes:
             content = message.content
-            potencia = float(content)
+            power = float(content)
             display_message(self.agent.aid.name,
-                            'Analisando proposta {i}'.format(i=i))
+                            'Analyzing proposal {i}'.format(i=i))
             display_message(self.agent.aid.name,
-                            'Potencia Ofertada: {pot}'.format(pot=potencia))
+                            'Power Offered: {pot}'.format(pot=power))
             i += 1
-            if potencia > maior_potencia:
-                if melhor_propositor is not None:
-                    demais_propositores.append(melhor_propositor)
+            if power > higher_power:
+                if best_proposer is not None:
+                    other_proposers.append(best_proposer)
 
-                maior_potencia = potencia
-                melhor_propositor = message.sender
+                higher_power = power
+                best_proposer = message.sender
             else:
-                demais_propositores.append(message.sender)
+                other_proposers.append(message.sender)
 
         display_message(self.agent.aid.name,
-                        'A melhor proposta foi de: {pot} VA'.format(
-                            pot=maior_potencia))
+                        'The best proposal was: {pot} VA'.format(
+                            pot=higher_power))
 
-        if demais_propositores != []:
+        if other_proposers != []:
             display_message(self.agent.aid.name,
-                            'Enviando respostas de recusa...')
-            resposta = ACLMessage(ACLMessage.REJECT_PROPOSAL)
-            resposta.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
-            resposta.set_content('')
-            for agente in demais_propositores:
-                resposta.add_receiver(agente)
+                            'Sending REJECT_PROPOSAL answers...')
+            answer = ACLMessage(ACLMessage.REJECT_PROPOSAL)
+            answer.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
+            answer.set_content('')
+            for agent in other_proposers:
+                answer.add_receiver(agent)
 
-            self.agent.send(resposta)
+            self.agent.send(answer)
 
-        if melhor_propositor is not None:
+        if best_proposer is not None:
             display_message(self.agent.aid.name,
-                            'Enviando resposta de aceitacao...')
+                            'Sending ACCEPT_PROPOSAL answer...')
 
-            resposta = ACLMessage(ACLMessage.ACCEPT_PROPOSAL)
-            resposta.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
-            resposta.set_content('OK')
-            resposta.add_receiver(melhor_propositor)
-            self.agent.send(resposta)
+            answer = ACLMessage(ACLMessage.ACCEPT_PROPOSAL)
+            answer.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
+            answer.set_content('OK')
+            answer.add_receiver(best_proposer)
+            self.agent.send(answer)
 
     def handle_inform(self, message):
         """
         """
         super(CompContNet1, self).handle_inform(message)
 
-        display_message(self.agent.aid.name, 'Mensagem INFORM recebida')
+        display_message(self.agent.aid.name, 'INFORM message received')
 
     def handle_refuse(self, message):
         """
         """
         super(CompContNet1, self).handle_refuse(message)
 
-        display_message(self.agent.aid.name, 'Mensagem REFUSE recebida')
+        display_message(self.agent.aid.name, 'REFUSE message received')
 
     def handle_propose(self, message):
         """
         """
         super(CompContNet1, self).handle_propose(message)
 
-        display_message(self.agent.aid.name, 'Mensagem PROPOSE recebida')
+        display_message(self.agent.aid.name, 'PROPOSE message received')
 
 
 class CompContNet2(FipaContractNetProtocol):
     '''CompContNet2
 
-       Comportamento FIPA-ContractNet Participante que é acionado
-       quando um agente recebe uma mensagem do Tipo CFP enviando logo
-       em seguida uma proposta e caso esta seja selecinada realiza as
-       as análises de restrição para que seja possível a restauração'''
+       FIPA-ContractNet Participant Behaviour that runs when an agent
+       receives a CFP message. A proposal is sent and if it is selected,
+       the restrictions are analized to enable the restoration.'''
 
     def __init__(self, agent):
         super(CompContNet2, self).__init__(agent=agent,
@@ -123,12 +121,12 @@ class CompContNet2(FipaContractNetProtocol):
         super(CompContNet2, self).handle_cfp(message)
         self.message = message
 
-        display_message(self.agent.aid.name, 'Mensagem CFP recebida')
+        display_message(self.agent.aid.name, 'CFP message rceceived')
 
-        resposta = self.message.create_reply()
-        resposta.set_performative(ACLMessage.PROPOSE)
-        resposta.set_content(str(self.agent.pot_disp))
-        self.agent.send(resposta)
+        answer = self.message.create_reply()
+        answer.set_performative(ACLMessage.PROPOSE)
+        answer.set_content(str(self.agent.pot_disp))
+        self.agent.send(answer)
 
     def handle_reject_propose(self, message):
         """
@@ -136,7 +134,7 @@ class CompContNet2(FipaContractNetProtocol):
         super(CompContNet2, self).handle_reject_propose(message)
 
         display_message(self.agent.aid.name,
-                        'Mensagem REJECT_PROPOSAL recebida')
+                        'REJECT_PROPOSAL message received')
 
     def handle_accept_propose(self, message):
         """
@@ -144,18 +142,18 @@ class CompContNet2(FipaContractNetProtocol):
         super(CompContNet2, self).handle_accept_propose(message)
 
         display_message(self.agent.aid.name,
-                        'Mensagem ACCEPT_PROPOSE recebida')
+                        'ACCEPT_PROPOSE message received')
 
-        resposta = message.create_reply()
-        resposta.set_performative(ACLMessage.INFORM)
-        resposta.set_content('OK')
-        self.agent.send(resposta)
+        answer = message.create_reply()
+        answer.set_performative(ACLMessage.INFORM)
+        answer.set_content('OK')
+        self.agent.send(answer)
 
 
-class AgenteIniciante(Agent):
+class AgentInitiator(Agent):
 
     def __init__(self, aid):
-        super(AgenteIniciante, self).__init__(aid=aid, debug=False)
+        super(AgentInitiator, self).__init__(aid=aid, debug=False)
 
         message = ACLMessage(ACLMessage.CFP)
         message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
@@ -168,10 +166,10 @@ class AgenteIniciante(Agent):
         self.call_later(2.0, comp.on_start)
 
 
-class AgenteParticipante(Agent):
+class AgentParticipant(Agent):
 
     def __init__(self, aid, pot_disp):
-        super(AgenteParticipante, self).__init__(aid=aid, debug=False)
+        super(AgentParticipant, self).__init__(aid=aid, debug=False)
 
         self.pot_disp = pot_disp
 
@@ -181,15 +179,15 @@ class AgenteParticipante(Agent):
 
 
 def config_agents():
-    aa_1 = AgenteIniciante(AID(name='AI1'))
+    aa_1 = AgentInitiator(AID(name='AI1'))
 
-    aa_2 = AgenteParticipante(AID(name='AP1'), 150.0)
+    aa_2 = AgentParticipant(AID(name='AP1'), 150.0)
 
-    aa_3 = AgenteParticipante(AID(name='AP2'), 100.0)
+    aa_3 = AgentParticipant(AID(name='AP2'), 100.0)
 
     agents = list([aa_1, aa_2, aa_3])
 
-    s = PSession()
+    s = PadeSession()
     s.add_all_agents(agents)
     s.register_user(username='lucassm',
                     email='lucas@gmail.com',

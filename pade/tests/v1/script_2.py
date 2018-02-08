@@ -23,18 +23,18 @@ class Consumer(Agent):
         self.sends = 0
         self.receives = 0
     
-    def consult(self, pedido):
+    def consult(self, order):
         message = ACLMessage(ACLMessage.CALL_FOR_PROPOSAL)
         for i in self.bookStores:
             message.add_receiver(i)
-        message.set_content(dumps(pedido))
+        message.set_content(dumps(order))
         self.sends = len(self.bookStores)
         self.send(message)
     
-    def buy(self, proposta):
+    def buy(self, proposal):
         message = ACLMessage(ACLMessage.REQUEST)
-        message.add_receiver(proposta['book store'])
-        message.addContent(dumps(proposta))
+        message.add_receiver(proposal['book store'])
+        message.addContent(dumps(proposal))
         self.send(message)
     
     def analisys(self):
@@ -51,20 +51,20 @@ on_start(self):
         Agent.on_start
 on_start(self)
         sleep(1)
-        pedido = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 5}
-        self.consult(pedido)
+        order = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 5}
+        self.consult(order)
             
     def react(self, message):
         
         if message.performative == ACLMessage.PROPOSE or message.performative == ACLMessage.REJECT_PROPOSAL:
             self.receives += 1
             self.messages.append(message)
-            display_message(self.aid.name, 'Received Propose')
+            display_message(self.aid.name, 'Received Proposal')
             print str(loads(message.content))
         
         if self.receives == self.sends:
             message = self.analisys()
-            display_message(self.aid.name, 'Best Propose Selected:')
+            display_message(self.aid.name, 'Best Proposal Selected:')
             propose = loads(message.content)
             print str(propose)
         
@@ -82,13 +82,13 @@ on_start(self):
         display_message(self.aid.name, 'Received Purchase Order')
         self.message = message
         if message.performative == ACLMessage.CALL_FOR_PROPOSAL:
-            self.pedido = loads(message.content)
-            self.analisys(self.pedido)
+            self.order = loads(message.content)
+            self.analisys(self.order)
     
-    def analisys(self, pedido):
+    def analisys(self, order):
         for book in self.booksList:
-            if book['title'] == pedido['title'] and book['author'] == pedido['author']:
-                if book['qtd'] >= pedido['qtd']:
+            if book['title'] == order['title'] and book['author'] == order['author']:
+                if book['qty'] >= order['qty']:
                     message = ACLMessage(ACLMessage.PROPOSE)
                     message.add_receiver(self.message.sender)
                     book['book store'] = self.aid.name
@@ -97,25 +97,25 @@ on_start(self):
                 else:
                     message = ACLMessage(ACLMessage.REJECT_PROPOSAL)
                     message.add_receiver(self.message.sender)
-                    message.set_content('Request Refused')
+                    message.set_content('Request Rejected')
                     self.send(message)
 
 if __name__ == '__main__':
     
     
-    booksList_Saraiva = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 10, 'how much is' : 53.50},
-                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qtd' : 10, 'how much is' : 33.70},
-                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qtd' : 10,'how much is' : 23.80}
+    booksList_Saraiva = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 10, 'how much is' : 53.50},
+                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qty' : 10, 'how much is' : 33.70},
+                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qty' : 10,'how much is' : 23.80}
                          ]
     
-    bookslist_Cultura = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 10, 'how much is' : 43.50},
-                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qtd' : 10, 'how much is' : 31.70},
-                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qtd' : 10, 'how much is' : 53.80}
+    bookslist_Cultura = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 10, 'how much is' : 43.50},
+                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qty' : 10, 'how much is' : 31.70},
+                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qty' : 10, 'how much is' : 53.80}
                          ]
     
-    bookslist_Nobel = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 10, 'how much is' : 63.50},
-                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qtd' : 10, 'how much is' : 35.70},
-                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qtd' : 10, 'how much is' : 33.80}
+    bookslist_Nobel = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 10, 'how much is' : 63.50},
+                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qty' : 10, 'how much is' : 35.70},
+                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qty' : 10, 'how much is' : 33.80}
                          ]
     
     bookStoresInfo = [(AID(name='Saraiva'), booksList_Saraiva),

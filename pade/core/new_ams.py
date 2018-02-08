@@ -11,7 +11,7 @@ from datetime import datetime
 
 from terminaltables import AsciiTable
 
-# Comportamento que envia as mensagens de verificacao da conexao
+# Behaviour that sends the connection verification messages.
 
 class ComportSendConnMessages(TimedBehaviour):
     def __init__(self, agent, message, time):
@@ -24,8 +24,8 @@ class ComportSendConnMessages(TimedBehaviour):
         self.agent.send(self.message)
         display_message(self.agent.aid.name, 'Connection...')
 
-# Comportamento que verifica os tempos de resposta dos
-# agentes e decide desconecta-los ou nao
+# Behaviour that verifies the answer time of the agents
+# and decides whether to disconnect them or not.
 
 class ComportVerifyConnTimed(TimedBehaviour):
     def __init__(self, agent, time):
@@ -34,7 +34,7 @@ class ComportVerifyConnTimed(TimedBehaviour):
     def on_time(self):
         super(ComportVerifyConnTimed, self).on_time()
         desconnect_agents = list()
-        table = list([['agente', 'delta']])
+        table = list([['agent', 'delta']])
         for agent_name, date in self.agent.agents_conn_time.items():
             now = datetime.now()
             delta = now - date
@@ -52,8 +52,8 @@ class ComportVerifyConnTimed(TimedBehaviour):
 
 
 class CompConnectionVerify(FipaRequestProtocol):
-    """Comportamento FIPA Request
-    do agente Relogio"""
+    """FIPA Request Behaviour of the Clock agent.
+    """
     def __init__(self, agent, message):
         super(CompConnectionVerify, self).__init__(agent=agent,
                                            message=message,
@@ -67,16 +67,18 @@ class CompConnectionVerify(FipaRequestProtocol):
 
 
 class PublisherBehaviour(FipaSubscribeProtocol):
-    """Comportamento FipaSubscribe tipo Publisher que implementa
-       uma comunicacao publisher-subscriber, onde o publisher eh o
-       agente AMS e os subscribers sao os agentes da plataforma.
-       Neste comportamento dois procedimentos sao implementados:
-         - O primeiro dos procedimentos eh o de identificacao em que
-           a disponibilidade eh verificada no banco de dados e se dispo-
-           nivel, armazenada.
-         - O segundo procedimento eh a atualizacao das tabelas distribuidas
-           que contem os enderecos dos agentes presentes na plataforma, sempre
-           que um agente entra ou sai da rede."""
+    """
+    FipaSubscribe behaviour of Publisher type that implements
+    a publisher-subscriber communication, which has the AMS agent
+    as the publisher and the agents of the plataform as subscribers.
+    Two procedures are implemented in this behaviour:
+        - The first one is the identification procedure, which
+          verifies the availability in the database and stores it
+          if positive.
+        - The second one is the updating procedure, which updates the
+          distributed tables that contain the adresses of the agents 
+          in the pleteform. It is updated every time that an agent 
+          enters or leaves the network."""
 
     def __init__(self, agent):
         super(PublisherBehaviour, self).__init__(agent,
@@ -89,43 +91,43 @@ class PublisherBehaviour(FipaSubscribeProtocol):
 
         if sender in self.agent.agentInstance.table.values():
             display_message(self.agent.aid.name,
-                            'Falha na Identificacao do agente ' + sender.name)
+                            'Failure when Identifying agent ' + sender.name)
 
-            # prepara mensagem de resposta
+            # prepares the answer message
             reply = message.create_reply()
             reply.set_content(
-                'Ja existe um agente com este identificador. Por favor, escolha outro.')
-            # envia mensagem
+                'There is already an agent with this identifier. Please, choose another one.')
+            # sends the message
             self.agent.send(reply)
         else:
-            # registra o agente no banco de dados
+            # registers the agent in the database.
 
             a = AgentModel(name=sender.localname,
                       session_id=self.agent.session.id,
                       date=datetime.now(),
-                      state='Ativo')
+                      state='Active')
             db.session.add(a)
             db.session.commit()
 
-            # cadastra o agente na tabela de agentes
+            # registers the agent in the table of agents
             self.agent.agentInstance.table[sender.name] = sender
-            # registra no agente como assinante no protocolo
+            # registers the agent as a subscriber in the protocol.
             self.register(message.sender)
-            # registra o agente na tabela de tempo
+            # registers the agent in the table of time.
             self.agent.agents_conn_time[message.sender.name] = datetime.now()
 
             display_message(
-                self.agent.aid.name, 'Agente ' + sender.name + ' identificado com sucesso')
+                self.agent.aid.name, 'Agent ' + sender.name + ' successfully identified.')
 
-            # prepara e envia mensagem de resposta ao agente
+            # prepares and sends answer messages to the agent
             reply = message.create_reply()
             reply.set_performative(ACLMessage.AGREE)
             reply.set_content(
-                'Agente Identificado com sucesso.')
+                'Agent successfully identified.')
             self.agent.send(reply)
 
-            # prepara e envia mensagem de atualizacao para
-            # todos os agentes cadastrados
+            # prepares and sends the update message to
+            # all registered agents.
             message = ACLMessage(ACLMessage.INFORM)
             message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
             message.set_content(dumps(self.agent.agentInstance.table))
@@ -142,8 +144,8 @@ class PublisherBehaviour(FipaSubscribeProtocol):
 
 class CompVerifyRegister(FipaRequestProtocol):
     def __init__(self, agent):
-        """Comportamento FIPA Request para
-        verificacao de registro de usuario"""
+        """FIPA Request Behaviour to verify the user 
+        registration"""
         super(CompVerifyRegister, self).__init__(agent=agent,
                                                  message=None,
                                                  is_initiator=False)
@@ -152,16 +154,16 @@ class CompVerifyRegister(FipaRequestProtocol):
         super(CompVerifyRegister, self).handle_request(message)
         content = loads(message.content)
         display_message(self.agent.aid.name,
-                        'Validando sessao do agente ' + message.sender.name)
+                        'Validating agent ' + message.sender.name + ' session.')
         if type(content) == dict:
             if content['ref'] == "REGISTER":
                 user_login = content['content']['user_login']
                 session_name = content['content']['session_name']
 
-                # procedimento de verificacao de dados da sessao
-                # e do usuario da sessao solicitada
+                # procedure to verify session user and data
+                # of the requested session.
 
-                # pesquisa no banco de dados se existe uma sessao com este nome
+                # searches in the database if there is a session with this name.
                 session = Session.query.filter_by(name=session_name).first()
                 if session is None:
                     reply = message.create_reply()
@@ -170,23 +172,23 @@ class CompVerifyRegister(FipaRequestProtocol):
                                              'content': False}))
                     self.agent.call_later(1.0, self.agent.send, reply)
                 else:
-                    # verifica se o usuario esta logado na sessao
+                    # verifies if the user is logged in the session.
                     users = session.users
                     for user in users:
                         if user.username == user_login['username']:
                             if user.verify_password(user_login['password']):
                                 validation = True
                                 display_message(self.agent.aid.name,
-                                                'Sessao validada com sucesso.')
+                                                'Session successfully validated.')
                                 break
                             else:
                                 validation = False
                                 display_message(self.agent.aid.name,
-                                                'Sessao nao validada -> Senha incorreta.')
+                                                'Session not validated -> Incorrect password.')
                                 break
                     else:
                         display_message(self.agent.aid.name,
-                                        'Sessao nap validada-> Usuario nao existe.')
+                                        'Session not validated -> Incorrect password.')
                         validation = False
 
                     reply = message.create_reply()
@@ -196,7 +198,7 @@ class CompVerifyRegister(FipaRequestProtocol):
                     self.agent.send(reply)
 
 class AMS(Agent_):
-    """Esta e a classe que implementa o agente AMS."""
+    """This is the class that implements the AMS agent."""
 
     def __init__(self, host, port, session, main_ams=True, debug=False):
         self.ams_aid = AID('ams@' + str(host) + ':' + str(port))
@@ -209,7 +211,7 @@ class AMS(Agent_):
         self.agents_conn_time = dict()
         self.comport_ident = PublisherBehaviour(self)
 
-        # mensagem para verificacao de conexcao
+        # message to check the connection.
         message = ACLMessage(ACLMessage.REQUEST)
         message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
         self.add_all(message)

@@ -28,7 +28,7 @@
 try:
     from PySide import QtCore, QtGui
 except Exception, e:
-    print 'PySide nao esta instalado!'
+    print 'PySide is not installed!'
 
 from pade.acl.messages import ACLMessage
 from uuid import uuid1
@@ -112,17 +112,17 @@ class AgentsGui(object):
 
         # Instancia os objetos menu
         self.fileMenu = QtGui.QMenu('')
-        self.preferenciasAction = QtGui.QAction(QtGui.QIcon('./Imagens/preferencias.png'),'',self.fileMenu)
-        self.preferenciasAction.triggered.connect(self.showPreferenciasDialog)
+        self.preferencesAction = QtGui.QAction(QtGui.QIcon('./Imagens/preferencias.png'),'',self.fileMenu)
+        self.preferencesAction.triggered.connect(self.showPreferenciasDialog)
 
-        self.fileMenu.addAction(self.preferenciasAction)
+        self.fileMenu.addAction(self.preferencesAction)
         # adiciona os menus
         self.menubar.addMenu(self.fileMenu)
 
         # instancia e configura o objeto toolbar
         self.toolbar = QtGui.QToolBar(MainWindow)
         self.toolbar.setObjectName("toolbar")
-        self.toolbar.addAction(self.preferenciasAction)
+        self.toolbar.addAction(self.preferencesAction)
         MainWindow.addToolBar(self.toolbar)
 
         # Instancia e configura o objeto statusbar
@@ -137,12 +137,12 @@ class AgentsGui(object):
         print 'Abrir Dialog Preferencias'
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Interface de Gerenciamento dos Agentes", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Agentes", None, QtGui.QApplication.UnicodeUTF8))
-        self.groupBox_2.setTitle(QtGui.QApplication.translate("MainWindow", "Mensagens", None, QtGui.QApplication.UnicodeUTF8))
+        MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Agent Management Interface", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox.setTitle(QtGui.QApplication.translate("MainWindow", "Agents", None, QtGui.QApplication.UnicodeUTF8))
+        self.groupBox_2.setTitle(QtGui.QApplication.translate("MainWindow", "Messages", None, QtGui.QApplication.UnicodeUTF8))
 
-        self.fileMenu.setTitle(QtGui.QApplication.translate("MainWindow", "Arquivo", None, QtGui.QApplication.UnicodeUTF8))
-        self.preferenciasAction.setText(QtGui.QApplication.translate("MainWindow", "Preferências", None, QtGui.QApplication.UnicodeUTF8))
+        self.fileMenu.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
+        self.preferencesAction.setText(QtGui.QApplication.translate("MainWindow", "Preferences", None, QtGui.QApplication.UnicodeUTF8))
 
 
 class ControlAgentsGui(QtGui.QMainWindow):

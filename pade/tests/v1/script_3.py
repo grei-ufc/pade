@@ -4,10 +4,10 @@ from utils import display_message, set_ams, start_loop
 from messages import ACLMessage
 from aid import AID
 
-class RequestIniciante(FipaRequestProtocol):
+class RequestInitiator(FipaRequestProtocol):
 	
 	def __init__(self, agent, message):
-		super(RequestIniciante, self).__init__(agent, message, is_initiator=True)
+		super(RequestInitiator, self).__init__(agent, message, is_initiator=True)
 	
 	def handle_agree(self, message):
 		display_message(self.agent.aid.name, message.content)
@@ -15,10 +15,10 @@ class RequestIniciante(FipaRequestProtocol):
 	def handle_inform(self, message):
 		display_message(self.agent.aid.name, message.content)
 
-class RequestParticipante(FipaRequestProtocol):
+class RequestParticipant(FipaRequestProtocol):
 	
 	def __init__(self, agent):
-		super(RequestParticipante, self).__init__(agent, message=None, is_initiator=False)
+		super(RequestParticipant, self).__init__(agent, message=None, is_initiator=False)
 	
 	def handle_request(self, message):
 		display_message(self.agent.aid.name, message.content)
@@ -41,8 +41,8 @@ class Agent_Initiator(Agent):
 		message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
 		message.set_content('REQUEST')
 		message.add_receiver('agent_participant_1')
-		comportamento_1 = RequestIniciante(self, message)
-		self.addBehaviour(comportamento_1)
+		behaviour_1 = RequestInitiator(self, message)
+		self.addBehaviour(behaviour_1)
 	
 	def on_start
 on_start(self):
@@ -52,8 +52,8 @@ on_start(self)
 class Agent_Participant(Agent):
 	def __init__(self, aid):
 		Agent.__init__(self, aid)
-		comportamento_1 = RequestParticipante(self)
-		self.addBehaviour(comportamento_1)
+		behaviour_1 = RequestParticipant(self)
+		self.addBehaviour(behaviour_1)
 		
 	def on_start
 on_start(self):

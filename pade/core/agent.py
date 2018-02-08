@@ -27,13 +27,13 @@
 
 
 """
- Módulo de Implementação de agentes
+ Agent Implementing Module
  ----------------------------------
 
- Este módulo Python faz parte da infraestrutura de comunicação
- e gerenciamento de agentes que compõem o framework para construção
- de agentes inteligentes implementado com base na biblioteca para
- implementação de sistemas distribuídos em Python Twisted
+ This Python module is part of the communication and management
+ infrastructure of agents, which forms the framework to create
+ intelligent agents. This framework is based on the Python Twisted
+ library to implement distributed systems.
 
  @author: Lucas S Melo
 """
@@ -50,45 +50,45 @@ from pade.acl.aid import AID
 from pade.misc.utility import display_message
 from pickle import dumps, loads
 
-# Clase que implementa o protocolo que permite
-# a troca de mensagens entre agentes
+# Class that implements a protocol that enables
+# the exchange of messages between agents.
 
 class AgentProtocol(PeerProtocol):
 
-    """Esta classe implementa o protocolo que será seguido pelos
-        agentes no processo de comunicação. Esta classe modela os
-        atos de comunicação entre agente e agente AMS, agente e
-        agente Sniffer e entre agentes.
+    """This class implements the protocol to be followed by the
+        agents during the communication process. The communication
+        between agent and AMS agent, angent and Sniffer, and
+        between agents is modeled in this class.
 
-        Esta classe não armazena informações permanentes, sendo
-        esta função delegada à classe AgentFactory
+        This class does not stores persistent information, it
+        is kept in the AgentFactory class.
     """
 
     def __init__(self, fact):
-        """Inicializa os atributos da classe
+        """Initialize the attributes of the class.
 
-        :param fact: instancia fact do protocolo a ser inplementado
+        :param fact: fact instance of the protocol to be implemented
         """
 
         self.fact = fact
 
     def connectionMade(self):
-        """Este método é executado sempre que uma
-        conexão é executada entre um agente no modo
-        cliente e um agente no modo servidor
+        """This method is always executed when
+        a conection is established between an agent
+        in client mode and an agent in server mode.
         """
         PeerProtocol.connectionMade(self)
 
     def connectionLost(self, reason):
-        """Este método executa qualquer coisa quando uma conexão é perdida
+        """This method executes anything when a connnection is lost.
 
-        :param reason: Identifica o problema na perda de conexão
+        :param reason: Identifies the problem in the lost connection.
         """
         if self.message is not None:
             message = PeerProtocol.connectionLost(self, reason)
 
-            # execução do comportamento Agent.react à mensagem
-            # recebida
+            # executes the behaviour Agent.react to the received
+            # message.
             self.message = None
             self.fact.react(message)
 
@@ -96,81 +96,80 @@ class AgentProtocol(PeerProtocol):
         PeerProtocol.send_message(self, message)
 
     def lineReceived(self, line):
-        """Este método é executado sempre que uma
-        nova mensagem é recebida pelo agente,
-        tanto no modo cliente quanto no modo servidor
+        """This method is always executed when
+        a new message is received by the agent,
+        whether the agent is in client or server mode.
 
-        :param line: mensagem recebida pelo agente
+        :param line: message received by the agent.
         """
         PeerProtocol.lineReceived(self, line)
 
-# Classe que implementa o ProtolFactory, padrao
-# do twisted para protocolos personalisados
+# Class that implements the ProtolFactory, which is the
+# twisted standard for custom protocols.
 
 class AgentFactory(protocol.ClientFactory):
 
-    """Esta classe implementa as ações e atributos do
-    protocolo Agent sua principal função é armazenar
-    informações importantes ao protocolo de comunicação
-    do agente
+    """This class implements the actions and attributes
+    of the Agent protocol. Its main function is to store
+    important information to the agent communication protocol.
     """
 
     def __init__(self, aid, ams, debug, react, on_start):
-        self.aid = aid  # armazena a identificação do agente
-        self.ams = ams  # armazena a identificação do agente ams
+        self.aid = aid  # stores the agent's identity.
+        self.ams = ams  # stores the  ams agent's identity.
 
-        self.messages = []  # armazena as mensagens a serem enviadas
+        self.messages = []  # stores the messages to be sent.
 
-        # metodo que executa os comportamentos dos agentes definido tanto
-        # pelo usuario quanto pelo System-PADE
+        # method that executes the agent's behaviour defined 
+        # both by the user and by the System-PADE.
         self.react = react
-        # metodo que executa os comportamentos dos agentes definidos tanto 
-        # pelo usuario quanto pelo System-PADE quando o agente é iniciado
+        # method that executes the agent's behaviour defined both
+        # by the user and by the System-PADE when the agent is initialised
         self.on_start = on_start
-        # AID do AMS
+        # AID of AMS
         self.ams_aid = AID('ams@' + ams['name'] + ':' + str(ams['port']))
-        # table armazena os agentes ativos, um dicionário com chaves: nome e
-        # valores: AID
+        # table stores the active agents, a dictionary with keys: name and
+        # values: AID
         self.table = dict([('ams', self.ams_aid)])
         
         self.debug = debug
 
     def buildProtocol(self, addr):
-        """Este metodo inicializa o protocolo Agent
+        """This method initializes the Agent protocol
         """
         return AgentProtocol(self)
 
     def clientConnectionFailed(self, connector, reason):
-        """Este método é chamado quando ocorre uma
-        falha na conexão de um cliente com o servidor
+        """This method is clled upon a failure 
+        in the connection between client and server.
         """
         display_message(self.aid.name, 'Connection Failed...')
 
     def clientConnectionLost(self, connector, reason):
-        """Este método chamado quando a conexão de
-        um cliente com um servidor é perdida
+        """This method is called when the connection between
+        a client and server is lost.
         """
         pass
 
 
-# Classe Primitiva Agent_
+# Primitive Agent_ Class
 
 class Agent_(object):
 
-    """A classe Agente estabelece as funcionalidades essenciais de um agente como:
-    1. Conexão com o AMS
-    2. Configurações iniciais
-    3. Envio de mensagens
-    4. Adição de comportamentos
-    5. metodo abstrato a ser utilizado na implementação dos comportamentos iniciais
-    6. metodo abstrato a ser utlizado na implementação dos comportamentos dos agentes quando recebem uma mensagem
+    """The Agent class establishes the essential functionalities of an agent, such as:
+    1. Connection with AMS
+    2. Initial configurations
+    3. Message sending
+    4. Behaviour adding
+    5. abstract method to be used when implementing the initial behaviours
+    6. abstract method to be used when implementing the agents' behaviour when they receive a message
     """
 
     def __init__(self, aid, debug=False):
 
         self.aid = aid
         self.debug = debug
-        # TODO: criar um objeto aid com o aid do ams 
+        # ALL: create a aid object with the aid of ams 
         self.ams = {'name': 'localhost', 'port': 8000}
         self.agentInstance = AgentFactory(aid=self.aid, ams=self.__ams, debug=self.__debug,
                                           react=self.react, on_start=self.on_start)
@@ -187,7 +186,7 @@ class Agent_(object):
         if isinstance(value, AID):
             self.__aid = value
         else:
-            raise ValueError('O objeto aid precisa ser do tipo AID!')
+            raise ValueError('aid object type must be AID!')
 
     @property
     def debug(self):
@@ -198,7 +197,7 @@ class Agent_(object):
         if isinstance(value, bool):
             self.__debug = value
         else:
-            raise ValueError('O objeto debug precisa ser do tipo bool')
+            raise ValueError('debug object type must be bool')
 
     @property
     def ams(self):
@@ -227,7 +226,7 @@ class Agent_(object):
             self.__agentInstance = value
         else:
             raise ValueError(
-                'O objeto agentInstance precisa ser do tipo AgentFactory')
+                'agentInstance object type must be AgentFactory')
 
     @property
     def behaviours(self):
@@ -238,7 +237,7 @@ class Agent_(object):
         for v in value:
             if not issubclass(v.__class__, Behaviour):
                 raise ValueError(
-                    'O objeto behaviour presiza ser subclasse da classe Behaviour!')
+                    'behaviour must be a subclass of the Behaviour class!')
         else:
             self.__behaviours = value
 
@@ -251,20 +250,20 @@ class Agent_(object):
         for v in value:
             if not issubclass(v.__class__, Behaviour):
                 raise ValueError(
-                    'O objeto behaviour presiza ser subclasse da classe Behaviour!')
+                    'behaviour must be a subclass of the Behaviour class!')
         else:
             self.__system_behaviours = value
 
     def react(self, message):
-        """Este metodo deve ser SobreEscrito e será
-        executado todas as vezes que o agente em
-        questão receber algum tipo de dado
+        """This method should be overriden and will
+        be executed all the times the agent receives
+        any type of data.
 
         :param message: ACLMessage
-            mensagem recebida
+            received message
         """
-        # este for executa todos os protocolos FIPA associados a comportmentos
-        # implementados neste agente
+        # this "for" executes all FIPA protocols associated to behaviours
+        # implemented in this agent
         if message.system_message:
             for system_behaviour in self.system_behaviours:
                 system_behaviour.execute(message)
@@ -273,24 +272,23 @@ class Agent_(object):
                 behaviour.execute(message)
 
     def send(self, message):
-        """Envia uma mensagem ACL para os agentes
-        especificados no campo receivers da mensagem ACL
+        """This method sends an ACL message to the agents specified
+        in the receivers parameter of the ACL message.
         """
         message.set_sender(self.aid)
         message.set_message_id()
         message.set_datetime_now()
 
-        # for percorre os destinatarios da mensagem
+        # "for" iterates on the message receivers
         for receiver in message.receivers:
             for name in self.agentInstance.table:
-                # if verifica se o nome do destinatario está entre os agentes
-                # disponíveis
+                # "if" verifies if the receiver name is among the available agents
                 if receiver.localname in name and receiver.localname != self.aid.localname:
-                    # corrige o parametro porta e host gerado aleatoriamente quando apenas um nome
-                    # e dado como identificador de um destinatário
+                    # corrects the port and host parameters randomly generated when only a name
+                    # is given as a identifier of a receiver.
                     receiver.setPort(self.agentInstance.table[name].port)
                     receiver.setHost(self.agentInstance.table[name].host)
-                    # se conecta ao agente e envia a mensagem
+                    # makes a connection to the agent and sends the message.
                     self.agentInstance.messages.append((receiver, message))
                     try:
                         reactor.connectTCP(self.agentInstance.table[
@@ -302,7 +300,7 @@ class Agent_(object):
             else:
                 if self.debug:
                     display_message(
-                        self.aid.localname, 'Agente ' + receiver.name + ' não esta ativo')
+                        self.aid.localname, 'Agent ' + receiver.name + ' is not active')
                 else:
                     pass
 
@@ -310,11 +308,12 @@ class Agent_(object):
         return reactor.callLater(time, metodo, *args)
 
     def send_to_all(self, message):
-        """Envia mensagem de broadcast, ou seja envia mensagem
-        para todos os agentes com registro na tabela de agentes
+        """
+        This method sends a broadcast message, in other words, it sends
+        a message to all agents registered on the table of agents
 
-        :param message: mensagem a ser enviada a todos
-        os agentes registrados na tabela do agente
+        :param message: message to be sent to all agents registeres
+        on the table of agents.
         """
 
         for agent_aid in self.agentInstance.table.values():
@@ -329,22 +328,22 @@ class Agent_(object):
                 message.add_receiver(agent_aid)
 
     def on_start(self):
-        """Metodo que definine os comportamentos
-        iniciais de um agente
+        """This method defines the initial behaviours 
+        of an agent.
         """
-        # Este for adiciona os comportametos padronizados especificados pelo
-        # usuário
+        # This "for" adds the standard behaviours specified
+        # by the user.
         for behaviour in self.behaviours:
             behaviour.on_start()
         for system_behaviour in self.system_behaviours:
             system_behaviour.on_start()
 
-# Comportamentos PADE que compõem a classe Agent
+# PADE behaviours that compose the Agent class.
 
 class SubscribeBehaviour(FipaSubscribeProtocol):
     """
-        Esta classe implementa o comportamento 
-        do agente que identifica-o junto ao AMS
+        This class implements the behaviour of the 
+        agent that identifies it to the AMS.
     """
     def __init__(self, agent, message):
         super(SubscribeBehaviour, self).__init__(agent,
@@ -352,22 +351,21 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
                                                  is_initiator=True)
 
     def handle_agree(self, message):
-        display_message(self.agent.aid.name, 'Processo de identificação concluído.')
+        display_message(self.agent.aid.name, 'Identification process done.')
 
     def handle_refuse(self, message):
         display_message(self.agent.aid.name, message.content)
 
     def handle_inform(self, message):
-        display_message(self.agent.aid.name, 'Atualizacao de tabela')
+        display_message(self.agent.aid.name, 'Table update')
         self.agent.agentInstance.table = loads(message.content)
 
 
 class CompConnection(FipaRequestProtocol):
     """
-        Esta classe implementa o comportamento
-        do agente que responde as solicitacoes
-        do AMS para detectar se o agente está ou
-        não conectado. 
+        This class implements the agent's behaviour
+        that answers the solicitations the AMS
+        makes to detect if the agent is connected or not. 
     """
     def __init__(self, agent):
         super(CompConnection, self).__init__(agent=agent,
@@ -376,14 +374,14 @@ class CompConnection(FipaRequestProtocol):
 
     def handle_request(self, message):
         super(CompConnection, self).handle_request(message)
-        display_message(self.agent.aid.localname, 'mensagem request recebida')
+        display_message(self.agent.aid.localname, 'request message received')
         reply = message.create_reply()
         reply.set_performative(ACLMessage.INFORM)
         reply.set_content('Im Live')
         self.agent.send(reply)
 
 
-# Classe principal Agent
+# Main Agent Class
 
 class Agent(Agent_):
     def __init__(self, aid, debug=False):
@@ -405,8 +403,8 @@ class Agent(Agent_):
     def react(self, message):
         super(Agent, self).react(message)
 
-        # envia mensagem recebida para o AMS
-        # montagem da mensagem a ser enviada ao AMS
+        # sends the received message to AMS
+        # building of the message to be sent to AMS.
         _message = ACLMessage(ACLMessage.INFORM)
         ams_aid = AID('ams@' + self.ams['name'] + ':' + str(self.ams['port']))
         _message.add_receiver(ams_aid)
