@@ -166,16 +166,14 @@ class Agent_(object):
     """
 
     def __init__(self, aid, debug=False):
-
         self.aid = aid
         self.debug = debug
-        # ALL: create a aid object with the aid of ams 
-        self.ams = {'name': 'localhost', 'port': 8000}
-        self.agentInstance = AgentFactory(aid=self.aid, ams=self.__ams, debug=self.__debug,
-                                          react=self.react, on_start=self.on_start)
+        # ALL: create a aid object with the aid of ams
+        self.ams = dict()
         self.behaviours = list()
         self.system_behaviours = list()
         self.__messages = list()
+        self.ILP = None
 
     @property
     def aid(self):
@@ -206,7 +204,7 @@ class Agent_(object):
     @ams.setter
     def ams(self, value):
         self.__ams = dict()
-        if value == {}:
+        if value == dict():
             self.__ams['name'] = 'localhost'
             self.__ams['port'] = 8000
         else:
@@ -215,7 +213,8 @@ class Agent_(object):
                 self.__ams['port'] = value['port']
             except (Exception, e):
                 raise e
-
+    """
+    #agentInstance will only be created after the session is created, not in the agent instantiation
     @property
     def agentInstance(self):
         return self.__agentInstance
@@ -227,7 +226,7 @@ class Agent_(object):
         else:
             raise ValueError(
                 'agentInstance object type must be AgentFactory')
-
+    """
     @property
     def behaviours(self):
         return self.__behaviours
@@ -338,6 +337,27 @@ class Agent_(object):
         for system_behaviour in self.system_behaviours:
             system_behaviour.on_start()
 
+    def pause_agent(self):
+        """This method makes the agent stops listeing to its port
+        """
+        self.ILP.stopListening()
+
+    def resume_agent(self):
+        """This method resumes the agent after it has been pause. Still not working
+        """
+        print(self.system_behaviours,self.behaviours)
+        self.on_start()
+        self.ILP.startListening()
+
+    def update_ams(self,ams):
+        """This method instantiates the ams agent
+        """
+        self.ams = ams
+        self.agentInstance = AgentFactory(aid=self.aid, ams=self.__ams, debug=self.__debug,
+                                          react=self.react, on_start=self.on_start)
+        
+
+
 # PADE behaviours that compose the Agent class.
 
 class SubscribeBehaviour(FipaSubscribeProtocol):
@@ -349,7 +369,6 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
         super(SubscribeBehaviour, self).__init__(agent,
                                                  message,
                                                  is_initiator=True)
-
     def handle_agree(self, message):
         display_message(self.agent.aid.name, 'Identification process done.')
 
@@ -386,19 +405,20 @@ class CompConnection(FipaRequestProtocol):
 class Agent(Agent_):
     def __init__(self, aid, debug=False):
         super(Agent, self).__init__(aid=aid, debug=debug)
+        
+        self.comport_connection = CompConnection(self)        
+        self.system_behaviours.append(self.comport_connection)
 
+    def update_ams(self,ams):
+        super(Agent,self).update_ams(ams)
         message = ACLMessage(ACLMessage.SUBSCRIBE)
         message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
         ams_aid = AID('ams@' + self.ams['name'] + ':' + str(self.ams['port']))
         message.add_receiver(ams_aid)
         message.set_content('IDENT')
         message.set_system_message(is_system_message=True)
-
         self.comport_ident = SubscribeBehaviour(self, message)
-        self.comport_connection = CompConnection(self)
-
         self.system_behaviours.append(self.comport_ident)
-        self.system_behaviours.append(self.comport_connection)
 
     def react(self, message):
         super(Agent, self).react(message)

@@ -468,7 +468,6 @@ class FipaSubscribeProtocol(Behaviour):
 
         self.is_initiator = is_initiator
         self.message = message
-
         self.subscribers = set()
 
         self.filter_protocol = Filter()
@@ -498,6 +497,7 @@ class FipaSubscribeProtocol(Behaviour):
             of FipaSubscribeProtocol protocol.
         """
         super(FipaSubscribeProtocol, self).on_start()
+
 
         if self.is_initiator and self.message != None:
 
@@ -547,7 +547,6 @@ class FipaSubscribeProtocol(Behaviour):
 
             :param message: FIPA-ACL message
         """
-
         super(FipaSubscribeProtocol, self).execute(message)
 
         self.message = message

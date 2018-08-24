@@ -74,7 +74,7 @@ class PadeSession(object):
     user_login = dict()
 
     def __init__(self, name=None, ams=None, remote_ams=False):
-        
+               
         self.remote_ams = remote_ams
 
         if name is not None:
@@ -87,18 +87,18 @@ class PadeSession(object):
         else:
             self.ams = {'name': 'localhost', 'port': 8000}
 
+
     def add_agent(self, agent):
-        agent.ams = self.ams
         self.agents.append(agent)
 
     def add_all_agents(self, agents):
-        for agent in agents:
-            agent.ams = self.ams
         self.agents = self.agents + agents
+
 
     def register_user(self, username, email, password):
         self.users.append(
             {'username': username, 'email': email, 'password': password})
+
 
     def log_user_in_session(self, username, email, password):
         self.user_login['username'] = username
@@ -108,10 +108,12 @@ class PadeSession(object):
 
     def _verify_remote_session(self):
         vua_aid = AID('valid_user_agent')
+        vua_aid.setPort(self.agents[0].aid.port)
         vua_aid.setHost(self.agents[0].aid.host)
         valid_user_agent = ValidadeUserAgent(vua_aid,
                                              self.user_login,
-                                             self.name)
+                                             self.name,
+                                             self)
         reactor.callLater(1.0, self._listen_agent, valid_user_agent)
         reactor.run()
 
@@ -119,6 +121,7 @@ class PadeSession(object):
         # in case it is an active session
         if db_session.state == 'Active':
             users = db_session.users
+            print(users)
             # iterates through registered users in the database.S
             for user in users:
                 if user.username == self.user_login['username']:
@@ -133,7 +136,6 @@ class PadeSession(object):
             raise UserWarning('This session name has been used before. Please, choose another!')
 
     def _initialize_database(self):
-
         db.create_all()
         # searches in the database if there is a session with 
         # this name
@@ -141,7 +143,6 @@ class PadeSession(object):
 
         # in case there is not a session with this name
         if db_session is None:
-
             # clear out the database and creates new registers
             db.drop_all()
             db.create_all()
@@ -161,6 +162,7 @@ class PadeSession(object):
             reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
             # registers the users, in case they exist, in the database
+
             if len(self.users) != 0:
                 users_db = list()
                 for user in self.users:
@@ -175,6 +177,7 @@ class PadeSession(object):
 
         # in case there is a session with this name
         else:
+
             self._verify_user_in_session(db_session)
 
     def start_loop(self, debug=False):
@@ -182,7 +185,6 @@ class PadeSession(object):
             Runs twisted loop
         """
         if self.remote_ams:
-            
             self._verify_remote_session()
             
         else:
@@ -209,20 +211,21 @@ class PadeSession(object):
                 reactor.callLater(i, self._listen_agent, agent)
                 i += 0.2
 
-            # launch Twisted loop
             reactor.run()
 
     def _listen_agent(self, agent):
         # Connects agent to AMS
+        agent.update_ams(self.ams)
         agent.on_start()
         # Connects agent to port used in communication
-        reactor.listenTCP(agent.aid.port, agent.agentInstance)
-
+        ILP = reactor.listenTCP(agent.aid.port, agent.agentInstance)
+        agent.ILP = ILP
 
 class CompRegisterUser(FipaRequestProtocol):
     """FIPA Request Behaviour to register the user
     uario"""
-    def __init__(self, agent, message):
+    def __init__(self, agent, message, session):
+        self.session = session
         super(CompRegisterUser, self).__init__(agent=agent,
                                                message=message,
                                                is_initiator=True)
@@ -236,19 +239,26 @@ class CompRegisterUser(FipaRequestProtocol):
                 user_login = content['content']
                 print(user_login)
                 if user_login:
-                    reactor.stop()
+                    i = 1.0
+                    for agent in self.session.agents:
+                        reactor.callLater(i, self.session._listen_agent, agent)
+                        i += 0.2
+
+                    self.agent.pause_agent()
+
                 else:
                     reactor.stop()
                     raise Exception('User authentication failed.')
                     
 
-
 class ValidadeUserAgent(Agent):
 
-    def __init__(self, aid, user_login, session_name):
+    def __init__(self, aid, user_login, session_name, session):
         super(ValidadeUserAgent, self).__init__(aid=aid, debug=True)
         self.user_login = user_login
         self.session_name = session_name
+        self.session= session
+        super(ValidadeUserAgent,self).update_ams(session.ams)
         message = ACLMessage(ACLMessage.REQUEST)
         message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
         content = dumps({
@@ -258,10 +268,8 @@ class ValidadeUserAgent(Agent):
         ams_aid = AID('ams@' + self.ams['name'] + ':' + str(self.ams['port']))
         message.add_receiver(ams_aid)
         message.set_system_message(is_system_message=True)
-        self.comport_register_user = CompRegisterUser(self, message)
-
+        self.comport_register_user = CompRegisterUser(self, message, self.session)
         self.system_behaviours.append(self.comport_register_user)
-
     def react(self, message):
         super(ValidadeUserAgent, self).react(message)
 
