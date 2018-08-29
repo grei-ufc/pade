@@ -5,8 +5,8 @@ from pade.core.agent import Agent
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.protocols import FipaSubscribeProtocol, TimedBehaviour
-from numpy import sin
 
+import random
 
 class SubscribeInitiator(FipaSubscribeProtocol):
 
@@ -32,7 +32,6 @@ class SubscribeParticipant(FipaSubscribeProtocol):
     def handle_subscribe(self, message):
         self.register(message.sender)
         display_message(self.agent.aid.name, message.content)
-
         resposta = message.create_reply()
         resposta.set_performative(ACLMessage.AGREE)
         resposta.set_content('Subscribe message accepted')
@@ -57,8 +56,7 @@ class Time(TimedBehaviour):
         super(Time, self).on_time()
         message = ACLMessage(ACLMessage.INFORM)
         message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
-        message.set_content(str(sin(self.inc)))
-
+        message.set_content(str(random.random()))
         self.notify(message)
         self.inc += 0.1
 
@@ -84,15 +82,12 @@ class AgentParticipant(Agent):
 
 if __name__ == '__main__':
 
-    #set_ams('localhost', 5000, debug=False)
-
     editor = AgentParticipant(AID('editor'))
-    #editor.ams = {'name': 'localhost', 'port': 5000}
 
     msg = ACLMessage(ACLMessage.SUBSCRIBE)
     msg.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
     msg.set_content('Subscription request')
-    msg.add_receiver('editor')
+    msg.add_receiver(editor.aid)
 
     subs1 = AgentInitiator(AID('subscriber_1'), msg)
    # subs1.ams = {'name': 'localhost', 'port': 5000}
@@ -107,6 +102,4 @@ if __name__ == '__main__':
     s.register_user(username='lucassm',
                     email='lucas@gmail.com',
                     password='12345')
-    s.start_loop()
-
-    #start_loop(agents, gui=True)
+    s.start_loop(debug=True)
