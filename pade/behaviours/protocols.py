@@ -500,7 +500,6 @@ class FipaSubscribeProtocol(Behaviour):
 
 
         if self.is_initiator and self.message != None:
-
             if self.message.performative == ACLMessage.SUBSCRIBE:
                 self.agent.send(self.message)
                 # self.timed_behaviour()

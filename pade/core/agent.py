@@ -289,6 +289,13 @@ class Agent_(object):
                     receiver.setHost(self.agentInstance.table[name].host)
                     # makes a connection to the agent and sends the message.
                     self.agentInstance.messages.append((receiver, message))
+                    if self.debug == True:
+                        print(('[MESSAGE DELIVERY]',
+                               message.performative,
+                               'FROM',
+                               message.sender.name,
+                               'TO',
+                               message.receivers))
                     try:
                         reactor.connectTCP(self.agentInstance.table[
                                            name].host, self.agentInstance.table[name].port, self.agentInstance)
@@ -332,10 +339,14 @@ class Agent_(object):
         """
         # This "for" adds the standard behaviours specified
         # by the user.
-        for behaviour in self.behaviours:
-            behaviour.on_start()
         for system_behaviour in self.system_behaviours:
             system_behaviour.on_start()
+        
+        reactor.callLater(2.0, self.__launch_agent_behaviours)
+    
+    def __launch_agent_behaviours(self):
+        for behaviour in self.behaviours:
+            behaviour.on_start()
 
     def pause_agent(self):
         """This method makes the agent stops listeing to its port

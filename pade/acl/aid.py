@@ -250,6 +250,9 @@ class AID(object):
 
         return sb
 
+    def __repr__(self):
+        return self.name
+
     def as_xml(self):
         """
         returns a printable version of an AID in XML
