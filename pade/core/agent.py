@@ -310,8 +310,8 @@ class Agent_(object):
                 else:
                     pass
 
-    def call_later(self, time, metodo, *args):
-        return reactor.callLater(time, metodo, *args)
+    def call_later(self, time, method, *args):
+        return reactor.callLater(time, method, *args)
 
     def send_to_all(self, message):
         """
