@@ -39,7 +39,7 @@ class ComportVerifyConnTimed(TimedBehaviour):
             now = datetime.now()
             delta = now - date
             table.append([agent_name, str(delta.total_seconds())])
-            if delta.total_seconds() > 10.0:
+            if delta.total_seconds() > 20.0:
                 desconnect_agents.append(agent_name)
                 self.agent.agentInstance.table.pop(agent_name)
 

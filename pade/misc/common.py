@@ -180,7 +180,7 @@ class PadeSession(object):
 
             self._verify_user_in_session(db_session)
 
-    def start_loop(self, debug=False):
+    def start_loop(self, debug=False, multithreading=False):
         """
             Runs twisted loop
         """
@@ -208,10 +208,17 @@ class PadeSession(object):
 
             i = 1.0
             for agent in self.agents:
-                reactor.callLater(i, self._listen_agent, agent)
+                if multithreading:
+                    reactor.callLater(i, self.__listen_agent, agent)
+                else:
+                    reactor.callLater(i, self._listen_agent, agent)
                 i += 0.2
 
+
             reactor.run()
+
+    def __listen_agent(self, agent):
+        reactor.callInThread(self._listen_agent, agent)
 
     def _listen_agent(self, agent):
         # Connects agent to AMS
