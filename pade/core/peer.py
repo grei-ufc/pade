@@ -26,11 +26,12 @@
 # THE SOFTWARE.
 
 
-from twisted.protocols.basic import LineReceiver
+#from twisted.protocols.basic import LineReceiver
+from twisted.internet.protocol import Protocol
 from pade.acl.messages import ACLMessage
 import pickle
 
-class PeerProtocol(LineReceiver):
+class PeerProtocol(Protocol):
     """docstring for PeerProtocol"""
 
     message = None
@@ -58,12 +59,12 @@ class PeerProtocol(LineReceiver):
             message = pickle.loads(self.message)
             return message
 
-    def lineReceived(self, line):
+    def dataReceived(self, data):
         # receives part of the sent message.
         if self.message is not None:
-            self.message += line
+            self.message += data
         else:
-            self.message = line
+            self.message = data
 
     def send_message(self, message):
         l = len(message)
@@ -71,9 +72,9 @@ class PeerProtocol(LineReceiver):
 
             while len(message) > 0:
                 message, m = message[14384:], message[:14384]
-                self.sendLine(m)
+                self.transport.write(m)
         else:
-            self.sendLine(message)
+            self.transport.write(message)
 
         try:
             self.transport.loseConnection()

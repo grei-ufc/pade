@@ -95,14 +95,14 @@ class AgentProtocol(PeerProtocol):
     def send_message(self, message):
         PeerProtocol.send_message(self, message)
 
-    def lineReceived(self, line):
+    def dataReceived(self, data):
         """This method is always executed when
         a new message is received by the agent,
         whether the agent is in client or server mode.
 
         :param line: message received by the agent.
         """
-        PeerProtocol.lineReceived(self, line)
+        PeerProtocol.dataReceived(self, data)
 
 # Class that implements the ProtolFactory, which is the
 # twisted standard for custom protocols.
