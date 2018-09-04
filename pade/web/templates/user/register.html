@@ -22,12 +22,9 @@
                     {{ message }}
                 </div>
             {% endfor %}
-            <h2 class="form-signin-heading">Sign in PADE Web Interface</h2>
+            <h2 class="form-signin-heading">Create a new user in PADE</h2>
+            {{ form.csrf_token }}
             {{ wtf.quick_form(form) }}
-            <div class="nav navbar-nav navbar-right">
-                <button class="btn btn-default"><a href="{{ url_for('register') }}">Register</a></button>
-            </div>
-
         </form>
 
     </div> <!-- /container -->

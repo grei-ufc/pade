@@ -2,14 +2,15 @@ import os
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for
 from flask_bootstrap import Bootstrap
-from flask_login import LoginManager, login_required, login_user, logout_user
-from flask_wtf import Form
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from flask_login import LoginManager, login_required, login_user, logout_user, UserMixin
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, validators
 from wtforms.validators import Required, Email, Length
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from werkzeug import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
+
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -38,6 +39,7 @@ login_manager.login_view = 'login'
 db = SQLAlchemy(app)
 
 bootstrap = Bootstrap(app)
+
 
 class Session(db.Model):
     __tablename__ = 'sessions'
@@ -106,7 +108,8 @@ class Message(db.Model):
     def __repr__(self):
         return 'Message %s' % self.id
 
-class LoginForm(Form):
+
+class LoginForm(FlaskForm):
     email = StringField('Email', validators=[Required(), Length(1, 64),
                                  Email()])
     password = PasswordField('Password', validators=[Required()])
@@ -114,14 +117,40 @@ class LoginForm(Form):
     submit = SubmitField('Log In')
 
 
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', [validators.Length(min=4, max=25)])
+    email = StringField('Email Address', [validators.Length(min=6, max=35)])
+    password = PasswordField('New Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords must match')
+    ])
+    confirm = PasswordField('Repeat Password')
+    submit = SubmitField('Create')
+
+
 @app.before_first_request
 def create_database():
     db.create_all()
     print('[flask-server] >>> Database created.')
 
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+
+@app.route('/user/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm(request.form)
+
+    if request.method == 'POST' and form.validate():
+        user = User(username=form.username.data,
+                    email=form.email.data, password=form.password.data)
+        db.session.add(user)
+        flash('Thanks for registering')
+        return redirect(url_for('login'))
+    return render_template('user/register.html', form=form)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -133,9 +162,9 @@ def login():
             return redirect(url_for('index'))
         flash('Invalid username or password.')
     else:
-        user = request.args.get('email', type=str)
-        password = request.args.get('password', type=str)
-        remember = request.args.get('remember', type=bool)
+        user = request.form.get('email', type=str)
+        password = request.form.get('password', type=str)
+        remember = request.form.get('remember', type=bool)
         user = User.query.filter_by(email=user).first()
         if user is not None and user.verify_password(password):
             login_user(user, remember)
@@ -143,17 +172,20 @@ def login():
         else:
             return render_template('login.html', form=form)
 
+
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
     flash('You have been logged out')
     return redirect(url_for('login'))
 
+
 @app.route('/')
 @login_required
 def index():
     sessions = Session.query.all()
     return render_template('index.html', sessions=sessions)
+
 
 @app.route('/session/<session_id>')
 @login_required
@@ -162,6 +194,7 @@ def session_page(session_id):
     agents = session.agents
     return render_template('agentes.html', session=session, agents=agents)
 
+
 @app.route('/session/agent/<agent_id>')
 @login_required
 def agent_page(agent_id):
@@ -169,11 +202,13 @@ def agent_page(agent_id):
     messages = agent.messages
     return render_template('messages.html', messages=messages, agent=agent)
 
+
 @app.route('/session/agent/message/<message_id>')
 @login_required
 def message_page(message_id):
     message = Message.query.filter_by(id=message_id).first()
     return render_template('message.html', message=message)
+
 
 @app.route('/diagrams')
 @login_required
@@ -194,6 +229,7 @@ def diagrams():
             messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(msg.performative) + '\n'
     return render_template('diagrams.html', messages=messages_diagram)
 
+
 @app.route('/post',  methods=['POST', 'GET'])
 def my_post():
     if request.method == 'GET':
@@ -201,8 +237,10 @@ def my_post():
     else:
         return 'Hello ' + str(request.form['name'])
 
+
 def run_server():
     app.run(host='0.0.0.0', port=5000, debug=None)
+
 
 if __name__ == '__main__':
     run_server()
