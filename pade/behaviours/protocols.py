@@ -468,7 +468,6 @@ class FipaSubscribeProtocol(Behaviour):
 
         self.is_initiator = is_initiator
         self.message = message
-
         self.subscribers = set()
 
         self.filter_protocol = Filter()
@@ -499,8 +498,8 @@ class FipaSubscribeProtocol(Behaviour):
         """
         super(FipaSubscribeProtocol, self).on_start()
 
-        if self.is_initiator and self.message != None:
 
+        if self.is_initiator and self.message != None:
             if self.message.performative == ACLMessage.SUBSCRIBE:
                 self.agent.send(self.message)
                 # self.timed_behaviour()
@@ -547,7 +546,6 @@ class FipaSubscribeProtocol(Behaviour):
 
             :param message: FIPA-ACL message
         """
-
         super(FipaSubscribeProtocol, self).execute(message)
 
         self.message = message

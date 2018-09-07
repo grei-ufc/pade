@@ -1,12 +1,19 @@
 #from pade.misc.common import start_loop, 
 from pade.misc.common import PadeSession
-from pade.misc.utility import display_message
+from pade.misc.utility import display_message, call_in_thread
+
 from pade.core.agent import Agent
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.protocols import FipaSubscribeProtocol, TimedBehaviour
 
 import random
+import time
+
+def my_time(a, b):
+    print('------> I will sleep now!', a)
+    time.sleep(10)
+    print('------> I wake up now!', b)
 
 class SubscribeInitiator(FipaSubscribeProtocol):
 
@@ -79,6 +86,8 @@ class AgentParticipant(Agent):
 
         self.behaviours.append(self.protocol)
         self.behaviours.append(self.timed)
+
+        call_in_thread(my_time, 'a', 'b')
 
 if __name__ == '__main__':
 

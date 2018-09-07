@@ -39,7 +39,7 @@ class ComportVerifyConnTimed(TimedBehaviour):
             now = datetime.now()
             delta = now - date
             table.append([agent_name, str(delta.total_seconds())])
-            if delta.total_seconds() > 10.0:
+            if delta.total_seconds() > 30.0:
                 desconnect_agents.append(agent_name)
                 self.agent.agentInstance.table.pop(agent_name)
 
@@ -203,6 +203,8 @@ class AMS(Agent_):
     def __init__(self, host, port, session, main_ams=True, debug=False):
         self.ams_aid = AID('ams@' + str(host) + ':' + str(port))
         super(AMS, self).__init__(self.ams_aid)
+        self.ams = {'name':str(host),'port':str(port)}
+        super(AMS,self).update_ams(self.ams)      
         self.host = host
         self.port = port
         self.session = session
@@ -257,7 +259,7 @@ class AMS(Agent_):
 
     def react(self, message):
         super(AMS, self).react(message)
-
+        
         try:
             content = loads(message.content)
             if content['ref'] == 'MESSAGE':
