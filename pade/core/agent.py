@@ -114,30 +114,34 @@ class AgentFactory(protocol.ClientFactory):
     important information to the agent communication protocol.
     """
 
-    def __init__(self, aid, ams, debug, react, on_start):
-        self.aid = aid  # stores the agent's identity.
-        self.ams = ams  # stores the  ams agent's identity.
+    def __init__(self, agent_ref):
+
+        self.conn_count = 0
+        self.agent_ref = agent_ref
+        self.agent_ref.mosaik_connection = None
+        self.debug = agent_ref.debug
+        self.aid = agent_ref.aid  # stores the agent's identity.
+        self.ams = agent_ref.ams  # stores the  ams agent's identity.
 
         self.messages = []  # stores the messages to be sent.
 
         # method that executes the agent's behaviour defined 
         # both by the user and by the System-PADE.
-        self.react = react
+        self.react = agent_ref.react
         # method that executes the agent's behaviour defined both
         # by the user and by the System-PADE when the agent is initialised
-        self.on_start = on_start
+        self.on_start = agent_ref.on_start
         # AID of AMS
-        self.ams_aid = AID('ams@' + ams['name'] + ':' + str(ams['port']))
+        self.ams_aid = AID('ams@' + self.ams['name'] + ':' + str(self.ams['port']))
         # table stores the active agents, a dictionary with keys: name and
         # values: AID
         self.table = dict([('ams', self.ams_aid)])
-        
-        self.debug = debug
 
     def buildProtocol(self, addr):
         """This method initializes the Agent protocol
         """
-        return AgentProtocol(self)
+        protocol = AgentProtocol(self)
+        return protocol
 
     def clientConnectionFailed(self, connector, reason):
         """This method is clled upon a failure 
@@ -166,6 +170,7 @@ class Agent_(object):
     """
 
     def __init__(self, aid, debug=False):
+        self.mosaik_connection = None
         self.aid = aid
         self.debug = debug
         # ALL: create a aid object with the aid of ams
@@ -364,8 +369,7 @@ class Agent_(object):
         """This method instantiates the ams agent
         """
         self.ams = ams
-        self.agentInstance = AgentFactory(aid=self.aid, ams=self.__ams, debug=self.__debug,
-                                          react=self.react, on_start=self.on_start)
+        self.agentInstance = AgentFactory(agent_ref=self)
         
 
 

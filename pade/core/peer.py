@@ -41,7 +41,6 @@ class PeerProtocol(Protocol):
 
     def connectionMade(self):
         peer = self.transport.getPeer()
-
         sended_message = None
 
         for message in self.fact.messages:
@@ -66,12 +65,27 @@ class PeerProtocol(Protocol):
         else:
             self.message = data
 
+        # ------------------------------------
+        # make a verification if the message
+        # is a MOSAIK message
+        # ------------------------------------
+        header = int.from_bytes(self.message[:4], byteorder='big')
+        if header == len(self.message[4:]):
+            # get mosaik connection for assync
+            if self.fact.agent_ref.mosaik_connection is None:
+                self.fact.agent_ref.mosaik_connection = self
+            # print(self.message)
+            message = self.fact.agent_ref.mosaik_sim._process_message(self.message)
+            if message is not None:
+                self.transport.write(message)
+            self.message = None
+
     def send_message(self, message):
         l = len(message)
-        if l > 14384:
+        if l > 1024:
 
             while len(message) > 0:
-                message, m = message[14384:], message[:14384]
+                message, m = message[1024:], message[:1024]
                 self.transport.write(m)
         else:
             self.transport.write(message)
