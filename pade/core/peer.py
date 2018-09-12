@@ -26,11 +26,12 @@
 # THE SOFTWARE.
 
 
-from twisted.protocols.basic import LineReceiver
+#from twisted.protocols.basic import LineReceiver
+from twisted.internet.protocol import Protocol
 from pade.acl.messages import ACLMessage
 import pickle
 
-class PeerProtocol(LineReceiver):
+class PeerProtocol(Protocol):
     """docstring for PeerProtocol"""
 
     message = None
@@ -40,7 +41,6 @@ class PeerProtocol(LineReceiver):
 
     def connectionMade(self):
         peer = self.transport.getPeer()
-
         sended_message = None
 
         for message in self.fact.messages:
@@ -58,22 +58,37 @@ class PeerProtocol(LineReceiver):
             message = pickle.loads(self.message)
             return message
 
-    def lineReceived(self, line):
+    def dataReceived(self, data):
         # receives part of the sent message.
         if self.message is not None:
-            self.message += line
+            self.message += data
         else:
-            self.message = line
+            self.message = data
+
+        # ------------------------------------
+        # make a verification if the message
+        # is a MOSAIK message
+        # ------------------------------------
+        header = int.from_bytes(self.message[:4], byteorder='big')
+        if header == len(self.message[4:]):
+            # get mosaik connection for assync
+            if self.fact.agent_ref.mosaik_connection is None:
+                self.fact.agent_ref.mosaik_connection = self
+            # print(self.message)
+            message = self.fact.agent_ref.mosaik_sim._process_message(self.message)
+            if message is not None:
+                self.transport.write(message)
+            self.message = None
 
     def send_message(self, message):
         l = len(message)
-        if l > 14384:
+        if l > 1024:
 
             while len(message) > 0:
-                message, m = message[14384:], message[:14384]
-                self.sendLine(m)
+                message, m = message[1024:], message[:1024]
+                self.transport.write(m)
         else:
-            self.sendLine(message)
+            self.transport.write(message)
 
         try:
             self.transport.loseConnection()
