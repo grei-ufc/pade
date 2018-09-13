@@ -250,6 +250,9 @@ class AID(object):
 
         return sb
 
+    def __repr__(self):
+        return self.name
+
     def as_xml(self):
         """
         returns a printable version of an AID in XML
@@ -282,8 +285,8 @@ class AID(object):
 if __name__ == '__main__':
     
     agentname = AID('lucas')
-    print agentname.getName()
-    print agentname.getHost()
-    print agentname.getPort()
-    print agentname.as_xml()
-    print agentname.__str__()
+    print(agentname.getName())
+    print(agentname.getHost())
+    print(agentname.getPort())
+    print(agentname.as_xml())
+    print(agentname.__str__())

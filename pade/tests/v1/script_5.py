@@ -24,7 +24,7 @@ on_start(self)
 		if 'Bob' in self.aid.name:
 			message = ACLMessage(ACLMessage.INFORM)
 			message.add_receiver(AID('Alice'))
-			message.set_content('Ola Alice!')
+			message.set_content('Hello Alice!')
 			self.send(message)
 	
 	def react(self, message):

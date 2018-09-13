@@ -18,36 +18,36 @@ class Teste(Agent):
         Agent.on_start(self)
         display_message(self.aid.name, "Hello World")
 
-        if 'agente_teste_iniciante' in self.aid.name:
+        if 'test_agent_initiator' in self.aid.name:
             message = ACLMessage(ACLMessage.INFORM)
-            message.add_receiver('agente_teste_participante')
-            message.set_content('Ola Agente!')
+            message.add_receiver('test_agent_participant')
+            message.set_content('Hello Agent!')
             self.send(message)
-            display_message(self.aid.name, 'Enviando mensagem...')
+            display_message(self.aid.name, 'Sending Message...')
     
     def react(self, message):
         Agent.react(self, message)
-        display_message(self.aid.name, 'Uma mensagem recebida')
+        display_message(self.aid.name, 'One message received')
 
-        if 'agente_teste_participante' in self.aid.name:
+        if 'test_agent_participant' in self.aid.name:
             resposta = message.create_reply()
-            resposta.set_content('Ola tambem agente!')
+            resposta.set_content('Hello to you too, Agent!')
             self.send(resposta)
 
 if __name__ == '__main__':
     
     set_ams('localhost', 8000)
 
-    agente_teste_iniciante = Teste(AID('agente_teste_iniciante'))
+    test_agent_initiator = Teste(AID('test_agent_initiator'))
 
-    agente_teste_participante = Teste(AID('agente_teste_participante'))
+    test_agent_participant = Teste(AID('test_agent_participant'))
 
-    agentes = list()
+    agents = list()
 
-    print id(agente_teste_iniciante)
-    print id(agente_teste_participante)
+    print id(test_agent_initiator)
+    print id(test_agent_participant)
 
-    agentes.append(agente_teste_participante)
-    agentes.append(agente_teste_iniciante)
+    agents.append(test_agent_participant)
+    agents.append(test_agent_initiator)
     
-    start_loop(agentes)
+    start_loop(agents)

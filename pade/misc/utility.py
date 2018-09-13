@@ -25,12 +25,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from twisted.internet import reactor
+
 from datetime import datetime
 
 def display_message(name, data):
     """
-        Metodo utilizado para exibicao de mensagens no console de comandos
+        Method do displsy message in the console.
     """
     date = datetime.now()
     date = date.strftime('%d/%m/%Y %H:%M:%S --> ')
-    print '[' + name + '] ' + date + str(data)
+    print('[' + name + '] ' + date + str(data))
+
+
+def call_in_thread(method, *args):
+    reactor.callInThread(method, *args)
+
+
+def call_later(self, time, method, *args):
+        return reactor.callLater(time, method, *args)

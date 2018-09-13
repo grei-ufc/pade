@@ -1,14 +1,14 @@
 import os
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for
-from flask.ext.bootstrap import Bootstrap
-from flask.ext.login import LoginManager, login_required, login_user, logout_user
-from flask.ext.wtf import Form
+from flask_bootstrap import Bootstrap
+from flask_login import LoginManager, login_required, login_user, logout_user
+from flask_wtf import Form
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import Required, Email, Length
 
-from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
 from werkzeug import generate_password_hash, check_password_hash
 
 
@@ -45,7 +45,7 @@ class Session(db.Model):
     name = db.Column(db.String(64), unique=True)
     date = db.Column(db.DateTime)
     state = db.Column(db.String(64))
-    agents = db.relationship('Agent', backref='session')
+    agents = db.relationship('AgentModel', backref='session')
     users = db.relationship('User', backref='session')
 
     def __repr__(self):
@@ -75,7 +75,7 @@ class User(UserMixin, db.Model):
         return 'Username: %s' % self.username
 
 
-class Agent(db.Model):
+class AgentModel(db.Model):
 
     __tablename__ = 'agents'
     id = db.Column(db.Integer, primary_key=True)
@@ -117,7 +117,7 @@ class LoginForm(Form):
 @app.before_first_request
 def create_database():
     db.create_all()
-    print '[flask-server] >>> Database created.'
+    print('[flask-server] >>> Database created.')
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -158,21 +158,21 @@ def index():
 @app.route('/session/<session_id>')
 @login_required
 def session_page(session_id):
-    session = Session.query.filter_by(id=session_id).all()[0]
+    session = Session.query.filter_by(id=session_id).first()
     agents = session.agents
-    return render_template('agentes.html', session=session.name, agents=agents)
+    return render_template('agentes.html', session=session, agents=agents)
 
 @app.route('/session/agent/<agent_id>')
 @login_required
 def agent_page(agent_id):
-    agent = Agent.query.filter_by(id=agent_id).all()[0]
+    agent = AgentModel.query.filter_by(id=agent_id).first()
     messages = agent.messages
-    return render_template('messages.html', messages=messages)
+    return render_template('messages.html', messages=messages, agent=agent)
 
 @app.route('/session/agent/message/<message_id>')
 @login_required
 def message_page(message_id):
-    message = Message.query.filter_by(id=message_id).all()[0]
+    message = Message.query.filter_by(id=message_id).first()
     return render_template('message.html', message=message)
 
 @app.route('/diagrams')
@@ -188,7 +188,11 @@ def diagrams():
             continue
         msgs_id.append(msg.message_id)
 
-    return render_template('diagrams.html', messages=messages)
+    messages_diagram = ''
+    for msg in messages:
+        for receiver in msg.receivers:
+            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(msg.performative) + '\n'
+    return render_template('diagrams.html', messages=messages_diagram)
 
 @app.route('/post',  methods=['POST', 'GET'])
 def my_post():

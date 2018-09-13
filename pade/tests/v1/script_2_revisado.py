@@ -11,23 +11,22 @@ from pickle import loads, dumps
 from time import sleep
 
 #===============================================================================
-# Note, o que é necessário para criar um agente com comportamentos padronizados
-# em protocolos?
-# Primeiro, é preciso definir a classe protocolo
-# Segundo é preciso associar esta classe protocolo como um comportamento do 
-# agente
+# What is needed to create an agent with standardized protocols behaviours?
+# First, the protocol class needs to be defined
+# Second, this protocol class needs to be associated with the agent's 
+# behaviour
 #===============================================================================
 
 
-class ComportamentoAgenteConsumidor(FipaContractNetProtocol):
+class ConsumerAgentBehaviour(FipaContractNetProtocol):
     def __init__(self, agent, message):
-        super(ComportamentoAgenteConsumidor, self).__init__(agent, message, is_initiator=True)
+        super(ConsumerAgentBehaviour, self).__init__(agent, message, is_initiator=True)
         self.bestPropose = None
         self.bestBookStore = None
         
     def handle_propose(self, message):
         FipaContractNetProtocol.handle_propose(self, message)
-        display_message(self.agent.aid.name, 'Proposta Recebida')
+        display_message(self.agent.aid.name, 'Proposal Received')
     
     def handle_all_proposes(self, proposes):
         FipaContractNetProtocol.handle_all_proposes(self, proposes)
@@ -43,35 +42,35 @@ class ComportamentoAgenteConsumidor(FipaContractNetProtocol):
                     
             response = self.bestPropose.create_reply()
             response.set_performative(ACLMessage.ACCEPT_PROPOSAL)
-            response.set_content('Proposta Aceita')
+            response.set_content('Propostal Accepted')
             self.agent.send(response)
             
             for propose in proposes:
                 if propose != self.bestPropose:
                     response = propose.create_reply()
                     response.set_performative(ACLMessage.REJECT_PROPOSAL)
-                    response.set_content('Proposta Recusada')
+                    response.set_content('Proposal Rejected')
                     self.agent.send(response)
         except:
-            display_message(self.agent.aid.name, 'O Processamento não foi possivel porque nenhuma mensagem foi retornada.')
+            display_message(self.agent.aid.name, 'Unable to process because no message has returned.')
         
     def handle_inform(self, message):
         FipaContractNetProtocol.handle_inform(self, message)
-        display_message(self.agent.aid.name, 'Compra Autorizada')
+        display_message(self.agent.aid.name, 'Purchase Approved')
 
-class ComportamentoAgenteLivraria(FipaContractNetProtocol):
+class BookstoreAgentBehaviour(FipaContractNetProtocol):
     def __init__(self, agent):
-        super(ComportamentoAgenteLivraria, self).__init__(agent, is_initiator=False)
+        super(BookstoreAgentBehaviour, self).__init__(agent, is_initiator=False)
     
     def handle_cfp(self, message):
         FipaContractNetProtocol.handle_cfp(self, message)
-        display_message(self.agent.aid.name, 'Solicitação Recebida')
+        display_message(self.agent.aid.name, 'Request Received.')
         
-        pedido = loads(message.content)
+        order = loads(message.content)
         
         for book in self.agent.booksList:
-            if book['title'] == pedido['title'] and book['author'] == pedido['author']:
-                if book['qtd'] >= pedido['qtd']:
+            if book['title'] == order['title'] and book['author'] == order['author']:
+                if book['qty'] >= order['qty']:
                     response = message.create_reply()
                     response.set_performative(ACLMessage.PROPOSE)
                     book['book store'] = self.agent.aid.name
@@ -80,87 +79,87 @@ class ComportamentoAgenteLivraria(FipaContractNetProtocol):
                 else:
                     response = message.create_reply()
                     response.set_performative(ACLMessage.REJECT_PROPOSAL)
-                    response.set_content('Requisição Recusada')
+                    response.set_content('Request Rejected')
                     self.agent.send(response)
     
     def handle_accept_propose(self, message):
         FipaContractNetProtocol.handle_accept_propose(self, message)
         
-        display_message(self.agent.aid.name, 'Proposta Aceita')
+        display_message(self.agent.aid.name, 'Proposal Accepted')
         
         response = message.create_reply()
         response.set_performative(ACLMessage.INFORM)
-        response.set_content('Compra Autorizada')
+        response.set_content('Purchase Approved')
         self.agent.send(response)
         
         
     def handle_reject_proposes(self, message):
         FipaContractNetProtocol.handle_reject_proposes(self, message)
         
-        display_message(self.agent.aid.name, 'Proposta Recusada')
+        display_message(self.agent.aid.name, 'Proposal Rejected')
 
-class AgenteConsumidor(Agent):
+class ConsumerAgent(Agent):
     
-    def __init__(self, aid, bookStores, pedido):
+    def __init__(self, aid, bookStores, order):
         Agent.__init__(self, aid)
     
         self.bookStores = bookStores
-        self.pedido = pedido
+        self.order = order
         
         cfp_message = ACLMessage(ACLMessage.CFP)
         cfp_message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
         for i in self.bookStores:
             cfp_message.add_receiver(i)
-        cfp_message.set_content(dumps(self.pedido))
+        cfp_message.set_content(dumps(self.order))
         
-        comportamento = ComportamentoAgenteConsumidor(self, cfp_message)
-        self.behaviours.append(comportamento)
+        behav_ = ConsumerAgentBehaviour(self, cfp_message)
+        self.behaviours.append(behav_)
 
-class AgenteLivraria(Agent):
+class BookstoreAgent(Agent):
     
     def __init__(self, aid, booksList):
         Agent.__init__(self, aid)
         
         self.booksList = booksList
         
-        comportamento = ComportamentoAgenteLivraria(self)
-        self.behaviours.append(comportamento)
+        behav_= BookstoreAgentBehaviour(self)
+        self.behaviours.append(behav_)
 
 if __name__ == '__main__':
-    booksList_Saraiva = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 10, 'how much is' : 53.50},
-                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qtd' : 10, 'how much is' : 33.70},
-                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qtd' : 10,'how much is' : 23.80}
+    booksList_Saraiva = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 10, 'how much is' : 53.50},
+                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qty' : 10, 'how much is' : 33.70},
+                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qty' : 10,'how much is' : 23.80}
                          ]
     
-    bookslist_Cultura = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 10, 'how much is' : 43.50},
-                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qtd' : 10, 'how much is' : 31.70},
-                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qtd' : 10, 'how much is' : 53.80}
+    bookslist_Cultura = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 10, 'how much is' : 43.50},
+                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qty' : 10, 'how much is' : 31.70},
+                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qty' : 10, 'how much is' : 53.80}
                          ]
     
-    bookslist_Nobel = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 10, 'how much is' : 63.50},
-                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qtd' : 10, 'how much is' : 35.70},
-                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qtd' : 10, 'how much is' : 33.80}
+    bookslist_Nobel = [{'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 10, 'how much is' : 63.50},
+                         {'title' : 'Harry Potter', 'author' : 'J. K. Roling', 'qty' : 10, 'how much is' : 35.70},
+                         {'title' : 'Game of Thrones', 'author' : 'A. M. M. Martin', 'qty' : 10, 'how much is' : 33.80}
                          ]
     
     bookStoresInfo = [(AID(name='Cultura'), bookslist_Cultura),
                       (AID(name='Saraiva'), booksList_Saraiva),
                       (AID(name='Nobel'), bookslist_Nobel)]
     
-    pedido = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qtd' : 5}
+    order = {'title' : 'The Lord of the Rings', 'author' : 'J. R. R. Tolkien', 'qty' : 5}
     
     set_ams('localhost', 8000)
     
     agents = []
-    saraiva = AgenteLivraria(AID(name='Saraiva'), booksList_Saraiva)
+    saraiva = BookstoreAgent(AID(name='Saraiva'), booksList_Saraiva)
     agents.append(saraiva)
     
-    cultura = AgenteLivraria(AID(name='Cultura'), bookslist_Cultura)
+    cultura = BookstoreAgent(AID(name='Cultura'), bookslist_Cultura)
     agents.append(cultura)
     
-    nobel = AgenteLivraria(AID(name='Nobel'), bookslist_Nobel)
+    nobel = BookstoreAgent(AID(name='Nobel'), bookslist_Nobel)
     #   agents.append(nobel)
        
-    consumidor = AgenteConsumidor(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'], pedido)
+    consumidor = ConsumerAgent(AID('Lucas'), ['Saraiva', 'Cultura', 'Nobel'], order)
     agents.append(consumidor)
     
     start_loop(agents)

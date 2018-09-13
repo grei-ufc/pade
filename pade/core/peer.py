@@ -26,11 +26,12 @@
 # THE SOFTWARE.
 
 
-from twisted.protocols.basic import LineReceiver
+#from twisted.protocols.basic import LineReceiver
+from twisted.internet.protocol import Protocol
 from pade.acl.messages import ACLMessage
+import pickle
 
-
-class PeerProtocol(LineReceiver):
+class PeerProtocol(Protocol):
     """docstring for PeerProtocol"""
 
     message = None
@@ -40,14 +41,13 @@ class PeerProtocol(LineReceiver):
 
     def connectionMade(self):
         peer = self.transport.getPeer()
-
         sended_message = None
 
         for message in self.fact.messages:
             if int(message[0].port) == int(peer.port):
                 if str(message[0].host) == 'localhost' and str(peer.host) == '127.0.0.1' or \
                    str(message[0].host) == str(peer.host):
-                    self.send_message(message[1].get_message())
+                    self.send_message(pickle.dumps(message[1]))
                     sended_message = message
                     break
         if sended_message is not None:
@@ -55,25 +55,42 @@ class PeerProtocol(LineReceiver):
 
     def connectionLost(self, reason):
         if self.message is not None:
-            message = ACLMessage()
-            message.set_message(self.message)
+            message = pickle.loads(self.message)
             return message
 
-    def lineReceived(self, line):
-        # recebe uma parte da mensagem enviada
+    def dataReceived(self, data):
+        # receives part of the sent message.
         if self.message is not None:
-            self.message += line
+            self.message += data
         else:
-            self.message = line
+            self.message = data
+
+        # ------------------------------------
+        # make a verification if the message
+        # is a MOSAIK message
+        # ------------------------------------
+        header = int.from_bytes(self.message[:4], byteorder='big')
+        if header == len(self.message[4:]):
+            # get mosaik connection for assync
+            if self.fact.agent_ref.mosaik_connection is None:
+                self.fact.agent_ref.mosaik_connection = self
+            # print(self.message)
+            message = self.fact.agent_ref.mosaik_sim._process_message(self.message)
+            if message is not None:
+                self.transport.write(message)
+            self.message = None
 
     def send_message(self, message):
         l = len(message)
-        if l > 14384:
+        if l > 1024:
 
             while len(message) > 0:
-                message, m = message[14384:], message[:14384]
-                self.sendLine(m)
+                message, m = message[1024:], message[:1024]
+                self.transport.write(m)
         else:
-            self.sendLine(message)
+            self.transport.write(message)
 
-        self.transport.loseConnection()
+        try:
+            self.transport.loseConnection()
+        except:
+            pass

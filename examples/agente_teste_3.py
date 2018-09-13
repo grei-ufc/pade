@@ -1,4 +1,4 @@
-from pade.misc.common import start_loop, set_ams
+from pade.misc.common import PadeSession
 from pade.misc.utility import display_message
 from pade.core.agent import Agent
 from pade.acl.messages import ACLMessage
@@ -10,8 +10,8 @@ from datetime import datetime
 
 
 class CompRequest(FipaRequestProtocol):
-    """Comportamento FIPA Request
-    do agente Horario"""
+    """FIPA Request Behaviour of the Time agent.
+    """
     def __init__(self, agent):
         super(CompRequest, self).__init__(agent=agent,
                                           message=None,
@@ -19,7 +19,7 @@ class CompRequest(FipaRequestProtocol):
 
     def handle_request(self, message):
         super(CompRequest, self).handle_request(message)
-        display_message(self.agent.aid.localname, 'mensagem request recebida')
+        display_message(self.agent.aid.localname, 'request message received')
         now = datetime.now()
         reply = message.create_reply()
         reply.set_performative(ACLMessage.INFORM)
@@ -28,8 +28,8 @@ class CompRequest(FipaRequestProtocol):
 
 
 class CompRequest2(FipaRequestProtocol):
-    """Comportamento FIPA Request
-    do agente Relogio"""
+    """FIPA Request Behaviour of the Clock agent.
+    """
     def __init__(self, agent, message):
         super(CompRequest2, self).__init__(agent=agent,
                                            message=message,
@@ -40,8 +40,7 @@ class CompRequest2(FipaRequestProtocol):
 
 
 class ComportTemporal(TimedBehaviour):
-    """Comportamento FIPA Request
-    do agente Relogio"""
+    """Timed Behaviour of the Clock agent"""
     def __init__(self, agent, time, message):
         super(ComportTemporal, self).__init__(agent, time)
         self.message = message
@@ -51,50 +50,52 @@ class ComportTemporal(TimedBehaviour):
         self.agent.send(self.message)
 
 
-class AgenteHorario(Agent):
-    """Classe que define o agente Horario"""
+class TimeAgent(Agent):
+    """Class that defines the Time agent."""
     def __init__(self, aid):
-        super(AgenteHorario, self).__init__(aid=aid, debug=False)
+        super(TimeAgent, self).__init__(aid=aid, debug=False)
 
         self.comport_request = CompRequest(self)
 
         self.behaviours.append(self.comport_request)
 
 
-class AgenteRelogio(Agent):
-    """Classe que define o agente Relogio"""
+class ClockAgent(Agent):
+    """Class thet defines the Clock agent."""
     def __init__(self, aid):
-        super(AgenteRelogio, self).__init__(aid=aid)
+        super(ClockAgent, self).__init__(aid=aid)
 
-        # mensagem que requisita horario do horario
+        # message that requests time of Time agent.
         message = ACLMessage(ACLMessage.REQUEST)
         message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
-        message.add_receiver(AID(name='horario'))
+        message.add_receiver(AID(name='time'))
         message.set_content('time')
 
         self.comport_request = CompRequest2(self, message)
-        self.comport_temp = ComportTemporal(self, 1.0, message)
+        self.comport_temp = ComportTemporal(self, 5.0, message)
 
         self.behaviours.append(self.comport_request)
         self.behaviours.append(self.comport_temp)
 
 
-def main():
+def config_agents():
 
-    AMS = {'name' : 'localhost', 'port' : 8000}
-    set_ams(AMS['name'], AMS['port'])
+    agents = list()
 
-    agentes = list()
+    a = TimeAgent(AID(name='time'))
+    agents.append(a)
 
-    a = AgenteHorario(AID(name='horario'))
-    a.ams = AMS
-    agentes.append(a)
+    a = ClockAgent(AID(name='clock'))
+    agents.append(a)
 
-    a = AgenteRelogio(AID(name='relogio'))
-    a.ams = AMS
-    agentes.append(a)
+    s = PadeSession()
+    s.add_all_agents(agents)
+    s.register_user(username='lucassm',
+                    email='lucas@gmail.com',
+                    password='12345')
 
-    start_loop(agentes)
+    return s
 
 if __name__ == '__main__':
-    main()
+    s = config_agents()
+    s.start_loop()

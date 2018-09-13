@@ -30,8 +30,8 @@ from pade.acl.messages import ACLMessage
 
 class Filter():
     '''
-        Esta classe instacia um objeto filtro que tem como proposito
-        selecionar mensagens com atributos pré-estabelecidos neste objeto
+        This class instantiates a filter object. The filter has the purpose of 
+        selecting messages with pre established attributes in the filter object
     '''
     def __init__(self):
         self.conversationID = None
@@ -78,6 +78,6 @@ if __name__ == '__main__':
     filtro.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
     
     if filtro.filter(message):
-        print message.as_xml()
+        print(message.as_xml())
     else:
-        print 'A mensagem foi barrada pelo protocolo'
+        print('The message was blocked by the protocol.')
