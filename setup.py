@@ -31,7 +31,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='pade',
-      version='2.0',
+      version='2.0.0',
       description='Framework para desenvolvimento de \
       sistemas multiagentes em Python',
       long_description=long_description,
@@ -55,7 +55,8 @@ setup(name='pade',
               'Development Status :: 4 - Beta',
               'Intended Audience :: Developers',
               'Topic :: Software Development :: Build Tools',
-              'License :: MIT License',
+              'License :: OSI Approved :: MIT License',
+              'Operating System :: OS Independent',
               'Programming Language :: Python :: 3',
               'Programming Language :: Python :: 3.4',
               'Programming Language :: Python :: 3.5',
