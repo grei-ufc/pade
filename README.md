@@ -5,7 +5,9 @@
 
 <br>
 
-<img src="https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/pade_logo.png" alt="PADE" width="200" style="display:block; margin-left:auto; margin-right: auto;">
+<p align="center">
+    <img src="https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/pade_logo.png" alt="PADE" width="200">
+</p>
 
 PADE its a framework for developing, executing and mannaging multi-agent systems in distributed computing enviroments. PADE code is 100% Python and has its core in Twisted, a python package for implementing distributed applications.
 
