@@ -1,76 +1,74 @@
-Python Agent DEvelopment framework (PADE)
-==============
+# Python Agent DEvelopment framework (PADE)
+
 
 [![Join the chat at https://gitter.im/lucassm/Pade](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lucassm/Pade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-![Logo padrão do projeto PADE] (https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/pade_logo.png)
+<br>
 
-PADE é um framework para desenvolvimento, execução e gerenciamento de sistemas multiagentes em ambientes de computação distribuída. PADE é escrito 100% em Python e utiliza as bibliotecas do projeto Twisted para implementar a comunicação entre os nós da rede.
-PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido no ambito da Universidade Federal do Ceará pelo Grupo de Redes Elétricas Inteligentes (GREI) que pertence ao departamento de Engenharia Elétrica.
-Qualquer um que queira contribuir com o projeto é convidado a baixar, executar, testar e enviar feedback a respeito das impressões tiradas da plataforma.
+<p align="center">
+    <img src="https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/pade_logo.png" alt="PADE" width="200">
+</p>
 
-Dependências
------
+PADE its a framework for developing, executing and mannaging multi-agent systems in distributed computing enviroments. PADE code is 100% Python and has its core in Twisted, a python package for implementing distributed applications.
 
-PADE é desenvolvido com [Python 2.7](https://www.python.org/) no topo do framework [Twisted](https://twistedmatrix.com/trac/) que é sua principal dependência.
+PADE is also free software and licenced in terms of MIT licence. First it was developed in Federal University of Ceará (Brazil) by Electric Smart Grids Group (GREI) in Electric Engineering Department (DEE). Now everyone that has interest in developing PADE is welcome to dowload, install, test, use and send us feedback.
 
-Instalação
-------
+## Documentation
 
-Para baixar e instalar o PADE, basta abrir uma seção do terminal de comandos Linux e digitar os seguintes comandos:
+PADE is well documented. You can access the documentation hear: [PADE documentation](https://pade-docs-en.readthedocs.io/en/latest/) 
 
-	$ git clone https://github.com/lucassm/PADE
-	$ cd PADE
-	$ sudo python setup.py install
+## Dependencies
 
-Pronto! Você já está pronto para utilizar o PADE!
+PADE is developed in [Python 3.7](https://www.python.org/) and has a [Twisted](https://twistedmatrix.com/trac/) core.
 
-Exemplo
-------
+## Install
 
-Um simples agente desenvolvido com as bibliotecas do PADE:
+Via Python Package Index (PyPI):
+
+    $ pip install pade
+
+Via Github:
+
+	$ git clone https://github.com/greiufc/pade
+	$ cd pade
+	$ python setup.py install
+
+That's all!
+
+## Example
+
+Hello world in PADE:
 
 ```python
 from pade.misc.utility import display_message
-from pade.misc.common import set_ams, start_loop
+from pade.misc.common import PadeSession
 from pade.core.agent import Agent
 from pade.acl.aid import AID
 
 
 class AgenteHelloWorld(Agent):
     def __init__(self, aid):
-        super(AgenteHelloWorld, self).__init__(aid=aid, debug=False)
+        super(AgenteHelloWorld, self).__init__(aid=aid, debug=True)
         display_message(self.aid.localname, 'Hello World!')
 
-if __name__ == '__main__':
 
-    set_ams('localhost', 8000, debug=False)
+def config_agents():
 
     agents = list()
 
     agente_hello = AgenteHelloWorld(AID(name='agente_hello'))
-    agente_hello.ams = {'name': 'localhost', 'port': 8000}
     agents.append(agente_hello)
 
-    start_loop(agents, gui=True)
+    s = PadeSession()
+    s.add_all_agents(agents)
+    s.register_user(username='pade_user', email='user@pademail.com', password='12345')
+
+    return s
+
+if __name__ == '__main__':
+
+    s = config_agents()
+    s.start_loop()
+
 ```
-
-Funcionalidades
-------
-
-Pade possui as seguintes funcionalidades:
-
-* Bibliotecas para desenvolver agentes que se comunicam no Padrão FIPA-ACL;
-* Fácil de utilizar e com versatilizade do Python;
-* Ambiente de execução distribuído testado em hardware embarcados como Raspberry Pi e BeagleBone Black;
-* Desenvolvido inteiramente em Python! isso mesmo feito por quem ama Python para quem ama programar em Python;
-* Interface gráfica para monitoramento de agentes;
-* Projeto em pleno desenvolvimento;
-* É software livre.
-
-
-Interface de Desenvolvimento
--------
-
-![Interface do Python](https://raw.githubusercontent.com/lucassm/Pade/master/pade/images/interface.png)
 
