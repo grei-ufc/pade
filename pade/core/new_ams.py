@@ -22,7 +22,8 @@ class ComportSendConnMessages(TimedBehaviour):
         super(ComportSendConnMessages, self).on_time()
         self.agent.add_all(self.message)
         self.agent.send(self.message)
-        display_message(self.agent.aid.name, 'Connection...')
+        if self.agent.debug:
+            display_message(self.agent.aid.name, 'Checking connection...')
 
 # Behaviour that verifies the answer time of the agents
 # and decides whether to disconnect them or not.
@@ -46,9 +47,10 @@ class ComportVerifyConnTimed(TimedBehaviour):
         for agent_name in desconnect_agents:
             self.agent.agents_conn_time.pop(agent_name)
 
-        display_message(self.agent.aid.name, 'verifing connections...')
-        table = AsciiTable(table)
-        print(table.table)
+        if self.agent.debug:
+            display_message(self.agent.aid.name, 'Calculating response time of the agents...')
+            table = AsciiTable(table)
+            print(table.table)
 
 
 class CompConnectionVerify(FipaRequestProtocol):
@@ -61,7 +63,8 @@ class CompConnectionVerify(FipaRequestProtocol):
         
 
     def handle_inform(self, message):
-        display_message(self.agent.aid.localname, message.content)
+        # if self.agent.debug:
+        #     display_message(self.agent.aid.localname, message.content)
         date = datetime.now()
         self.agent.agents_conn_time[message.sender.name] = date
 
@@ -202,9 +205,9 @@ class AMS(Agent_):
 
     def __init__(self, host, port, session, main_ams=True, debug=False):
         self.ams_aid = AID('ams@' + str(host) + ':' + str(port))
-        super(AMS, self).__init__(self.ams_aid)
+        super(AMS, self).__init__(self.ams_aid, debug=debug)
         self.ams = {'name':str(host),'port':str(port)}
-        super(AMS,self).update_ams(self.ams)      
+        super(AMS, self).update_ams(self.ams)      
         self.host = host
         self.port = port
         self.session = session
