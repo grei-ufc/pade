@@ -388,11 +388,13 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
         display_message(self.agent.aid.name, 'Identification process done.')
 
     def handle_refuse(self, message):
-        display_message(self.agent.aid.name, message.content)
+        if self.agent.debug:
+            display_message(self.agent.aid.name, message.content)
 
     def handle_inform(self, message):
-        display_message(self.agent.aid.name, 'Table update')
-        self.agent.agentInstance.table = loads(message.content)
+        if self.agent.debug:
+            display_message(self.agent.aid.name, 'Table update')
+            self.agent.agentInstance.table = loads(message.content)
 
 
 class CompConnection(FipaRequestProtocol):
@@ -408,7 +410,8 @@ class CompConnection(FipaRequestProtocol):
 
     def handle_request(self, message):
         super(CompConnection, self).handle_request(message)
-        display_message(self.agent.aid.localname, 'request message received')
+        if self.agent.debug:
+            display_message(self.agent.aid.localname, 'request message received')
         reply = message.create_reply()
         reply.set_performative(ACLMessage.INFORM)
         reply.set_content('Im Live')

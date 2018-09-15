@@ -11,7 +11,7 @@ from pade.acl.aid import AID
 
 class AgenteHelloWorld(Agent):
     def __init__(self, aid):
-        super(AgenteHelloWorld, self).__init__(aid=aid, debug=True)
+        super(AgenteHelloWorld, self).__init__(aid=aid)
         display_message(self.aid.localname, 'Hello World!')
 
 
