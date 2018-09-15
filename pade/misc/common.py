@@ -158,7 +158,8 @@ class PadeSession(object):
             # from Twisted to launch the agent
             ams_agent = AMS(host=self.ams['name'],
                             port=self.ams['port'],
-                            session=db_session)
+                            session=db_session,
+                            debug=self.ams_debug)
             reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
             # registers the users, in case they exist, in the database
@@ -180,10 +181,12 @@ class PadeSession(object):
 
             self._verify_user_in_session(db_session)
 
-    def start_loop(self, debug=False, multithreading=False):
+    def start_loop(self, ams_debug=False, multithreading=False):
         """
             Runs twisted loop
         """
+        self.ams_debug = ams_debug
+
         if self.remote_ams:
             self._verify_remote_session()
             
