@@ -394,7 +394,7 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
     def handle_inform(self, message):
         if self.agent.debug:
             display_message(self.agent.aid.name, 'Table update')
-            self.agent.agentInstance.table = loads(message.content)
+        self.agent.agentInstance.table = loads(message.content)
 
 
 class CompConnection(FipaRequestProtocol):
