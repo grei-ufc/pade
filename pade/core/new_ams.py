@@ -258,7 +258,8 @@ class AMS(Agent_):
         db.session.add(m)
         db.session.commit()
 
-        display_message(self.aid.name, 'Message stored')
+        if self.debug:
+            display_message(self.aid.name, 'Message stored')
 
     def react(self, message):
         super(AMS, self).react(message)
