@@ -161,6 +161,7 @@ def login():
             login_user(user, form.remember_me.data)
             return redirect(url_for('index'))
         flash('Invalid username or password.')
+        return render_template('login.html', form=form)
     else:
         user = request.form.get('email', type=str)
         password = request.form.get('password', type=str)
