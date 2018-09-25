@@ -204,6 +204,36 @@ def agent_page(agent_id):
     return render_template('messages.html', messages=messages, agent=agent)
 
 
+@app.route('/session/agents', methods=['POST'])
+def manageAgent():
+    agent = request.form.get('stop')
+    if agent:
+        agent = AgentModel.query.filter_by(id=agent).first()
+        agent.state = 'Paused'
+        session = agent.session
+        agents = session.agents
+        return render_template('agentes.html', session=session, agents=agents)
+
+    agent = request.form.get('start')
+    if agent:
+        agent = AgentModel.query.filter_by(id=agent).first()
+        agent.state = 'Active'
+        session = agent.session
+        agents = session.agents
+        return render_template('agentes.html', session=session, agents=agents)
+
+    agent = request.form.get('kill')
+    if agent:
+        agent = AgentModel.query.filter_by(id=agent).first()
+        agent.state = 'Dead'
+        session = agent.session
+        agents = session.agents
+        return render_template('agentes.html', session=session, agents=agents)
+
+    sessions = Session.query.all()
+    return render_template('index.html', sessions=sessions)
+
+
 @app.route('/session/agent/message/<message_id>')
 @login_required
 def message_page(message_id):

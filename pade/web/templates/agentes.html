@@ -1,5 +1,15 @@
 {% include 'header.html' %}
 
+<head>
+<style>
+form {
+    float: left;
+    margin-top: 10px;
+    margin-left: 5px;
+}
+</style>
+</head>
+
 <body>
 
     {% block content %}
@@ -19,6 +29,29 @@
                             <p id="inicio" type="hidden" value="{{ agent.date.hour }}:{{ agent.date.minute }}:{{ agent.date.second }} - {{ agent.date.day }}/{{ agent.date.month }}/{{ agent.date.year }}"></p>
                             <p id="estado" type="hidden" value="{{ agent.state }}"></p>
                         </a>
+
+                        <div class="form-group">
+
+                            <form action="{{ url_for('manageAgent') }}" method="post">
+                                <input type="hidden" name="start" value="{{ agent.id }}">
+                                <input class="btn btn-success" type="submit" value="Start Agent">
+                            </form>
+
+                            <form action="{{ url_for('manageAgent') }}" method="post">
+                                <input type="hidden" name="stop" value="{{ agent.id }}">
+                                <input class="btn btn-warning" type="submit" value="Stop Agent">
+                            </form>
+
+                            <form action="{{ url_for('manageAgent') }}" method="post">
+                                <input type="hidden" name="kill" value="{{ agent.id }}">
+                                <input class="btn btn-danger" type="submit" value="Kill Agent">
+                            </form>
+
+                        </div>
+
+                    <br>
+                    <br>
+                    <br>
                     {% endfor %}
                 </div>
             </div>
