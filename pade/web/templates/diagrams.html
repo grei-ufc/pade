@@ -1,5 +1,11 @@
 {% include 'header.html' %}
 
+<head>
+    <script src="/static/underscore-min.js"></script>
+    <script src="/static/raphael-min.js"></script>
+    <script src="/static/sequence-diagram-min.js"></script>
+</head>
+
 <body>
 
     {% block content %}
@@ -10,13 +16,22 @@
         </div>
     </div>
 
-    <div class="container">
-        <div class="diagram">{{ messages }}</div>
+    <pre id="txt" class="hidden">
+        {{ messages }}
+    </pre>
+
+    <div class="container" id="diagram">
+
     </div>
 
     {% endblock %}
 
 </body>
+
+<script>
+    var diagram = Diagram.parse(document.getElementById('txt').innerText)
+    diagram.drawSVG('diagram', {theme:'simple'})
+</script>
 
 <script>
 
@@ -46,9 +61,5 @@
         setTimeout(loadData, 2000);
     });
 </script>
-
-<script src="/static/underscore-min.js"></script>
-<script src="/static/raphael-min.js"></script>
-<script src="/static/sequence-diagram-min.js"></script>
 
 {% include 'footer.html' %}

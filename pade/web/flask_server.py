@@ -257,7 +257,9 @@ def diagrams():
     messages_diagram = ''
     for msg in messages:
         for receiver in msg.receivers:
-            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(msg.performative) + '\n'
+            messages_diagram += str(msg.sender) + '-->' + str(receiver) + ': ' + str(msg.performative) + '\n'
+            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(msg.content) + '\n'
+
     return render_template('diagrams.html', messages=messages_diagram)
 
 
