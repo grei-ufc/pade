@@ -12,7 +12,6 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
@@ -23,7 +22,7 @@ os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
-# configiracao para utilizacao de chave de seguranca
+# configuracao para utilizacao de chave de seguranca
 # em formularios submetidos pelo metodo POST
 app.config['SECRET_KEY'] = 'h5xzTxz2ksytu8GJjei37KHI8t0unJKN7EQ8KOPU3Khkjhkjguv'
 
@@ -198,10 +197,10 @@ def session_page(session_id):
 
 @app.route('/session/agent/<agent_id>')
 @login_required
-def agent_page(agent_id):
+def agent_messages(agent_id):
     agent = AgentModel.query.filter_by(id=agent_id).first()
     messages = agent.messages
-    return render_template('messages.html', messages=messages, agent=agent)
+    return render_template('agent_messages.html', messages=messages, agent=agent)
 
 
 @app.route('/session/agents', methods=['POST'])
@@ -257,10 +256,44 @@ def diagrams():
     messages_diagram = ''
     for msg in messages:
         for receiver in msg.receivers:
+            message = str(msg.content)
+            # Limiting the size of the message to be displayed
+            if(len(message) > 50):
+                message = "Content is too big to be displayed :( \n\n Please adjust your message."
+
             messages_diagram += str(msg.sender) + '-->' + str(receiver) + ': ' + str(msg.performative) + '\n'
-            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(msg.content) + '\n'
+            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(message) + '\n'
 
     return render_template('diagrams.html', messages=messages_diagram)
+
+
+@app.route('/messages', methods=['GET', 'POST'])
+@login_required
+def messages():
+    messages = Message.query.all()
+    senders = []
+    performatives = []
+
+    if request.method == 'POST':
+        sender = request.form.get('sender')
+        performative = request.form.get('performative')
+
+        if sender:
+            messages = Message.query.filter_by(sender=sender)
+            return render_template('messages.html', messages=messages, sender=sender, performative=performative)
+
+        if performative:
+            messages = Message.query.filter_by(performative=performative)
+            return render_template('messages.html', messages=messages, sender=sender, performative=performative)
+
+    for message in messages:
+        if not message.sender in senders[:]:
+            senders.append(message.sender)
+
+        if not message.performative in performatives[:]:
+            performatives.append(message.performative)
+
+    return render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
 
 
 @app.route('/post',  methods=['POST', 'GET'])
