@@ -1,14 +1,18 @@
 import os
+
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for
 from flask_bootstrap import Bootstrap
-from flask_login import LoginManager, login_required, login_user, logout_user, UserMixin
+from flask_login import LoginManager, login_required, login_user, logout_user, UserMixin, current_user
 from flask_wtf import FlaskForm
+from flask_migrate import Migrate, MigrateCommand
+from flask_sqlalchemy import SQLAlchemy
+from flask_script import Manager
+from flask_login import UserMixin
+
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, validators
 from wtforms.validators import Required, Email, Length
 
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -36,6 +40,10 @@ login_manager.session_protection = 'strong'
 login_manager.login_view = 'login'
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 bootstrap = Bootstrap(app)
 
@@ -60,6 +68,7 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), unique=True)
     email = db.Column(db.String(64), unique=True)
     password_hash = db.Column(db.String(128))
+    role = db.Column(db.String(32))
 
     @property
     def password(self):
@@ -130,7 +139,7 @@ class RegistrationForm(FlaskForm):
 @app.before_first_request
 def create_database():
     db.create_all()
-    print('[flask-server] >>> Database created.')
+    print('[Flask-Server] >>> Database created.')
 
 
 @login_manager.user_loader
@@ -138,17 +147,37 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+# If there are already users, they all will have Admin roles
+@app.before_first_request
+def check_user_roles():
+    print("[Flask-Server] >>> Setting Admin roles to existing users")
+    users = User.query.all()
+    for u in users:
+        if u.role is None:
+            u.role = 'Admin'
+
+
 @app.route('/user/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm(request.form)
 
     if request.method == 'POST' and form.validate():
-        user = User(username=form.username.data,
-                    email=form.email.data, password=form.password.data)
+        # checking if there are users in the database
+        results = User.query.all()
+
+        # if any user was found the user being registered will receive 'Guest' role
+        if results is not None:
+            user = User(username=form.username.data,
+                        email=form.email.data, password=form.password.data, role='Guest')
+        # if no user was found, then the first one must be the Admin
+        else:
+            user = User(username=form.username.data,
+                        email=form.email.data, password=form.password.data, role='Admin')
+
         db.session.add(user)
-        flash('Thanks for registering')
+        flash('Thanks for registering', )
         return redirect(url_for('login'))
-    return render_template('user/register.html', form=form)
+    return render_template('register_users.html', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -185,6 +214,19 @@ def logout():
 def index():
     sessions = Session.query.all()
     return render_template('index.html', sessions=sessions)
+
+
+@app.route('/manage_users', methods=['GET', 'POST'])
+@login_required
+def manage_users():
+    user = current_user
+    if user.role == 'Guest':
+        flash(u'You dont have permission to see this page', 'danger')
+        sessions = Session.query.all()
+        return render_template('index.html', sessions=sessions)
+
+    users = User.query.all()
+    return render_template('manage_users.html', users=users)
 
 
 @app.route('/session/<session_id>')
@@ -309,4 +351,5 @@ def run_server():
 
 
 if __name__ == '__main__':
+    manager.run()
     run_server()
