@@ -110,7 +110,7 @@ class MosaikCon(object):
         self.agent.mosaik_connection.transport.write(message)
         self.async_requests.append('get_data')
 
-    def handle_get_data_async(self, data):
+    def handle_get_data(self, data):
         pass
 
     def set_data_async(self, data):
@@ -120,7 +120,7 @@ class MosaikCon(object):
         self.agent.mosaik_connection.transport.write(message)
         self.async_requests.append('set_data')
 
-    def handle_set_data_async(self):
+    def handle_set_data(self):
         pass
 
     def __create_message(self, msg_type, id_, content):

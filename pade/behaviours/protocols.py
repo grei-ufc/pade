@@ -55,7 +55,6 @@ class Behaviour(object):
             established by the protocol
 
         """
-        super(Behaviour, self).__init__()
         self.agent = agent
         self.timeout = 5
 

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from pade.misc.common import PadeSession
-from pade.misc.utility import display_message
+from pade.misc.utility import display_message, start_loop
 from pade.core.agent import Agent
-from pade.acl.messages import ACLMessage
 from pade.acl.aid import AID
+from pade.acl.messages import ACLMessage
 from pade.behaviours.protocols import FipaContractNetProtocol
-
+from sys import argv
+from random import uniform
 
 class CompContNet1(FipaContractNetProtocol):
     '''CompContNet1
@@ -121,7 +121,7 @@ class CompContNet2(FipaContractNetProtocol):
         super(CompContNet2, self).handle_cfp(message)
         self.message = message
 
-        display_message(self.agent.aid.name, 'CFP message rceceived')
+        display_message(self.agent.aid.name, 'CFP message received')
 
         answer = self.message.create_reply()
         answer.set_performative(ACLMessage.PROPOSE)
@@ -152,18 +152,22 @@ class CompContNet2(FipaContractNetProtocol):
 
 class AgentInitiator(Agent):
 
-    def __init__(self, aid):
+    def __init__(self, aid, participants):
         super(AgentInitiator, self).__init__(aid=aid, debug=False)
 
         message = ACLMessage(ACLMessage.CFP)
         message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
         message.set_content('60.0')
-        message.add_receiver(AID('AP1'))
-        message.add_receiver(AID('AP2'))
 
+        for participant in participants:
+            message.add_receiver(AID(name=participant))
+
+        self.call_later(8.0, self.launch_contract_net_protocol, message)
+
+    def launch_contract_net_protocol(self, message):
         comp = CompContNet1(self, message)
         self.behaviours.append(comp)
-        self.call_later(2.0, comp.on_start)
+        comp.on_start()
 
 
 class AgentParticipant(Agent):
@@ -177,24 +181,29 @@ class AgentParticipant(Agent):
 
         self.behaviours.append(comp)
 
-
-def config_agents():
-    aa_1 = AgentInitiator(AID(name='AI1'))
-
-    aa_2 = AgentParticipant(AID(name='AP1'), 150.0)
-
-    aa_3 = AgentParticipant(AID(name='AP2'), 100.0)
-
-    agents = list([aa_1, aa_2, aa_3])
-
-    s = PadeSession()
-    s.add_all_agents(agents)
-    s.register_user(username='lucassm',
-                    email='lucas@gmail.com',
-                    password='12345')
-    return s
-
 if __name__ == "__main__":
+    agents_per_process = 2
+    c = 0
+    agents = list()
+    for i in range(agents_per_process):
+        port = int(argv[1]) + c        
+        k = 10000
+        participants = list()
 
-    s = config_agents()
-    s.start_loop()
+        agent_name = 'agent_participant_{}@localhost:{}'.format(port - k, port - k)
+        participants.append(agent_name)
+        agente_part_1 = AgentParticipant(AID(name=agent_name), uniform(100.0, 500.0))
+        agents.append(agente_part_1)
+
+        agent_name = 'agent_participant_{}@localhost:{}'.format(port + k, port + k)
+        participants.append(agent_name)
+        agente_part_2 = AgentParticipant(AID(name=agent_name), uniform(100.0, 500.0))
+        agents.append(agente_part_2)
+
+        agent_name = 'agent_initiator_{}@localhost:{}'.format(port, port)
+        agente_init_1 = AgentInitiator(AID(name=agent_name), participants)
+        agents.append(agente_init_1)
+
+        c += 1000
+    
+    start_loop(agents)

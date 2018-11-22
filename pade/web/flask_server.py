@@ -117,7 +117,6 @@ class LoginForm(Form):
 @app.before_first_request
 def create_database():
     db.create_all()
-    print('[flask-server] >>> Database created.')
 
 @login_manager.user_loader
 def load_user(user_id):
