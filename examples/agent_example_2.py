@@ -3,12 +3,11 @@
 #
 # Criado por Lucas S Melo em 21 de julho de 2015 - Fortaleza, Ceará - Brasil
 
-from pade.behaviours.protocols import TimedBehaviour
-from pade.misc.utility import display_message
-from pade.misc.common import PadeSession
+from pade.misc.utility import display_message, start_loop
 from pade.core.agent import Agent
 from pade.acl.aid import AID
-
+from pade.behaviours.protocols import TimedBehaviour
+from sys import argv
 
 class ComportTemporal(TimedBehaviour):
     def __init__(self, agent, time):
@@ -28,23 +27,15 @@ class AgenteHelloWorld(Agent):
         self.behaviours.append(comp_temp)
 
 
-def config_agents():
-    agents = list()
-
-    agente_1 = AgenteHelloWorld(AID(name='agente_1'))
-    agente_2 = AgenteHelloWorld(AID(name='agente_2'))
-
-    agents.append(agente_1)
-    agents.append(agente_2)
-
-    s = PadeSession()
-    s.add_all_agents(agents)
-    s.register_user(username='lucassm',
-                    email='lucas@gmail.com',
-                    password='12345')
-
-    return s
-
 if __name__ == '__main__':
-    s = config_agents()
-    s.start_loop()
+    agents_per_process = 2
+    c = 0
+    agents = list()
+    for i in range(agents_per_process):
+        port = int(argv[1]) + c
+        agent_name = 'agent_hello_{}@localhost:{}'.format(port, port)
+        agente_hello = AgenteHelloWorld(AID(name=agent_name))
+        agents.append(agente_hello)
+        c += 1000
+    
+    start_loop(agents)

@@ -1,5 +1,5 @@
-from pade.misc.common import PadeSession
-from pade.misc.utility import display_message
+
+from pade.misc.utility import display_message, start_loop
 from pade.core.agent import Agent
 from pade.acl.messages import ACLMessage
 from pade.acl.aid import AID
@@ -7,7 +7,7 @@ from pade.behaviours.protocols import FipaRequestProtocol
 from pade.behaviours.protocols import TimedBehaviour
 
 from datetime import datetime
-
+from sys import argv
 
 class CompRequest(FipaRequestProtocol):
     """FIPA Request Behaviour of the Time agent.
@@ -62,40 +62,37 @@ class TimeAgent(Agent):
 
 class ClockAgent(Agent):
     """Class thet defines the Clock agent."""
-    def __init__(self, aid):
+    def __init__(self, aid, time_agent_name):
         super(ClockAgent, self).__init__(aid=aid)
 
         # message that requests time of Time agent.
         message = ACLMessage(ACLMessage.REQUEST)
         message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
-        message.add_receiver(AID(name='time'))
+        message.add_receiver(AID(name=time_agent_name))
         message.set_content('time')
 
         self.comport_request = CompRequest2(self, message)
-        self.comport_temp = ComportTemporal(self, 5.0, message)
+        self.comport_temp = ComportTemporal(self, 2.0, message)
 
         self.behaviours.append(self.comport_request)
         self.behaviours.append(self.comport_temp)
 
 
-def config_agents():
-
-    agents = list()
-
-    a = TimeAgent(AID(name='time'))
-    agents.append(a)
-
-    a = ClockAgent(AID(name='clock'))
-    agents.append(a)
-
-    s = PadeSession()
-    s.add_all_agents(agents)
-    s.register_user(username='lucassm',
-                    email='lucas@gmail.com',
-                    password='12345')
-
-    return s
-
 if __name__ == '__main__':
-    s = config_agents()
-    s.start_loop()
+
+    agents_per_process = 3
+    c = 0
+    agents = list()
+    for i in range(agents_per_process):
+        port = int(argv[1]) + c
+        time_agent_name = 'agent_time_{}@localhost:{}'.format(port, port)
+        time_agent = TimeAgent(AID(name=time_agent_name))
+        agents.append(time_agent)
+        
+        clock_agent_name = 'agent_clock_{}@localhost:{}'.format(port - 10000, port - 10000)
+        clock_agent = ClockAgent(AID(name=clock_agent_name), time_agent_name)
+        agents.append(clock_agent)
+
+        c += 500
+
+    start_loop(agents)
