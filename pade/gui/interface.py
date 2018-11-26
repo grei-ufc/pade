@@ -27,8 +27,8 @@
 
 try:
     from PySide import QtCore, QtGui
-except Exception, e:
-    print 'PySide is not installed!'
+except Exception as e:
+    print ('PySide is not installed!')
 
 from pade.acl.messages import ACLMessage
 from uuid import uuid1
@@ -134,7 +134,7 @@ class AgentsGui(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def showPreferenciasDialog(self):
-        print 'Abrir Dialog Preferencias'
+        print ('Abrir Dialog Preferencias')
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "Agent Management Interface", None, QtGui.QApplication.UnicodeUTF8))
