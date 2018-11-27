@@ -20,6 +20,7 @@ from twisted.internet import reactor
 
 import random
 import os
+import sys
 
 basedir = os.path.abspath(os.path.dirname(flask_server.__file__))
 
@@ -325,9 +326,9 @@ if __name__ == '__main__':
     # instantiates AMS agent and calls listenTCP method
     # from Twisted to launch the agent
     ams_agent = AMS() # TODO: precisa implementar a passagem de parametros
-    ams.register_user(username='pade',
-                      email='user@pade.com',
-                      password='12345')
+    ams.register_user(username=sys.argv[1],
+                      email=sys.argv[2],
+                      password=sys.argv[3])
     ams._initialize_database()
     reactor.callLater(0.1,
                       display_message,

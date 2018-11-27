@@ -5,6 +5,7 @@ import multiprocessing
 import shlex
 import time
 import json
+import datetime
 
 from pade.core import new_ams
 from pade.core import sniffer
@@ -20,7 +21,7 @@ class FlaskServerProcess(multiprocessing.Process):
 
     def run(self):
         from pade.web.flask_server import run_server
-        run_server()  
+        run_server()
 
 
 def signal_handler(signal, frame):
@@ -78,12 +79,6 @@ def main(config):
     if port is None:
         port = 2000
 
-    session = config.get('session')
-    if session is None:
-        user_name = session['username']
-        user_email = session['email']
-        password = session['password']
-
     processes = list()
     # -------------------------------------------------------------
     # inicializa o serviço web de gerenciamento de agentes do PADE
@@ -106,14 +101,21 @@ def main(config):
     # -------------------------------------------------------------
     # inicializa o banco de dados do PADE e o agente AMS
     # -------------------------------------------------------------
+    session = config.get('session')
     pade_ams = config.get('pade_ams')
     if pade_ams is None:
-        commands = 'python {}'.format(new_ams.__file__)
+        commands = 'python {} {} {} {}'.format(new_ams.__file__,
+                                               session['username'],
+                                               session['email'],
+                                               session['password'])
         commands = shlex.split(commands)
         p = subprocess.Popen(commands, stdin=subprocess.PIPE)
         processes.append(p)
     else:
-        commands = 'python {}'.format(new_ams.__file__)
+        commands = 'python {} {} {} {}'.format(new_ams.__file__,
+                                               session['username'],
+                                               session['email'],
+                                               session['password'])
         commands = shlex.split(commands)
         p = subprocess.Popen(commands, stdin=subprocess.PIPE)
         processes.append(p)
