@@ -24,15 +24,39 @@ PADE is developed in [Python 3.7](https://www.python.org/) and has a [Twisted](h
 
 ## Install
 
-Via Python Package Index (PyPI):
+#### Via Python Package Index (PyPI):
+```bash
+$ pip install pade
+```
 
-    $ pip install pade
+#### Via Github:
+```bash
+$ git clone https://github.com/greiufc/pade
+$ cd pade
+$ python setup.py install
+```
 
-Via Github:
+## Docker
 
-	$ git clone https://github.com/greiufc/pade
-	$ cd pade
-	$ python setup.py install
+Build container
+```bash
+$ docker-compose up -d
+````
+
+List containers
+```bash
+$ docker ps
+
+CONTAINER ID        IMAGE
+8d7cb00972c9        pade_pade
+```
+
+Get inside container
+```bash
+$ docker exec -it <CONTAINER_ID> bash
+```
+
+
 
 
 ## Example
