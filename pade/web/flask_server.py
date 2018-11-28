@@ -107,8 +107,7 @@ class Message(db.Model):
         return 'Message %s' % self.id
 
 class LoginForm(Form):
-    email = StringField('Email', validators=[Required(), Length(1, 64),
-                                 Email()])
+    username = StringField('Username', validators=[Required(), Length(1, 64)])
     password = PasswordField('Password', validators=[Required()])
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Log In')
@@ -126,7 +125,7 @@ def load_user(user_id):
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(username=form.username.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(url_for('index'))
