@@ -2,10 +2,11 @@ import os
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for
 from flask_bootstrap import Bootstrap
-from flask_login import LoginManager, login_required, login_user, logout_user
-from flask_wtf import Form
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms.validators import Required, Email, Length
+from wtforms.validators import Required, Email, Length, ValidationError, DataRequired, EqualTo
+from werkzeug.urls import url_parse
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
@@ -60,15 +61,14 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(64), unique=True)
     password_hash = db.Column(db.String(128))
 
-    @property
-    def password(self):
-        raise AttributeError('password is not a readable attribute!')
+    # @property
+    # def password(self):
+    #     raise AttributeError('password is not a readable attribute!')
 
-    @password.setter
-    def password(self, password):
+    def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
-    def verify_password(self, password):
+    def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
     def __repr__(self):
@@ -106,40 +106,60 @@ class Message(db.Model):
     def __repr__(self):
         return 'Message %s' % self.id
 
-class LoginForm(Form):
+class LoginForm(FlaskForm):
     username = StringField('Username', validators=[Required(), Length(1, 64)])
     password = PasswordField('Password', validators=[Required()])
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Log In')
 
+class RegistrationForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Register')
 
-@app.before_first_request
-def create_database():
-    db.create_all()
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different username.')
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is not None:
+            raise ValidationError('Please use a different email address.')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user is not None and user.verify_password(form.password.data):
-            login_user(user, form.remember_me.data)
-            return redirect(url_for('index'))
-        flash('Invalid username or password.')
-    else:
-        user = request.args.get('email', type=str)
-        password = request.args.get('password', type=str)
-        remember = request.args.get('remember', type=bool)
-        user = User.query.filter_by(email=user).first()
-        if user is not None and user.verify_password(password):
-            login_user(user, remember)
-            return redirect(url_for('index'))
-        else:
-            return render_template('login.html', form=form)
+        if user is None or not user.check_password(form.password.data):
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        login_user(user, remember=form.remember_me.data)
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('index')
+        return redirect(next_page)
+    return render_template('login.html', title='Sign In', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        user = User(username=form.username.data, email=form.email.data)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Congratulations, you are now a registered user!')
+        return redirect(url_for('login'))
+    return render_template('register.html', title='Register', form=form)
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -148,6 +168,7 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/')
+@app.route('/index')
 @login_required
 def index():
     sessions = Session.query.all()
@@ -198,6 +219,16 @@ def my_post():
         return basedir
     else:
         return 'Hello ' + str(request.form['name'])
+
+
+
+@app.before_first_request
+def create_database():
+    db.create_all()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 def run_server():
     app.run(host='0.0.0.0', port=5000, debug=None)
