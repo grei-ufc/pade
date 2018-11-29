@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Register</h1>
+    <!-- <h1>Register</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <p>
@@ -33,5 +33,51 @@
             {% endfor %}
         </p>
         <p>{{ form.submit() }}</p>
-    </form>
+    </form> -->
+    <div class="container">
+        <form action="" method="POST" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="login">
+            <div class="login-screen">
+              <div class="app-title">
+                <h1>Register</h1>
+                <h1>PADE Web Interface</h1>
+              </div>
+              <div class="login-form">
+                <div class="control-group">    
+                  <input class="login-field" id="username" name="username" placeholder="Username" required="" size="32" type="text" value="">
+                  <label class="login-field-icon fui-user" for="login-name"></label>
+                  {% for error in form.username.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                  {% endfor %}
+                </div>
+                <div class="control-group">    
+                    <input class="login-field" id="email" name="email" placeholder="Email" required="" size="64" type="email" value="">
+                    <label class="login-field-icon fui-user" for="login-name"></label>
+                    {% for error in form.email.errors %}
+                      <span style="color: red;">[{{ error }}]</span>
+                    {% endfor %}
+                  </div>
+                <div class="control-group">    
+                  <input class="login-field" id="password" name="password" placeholder="Password" required="" size="32" type="password" value="">
+                  <label class="login-field-icon fui-user" for="password-name"></label>
+                  {% for error in form.password.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                  {% endfor %}
+                </div>
+                <div class="control-group">    
+                  <input class="login-field" id="password2" name="password2" placeholder="Repeat Password" required="" size="32" type="password" value="">
+                  <label class="login-field-icon fui-user" for="password-name"></label>
+                  {% for error in form.password.errors %}
+                    <span style="color: red;">[{{ error }}]</span>
+                  {% endfor %}
+                </div>
+                <input type="submit" value="Register" class="btn btn-primary btn-large btn-block"></input>
+              </div>   
+              <p>Already register? <a href="{{ url_for('login') }}">Click to Login!</a></p>
+            </div>
+          </div>
+        </form>
+      </div>
+
 {% endblock %}
