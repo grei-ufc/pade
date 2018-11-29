@@ -23,6 +23,7 @@ import os
 import sys
 
 basedir = os.path.abspath(os.path.dirname(flask_server.__file__))
+print('path :' +  basedir)
 
 ENGINE = create_engine('sqlite:///{}/data.sqlite'.format(basedir))
 TWISTED_ENGINE = wrap_engine(reactor, ENGINE)

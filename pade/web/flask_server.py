@@ -49,8 +49,16 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(64), unique=True)
     password_hash = db.Column(db.String(128))
 
-    def set_password(self, password):
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute!')
+
+    @password.setter
+    def password(self, password):
         self.password_hash = generate_password_hash(password)
+
+    # def set_password(self, password):
+    #     self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
@@ -149,7 +157,7 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
-        user.set_password(form.password.data)
+        user.password(form.password.data)
         db.session.add(user)
         db.session.commit()
         flash('Congratulations, you are now a registered user!')
