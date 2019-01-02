@@ -146,6 +146,43 @@ def create_database():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.route('/set_admin', methods=['GET', 'POST'])
+def set_admin():
+    current = current_user
+    if current.role == 'Guest':
+        flash(u'You dont have permission to do this, send a email to one of the Admins asking to change your role', 'warning')
+        users = User.query.all()
+        return render_template('manage_users.html', users=users)
+
+    userId = request.form.get('user')
+    user = User.query.filter_by(id=userId).first()
+    user.role = 'Admin'
+    users = User.query.all()
+    return render_template('manage_users.html', users=users)
+
+
+@app.route('/remove_user', methods=['GET', 'POST'])
+def remove_user():
+    current = current_user
+    userId = request.form.get('user')
+    user = User.query.filter_by(id=userId).first()
+
+    if user.id == current.id:
+        db.session.delete(user)
+        flash(u'You removed yourself', 'info')
+        logout_user()
+        return redirect(url_for('login'))
+
+    if current.role == 'Guest':
+        flash(u'You must be Admin to remove any user that is not yourself', 'danger')
+        users = User.query.all()
+        return render_template('manage_users.html', users=users)
+
+    db.session.delete(user)
+    flash(u'User removed sucefully', 'success')
+    users = User.query.all()
+    return render_template('manage_users.html', users=users)
+
 
 # If there are already users, they all will have Admin roles
 @app.before_first_request
@@ -175,7 +212,7 @@ def register():
                         email=form.email.data, password=form.password.data, role='Admin')
 
         db.session.add(user)
-        flash('Thanks for registering', )
+        flash(u'Thanks for registering', 'success')
         return redirect(url_for('login'))
     return render_template('register_users.html', form=form)
 
@@ -188,7 +225,7 @@ def login():
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(url_for('index'))
-        flash('Invalid username or password.')
+        flash(u'Invalid username or password.', 'danger')
         return render_template('login.html', form=form)
     else:
         user = request.form.get('email', type=str)
@@ -205,7 +242,7 @@ def login():
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
-    flash('You have been logged out')
+    flash(u'You have been logged out', 'warning')
     return redirect(url_for('login'))
 
 
@@ -219,12 +256,6 @@ def index():
 @app.route('/manage_users', methods=['GET', 'POST'])
 @login_required
 def manage_users():
-    user = current_user
-    if user.role == 'Guest':
-        flash(u'You dont have permission to see this page', 'danger')
-        sessions = Session.query.all()
-        return render_template('index.html', sessions=sessions)
-
     users = User.query.all()
     return render_template('manage_users.html', users=users)
 
