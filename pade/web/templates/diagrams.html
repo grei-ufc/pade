@@ -8,12 +8,25 @@
 
 <body>
 
+    <style>
+        .btn-primary {
+            display: inline-block;
+            float:right;
+            margin: 10px;
+            }
+    </style>
+
     {% block content %}
 
     <div class="container">
         <div class="page-header">
             <h1>Agents Diagram!</h1>
         </div>
+
+        <form action="/messages" method="post" style="margin-bottom: 10px">
+            <button type="submit" class="btn btn-primary">Change perspective</button>
+        </form>
+
     </div>
 
     <pre id="txt" class="hidden">

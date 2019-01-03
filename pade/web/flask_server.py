@@ -313,7 +313,7 @@ def message_page(message_id):
     return render_template('message.html', message=message)
 
 
-@app.route('/diagrams')
+@app.route('/diagrams', methods=['GET', 'POST'])
 @login_required
 def diagrams():
     messages = Message.query.order_by(Message.date).all()
