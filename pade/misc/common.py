@@ -51,6 +51,7 @@ from pade.acl.messages import ACLMessage
 from pade.behaviours.protocols import FipaRequestProtocol
 
 import multiprocessing
+import threading
 import uuid
 import datetime
 from pickle import dumps, loads
@@ -66,12 +67,12 @@ class FlaskServerProcess(multiprocessing.Process):
     def run(self):
         run_server()
 
-
 class PadeSession(object):
 
     agents = list()
     users = list()
     user_login = dict()
+    ams_debug = False
 
     def __init__(self, name=None, ams=None, remote_ams=False):
                
@@ -87,24 +88,20 @@ class PadeSession(object):
         else:
             self.ams = {'name': 'localhost', 'port': 8000}
 
-
     def add_agent(self, agent):
         self.agents.append(agent)
 
     def add_all_agents(self, agents):
         self.agents = self.agents + agents
 
-
     def register_user(self, username, email, password):
         self.users.append(
             {'username': username, 'email': email, 'password': password})
-
 
     def log_user_in_session(self, username, email, password):
         self.user_login['username'] = username
         self.user_login['email'] = email
         self.user_login['password'] = password
-
 
     def _verify_remote_session(self):
         vua_aid = AID('valid_user_agent')
@@ -158,7 +155,8 @@ class PadeSession(object):
             # from Twisted to launch the agent
             ams_agent = AMS(host=self.ams['name'],
                             port=self.ams['port'],
-                            session=db_session)
+                            session=db_session,
+                            debug=self.ams_debug)
             reactor.listenTCP(ams_agent.aid.port, ams_agent.agentInstance)
 
             # registers the users, in case they exist, in the database
@@ -180,10 +178,12 @@ class PadeSession(object):
 
             self._verify_user_in_session(db_session)
 
-    def start_loop(self, debug=False, multithreading=False):
+    def start_loop(self, ams_debug=False, multithreading=False):
         """
             Runs twisted loop
         """
+        self.ams_debug = ams_debug
+
         if self.remote_ams:
             self._verify_remote_session()
             
@@ -207,15 +207,17 @@ class PadeSession(object):
             self._initialize_database()
 
             i = 1.0
+            agents_process = list()
             for agent in self.agents:
-                if multithreading:
-                    reactor.callLater(i, self.__listen_agent, agent)
-                else:
-                    reactor.callLater(i, self._listen_agent, agent)
-                i += 0.2
-
-
+                a = AgentProcess(agent, self.ams, i)
+                # a.daemon = True
+                a.start()
+                agents_process.append(a)
+                i += 0.1
+            print('-----')
+            print(reactor)
             reactor.run()
+
 
     def __listen_agent(self, agent):
         reactor.callInThread(self._listen_agent, agent)
@@ -257,7 +259,6 @@ class CompRegisterUser(FipaRequestProtocol):
                     reactor.stop()
                     raise Exception('User authentication failed.')
                     
-
 class ValidadeUserAgent(Agent):
 
     def __init__(self, aid, user_login, session_name, session):

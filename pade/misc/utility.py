@@ -28,6 +28,7 @@
 from twisted.internet import reactor
 
 from datetime import datetime
+import click
 
 def display_message(name, data):
     """
@@ -35,7 +36,8 @@ def display_message(name, data):
     """
     date = datetime.now()
     date = date.strftime('%d/%m/%Y %H:%M:%S --> ')
-    print('[' + name + '] ' + date + str(data))
+    click.echo(click.style('[{}] {}'.format(name, date), fg='green') + str(data))
+    # print('[' + name + '] ' + date + str(data))
 
 
 def call_in_thread(method, *args):
@@ -44,3 +46,12 @@ def call_in_thread(method, *args):
 
 def call_later(self, time, method, *args):
         return reactor.callLater(time, method, *args)
+
+
+def start_loop(agents):
+    for agent in agents:
+        agent.update_ams(agent.ams)
+        agent.on_start()
+        ILP = reactor.listenTCP(agent.aid.port, agent.agentInstance)
+        agent.ILP = ILP
+    reactor.run()

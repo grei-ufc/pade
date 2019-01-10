@@ -39,8 +39,8 @@ class MosaikCon(object):
             func_kargs = content_[2]
             if function == 'init':
                 self.sim_id = func_args[0]
-                message = self.__create_message(1, msg_id_respose, self.init())
-
+                params = func_kargs
+                message = self.__create_message(1, msg_id_respose, self.init(self.sim_id, *params))
             elif function == 'create':
                 num = func_args[0]
                 model = func_args[1]
@@ -66,7 +66,7 @@ class MosaikCon(object):
 
         return message
 
-    def init(self):
+    def init(self, *params):
         return self.models
 
     def create(self, num, model, **kargs):
@@ -110,7 +110,7 @@ class MosaikCon(object):
         self.agent.mosaik_connection.transport.write(message)
         self.async_requests.append('get_data')
 
-    def handle_get_data_async(self, data):
+    def handle_get_data(self, data):
         pass
 
     def set_data_async(self, data):
@@ -120,7 +120,7 @@ class MosaikCon(object):
         self.agent.mosaik_connection.transport.write(message)
         self.async_requests.append('set_data')
 
-    def handle_set_data_async(self):
+    def handle_set_data(self):
         pass
 
     def __create_message(self, msg_type, id_, content):
