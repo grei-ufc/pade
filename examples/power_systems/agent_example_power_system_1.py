@@ -6,8 +6,13 @@ from pade.acl.aid import AID
 from pade.behaviours.protocols import FipaRequestProtocol
 from pade.behaviours.protocols import TimedBehaviour
 
-from datetime import datetime
+import numpy as np
+from mygrid.power_flow.backward_forward_sweep_3p import calc_power_flow
+from ieee_13_bus_system import grid_elements, Load_Node675
+
+import random
 from sys import argv
+
 
 class CompRequest(FipaRequestProtocol):
     """FIPA Request Behaviour of the Time agent.
@@ -20,10 +25,16 @@ class CompRequest(FipaRequestProtocol):
     def handle_request(self, message):
         super(CompRequest, self).handle_request(message)
         display_message(self.agent.aid.localname, 'request message received')
-        now = datetime.now()
+        
+        #power flow calculation
+        pp = np.array([[485+1j*190, 68+1j*60, 290+1j*212]]) * 1e3 * random.uniform(0, 3)
+        pp.shape = (3, 1)
+        Load_Node675.pp = pp
+        calc_power_flow(grid_elements.dist_grids['F0'])
+
         reply = message.create_reply()
         reply.set_performative(ACLMessage.INFORM)
-        reply.set_content(now.strftime('%d/%m/%Y - %H:%M:%S'))
+        reply.set_content(Load_Node675.vp)
         self.agent.send(reply)
 
 
@@ -50,20 +61,20 @@ class ComportTemporal(TimedBehaviour):
         self.agent.send(self.message)
 
 
-class TimeAgent(Agent):
+class PowerFlowAgent(Agent):
     """Class that defines the Time agent."""
     def __init__(self, aid):
-        super(TimeAgent, self).__init__(aid=aid, debug=False)
+        super(PowerFlowAgent, self).__init__(aid=aid, debug=False)
 
         self.comport_request = CompRequest(self)
 
         self.behaviours.append(self.comport_request)
 
 
-class ClockAgent(Agent):
+class RequestVoltageAgent(Agent):
     """Class thet defines the Clock agent."""
     def __init__(self, aid, time_agent_name):
-        super(ClockAgent, self).__init__(aid=aid)
+        super(RequestVoltageAgent, self).__init__(aid=aid)
 
         # message that requests time of Time agent.
         message = ACLMessage(ACLMessage.REQUEST)
@@ -80,18 +91,18 @@ class ClockAgent(Agent):
 
 if __name__ == '__main__':
 
-    agents_per_process = 10
+    agents_per_process = 2
     c = 0
     agents = list()
     for i in range(agents_per_process):
         port = int(argv[1]) + c
-        time_agent_name = 'agent_time_{}@localhost:{}'.format(port, port)
-        time_agent = TimeAgent(AID(name=time_agent_name))
-        agents.append(time_agent)
+        power_flow_agent_name = 'power_flow_agent_{}@localhost:{}'.format(port, port)
+        power_flow_agent = PowerFlowAgent(AID(name=power_flow_agent_name))
+        agents.append(power_flow_agent)
         
-        clock_agent_name = 'agent_clock_{}@localhost:{}'.format(port - 10000, port - 10000)
-        clock_agent = ClockAgent(AID(name=clock_agent_name), time_agent_name)
-        agents.append(clock_agent)
+        request_voltage_agent_name = 'request_voltage_agent_{}@localhost:{}'.format(port - 10000, port - 10000)
+        request_voltage_agent = RequestVoltageAgent(AID(name=request_voltage_agent_name), power_flow_agent_name)
+        agents.append(request_voltage_agent)
 
         c += 500
 

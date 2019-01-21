@@ -54,9 +54,7 @@ class Sniffer(Agent):
                 pass
 
             for message in messages:
-                receivers = list()
-                for receiver in message.receivers:
-                    receivers.append(receiver.localname)
+                receivers = ';'.join([i.localname for i in message.receivers])
 
                 insert_obj = MESSAGES.insert()
                 sql_act = insert_obj.values(agent_id=self.agent_db_id[sender],
@@ -69,7 +67,7 @@ class Sniffer(Agent):
                                             message_id=message.messageID,
                                             ontology=message.ontology,
                                             language=message.language,
-                                            receivers=dumps(receivers))
+                                            receivers=receivers)
 
                 #reactor.callInThread(ENGINE.execute, sql_act)
                 reactor.callLater(random.uniform(0.1, 0.5), self.register_message_in_db, sql_act)

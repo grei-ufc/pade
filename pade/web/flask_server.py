@@ -98,7 +98,7 @@ class Message(db.Model):
     performative = db.Column(db.String(64))
     protocol = db.Column(db.String(64))
     sender = db.Column(db.String(64))
-    receivers = db.Column(db.PickleType)
+    receivers = db.Column(db.String)
     content = db.Column(db.String)
     ontology = db.Column(db.String)
     language = db.Column(db.String)
