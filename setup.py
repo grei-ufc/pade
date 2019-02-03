@@ -31,7 +31,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='pade',
-      version='2.1',
+      version='2.1.1',
       description='Framework for multiagent systems development in Python',
       long_description=long_description,
       long_description_content_type="text/markdown",

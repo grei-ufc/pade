@@ -29,7 +29,10 @@ def signal_handler(signal, frame):
     interrupted = True
 
 signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 interrupted = False
+
+
 
 def run_config_file(ctx, param, value):
 

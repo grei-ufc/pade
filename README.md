@@ -133,8 +133,8 @@ There is another way to launch the Pade agents. Is with a config file in the jso
 ```json
 { 
     "agent_files": [
-        "agente_teste_1_200.py",
-        "agente_teste_3_200.py"
+        "agent_example_1.py",
+        "agent_example_3.py"
     ],
     "port": 20000,
     "num": 2,
