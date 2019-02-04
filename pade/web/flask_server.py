@@ -253,6 +253,12 @@ def index():
     return render_template('index.html', sessions=sessions)
 
 
+@app.route('/messagesTable')
+def messagesTable():
+    messages = Message.query.order_by('date desc').limit(5)
+    return render_template('messagesTable.html', messages=messages)
+
+
 @app.route('/manage_users', methods=['GET', 'POST'])
 @login_required
 def manage_users():
