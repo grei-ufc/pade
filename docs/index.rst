@@ -13,7 +13,7 @@ PADE é um framework para desenvolvimento, execução e gerenciamento de sistema
 
 PADE é escrito 100% em Python e utiliza as bibliotecas do projeto `Twisted <http://twistedmatrix.com/>`_ para implementar a comunicação entre os nós da rede.
 
-PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido no ambito da Universidade Federal do Ceará pelo Grupo de Redes Elétricas Inteligentes (GREI) que pertence ao departamento de Engenharia Elétrica.
+PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido pelo Grupo de Redes Elétricas Inteligentes (GREI) do Departamento de Engenharia Elétrica da Universidade Federal do Ceará.
 
 Qualquer um que queira contribuir com o projeto é convidado a baixar, executar, testar e enviar feedback a respeito das impressões tiradas da plataforma. 
 
@@ -21,13 +21,14 @@ PADE é simples!
 ~~~~~~~~~~~~~~~~~
 
 ::
-
-    # este e o arquivo start_ams.py
-    from pade.misc.common import set_ams, start_loop
+    # este é o arquivo start_ams.py
+    from pade.misc.common import PadeSession
 
     if __name__ == '__main__':
-        set_ams('localhost', 8000)
-        start_loop(list(), gui=True)
+        s = PadeSession()
+        s.add_all_agents([])
+        s.register_user(username='pade_user', email='user@pade.com', password='12345')
+        s.start_loop()
 
 
 E fácil de instalar!

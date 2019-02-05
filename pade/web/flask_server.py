@@ -108,7 +108,7 @@ class Message(db.Model):
     performative = db.Column(db.String(64))
     protocol = db.Column(db.String(64))
     sender = db.Column(db.String(64))
-    receivers = db.Column(db.PickleType)
+    receivers = db.Column(db.String)
     content = db.Column(db.String)
     ontology = db.Column(db.String)
     language = db.Column(db.String)
@@ -118,8 +118,7 @@ class Message(db.Model):
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email', validators=[Required(), Length(1, 64),
-                                 Email()])
+    username = StringField('Username', validators=[Required(), Length(1, 64)])
     password = PasswordField('Password', validators=[Required()])
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Log In')
@@ -221,17 +220,17 @@ def register():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(username=form.username.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, form.remember_me.data)
             return redirect(url_for('index'))
         flash(u'Invalid username or password.', 'danger')
         return render_template('login.html', form=form)
     else:
-        user = request.form.get('email', type=str)
+        user = request.form.get('username', type=str)
         password = request.form.get('password', type=str)
         remember = request.form.get('remember', type=bool)
-        user = User.query.filter_by(email=user).first()
+        user = User.query.filter_by(username=user).first()
         if user is not None and user.verify_password(password):
             login_user(user, remember)
             return redirect(url_for('index'))

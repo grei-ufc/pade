@@ -3,13 +3,12 @@
 #
 # Criado por Lucas S Melo em 21 de julho de 2015 - Fortaleza, Ceará - Brasil
 
-from pade.misc.utility import display_message
-from pade.misc.common import PadeSession
+
+from pade.misc.utility import display_message, start_loop
 from pade.core.agent import Agent
 from pade.acl.aid import AID
 from pade.drivers.mosaik_driver import MosaikCon
-
-from time import sleep
+from sys import argv
 
 MOSAIK_MODELS = {
     'api_version': '2.2',
@@ -32,15 +31,16 @@ class MosaikSim(MosaikCon):
         entities_info = list()
         for i in range(num):
             self.entities.append(init_val)
-            print(init_val)
-            print(medium_val)
+            display_message(self.agent.aid.localname, str(init_val))
+            display_message(self.agent.aid.localname, str(medium_val))
             entities_info.append(
                 {'eid': self.sim_id + '.' + str(i), 'type': model, 'rel': []})
         return entities_info
 
     def step(self, time, inputs):
-        print(time)
-        #print(inputs)
+        if time % 501 == 0 and time != 0:
+            display_message(self.agent.aid.localname, 'step: {:4d}'.format(time))
+            #display_message(self.agent.aid.localname, str(inputs))
         if time % 1001 == 0 and time != 0:
             self.get_progress()
         if time % 2001 == 0 and time != 0:
@@ -49,14 +49,13 @@ class MosaikSim(MosaikCon):
         return time + self.time_step
 
     def handle_get_data(self, data):
-        print(data)
+        display_message(self.agent.aid.localname, str(data))
 
     def handle_set_data(self):
-        print('sucess in set_data process')
+        display_message(self.agent.aid.localname, 'sucess in set_data process')
 
     def handle_get_progress(self, progress):
-        print('------------')
-        print(progress)
+        display_message(self.agent.aid.localname, 'progress: {:2.2f}%'.format(progress))
 
     def get_data(self, outputs):
         response = dict()
@@ -69,25 +68,21 @@ class MosaikSim(MosaikCon):
 
 class AgenteHelloWorld(Agent):
     def __init__(self, aid):
-        super(AgenteHelloWorld, self).__init__(aid=aid, debug=True)
+        super(AgenteHelloWorld, self).__init__(aid=aid, debug=False)
         self.mosaik_sim = MosaikSim(self)
         display_message(self.aid.localname, 'Hello World!')
 
 
-def config_agents():
-
-    agents = list()
-
-    agente_hello = AgenteHelloWorld(AID(name='agente_hello@localhost:1234'))
-    agents.append(agente_hello)
-
-    s = PadeSession()
-    s.add_all_agents(agents)
-    s.register_user(username='lucassm', email='lucas@gmail.com', password='12345')
-
-    return s
-
 if __name__ == '__main__':
 
-    s = config_agents()
-    s.start_loop()
+    agents_per_process = 3
+    c = 0
+    agents = list()
+    for i in range(agents_per_process):
+        port = int(argv[1]) + c
+        agent_name = 'agent_example_{}@localhost:{}'.format(port, port)
+        agente_hello = AgenteHelloWorld(AID(name=agent_name))
+        agents.append(agente_hello)
+        c += 500
+
+    start_loop(agents)

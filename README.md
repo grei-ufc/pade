@@ -2,6 +2,7 @@
 
 
 [![Join the chat at https://gitter.im/lucassm/Pade](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lucassm/Pade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![](https://img.shields.io/badge/pypi-3.0-blue.svg)](https://pypi.python.org/pypi/pade/)
 
 <br>
 
@@ -23,52 +24,152 @@ PADE is developed in [Python 3.7](https://www.python.org/) and has a [Twisted](h
 
 ## Install
 
-Via Python Package Index (PyPI):
+#### Via Python Package Index (PyPI):
+```bash
+$ pip install pade
+```
 
-    $ pip install pade
+#### Via Github:
+```bash
+$ git clone https://github.com/greiufc/pade
+$ cd pade
+$ python setup.py install
+```
 
-Via Github:
+## Docker
 
-	$ git clone https://github.com/greiufc/pade
-	$ cd pade
-	$ python setup.py install
+Build container
+```bash
+$ docker-compose up -d
+````
 
-That's all!
+List containers
+```bash
+$ docker ps
+
+CONTAINER ID        IMAGE
+8d7cb00972c9        pade_pade
+```
+
+Get inside container
+```bash
+$ docker exec -it <CONTAINER_ID> bash
+```
+
+
+
 
 ## Example
 
 Hello world in PADE:
 
 ```python
-from pade.misc.utility import display_message
-from pade.misc.common import PadeSession
+from pade.misc.utility import display_message, start_loop
 from pade.core.agent import Agent
 from pade.acl.aid import AID
-
+from sys import argv
 
 class AgenteHelloWorld(Agent):
     def __init__(self, aid):
-        super(AgenteHelloWorld, self).__init__(aid=aid, debug=True)
+        super(AgenteHelloWorld, self).__init__(aid=aid)
         display_message(self.aid.localname, 'Hello World!')
 
 
-def config_agents():
-
-    agents = list()
-
-    agente_hello = AgenteHelloWorld(AID(name='agente_hello'))
-    agents.append(agente_hello)
-
-    s = PadeSession()
-    s.add_all_agents(agents)
-    s.register_user(username='pade_user', email='user@pademail.com', password='12345')
-
-    return s
-
 if __name__ == '__main__':
 
-    s = config_agents()
-    s.start_loop()
-
+    agents_per_process = 3
+    c = 0
+    agents = list()
+    for i in range(agents_per_process):
+        port = int(argv[1]) + c
+        agent_name = 'agente_hello_{}@localhost:{}'.format(port, port)
+        agente_hello = AgenteHelloWorld(AID(name=agent_name))
+        agents.append(agente_hello)
+        c += 1000
+    
+    start_loop(agents)
 ```
 
+## Changes in this new version
+
+Some changes has been added in this new version, but don't worry about that if you are using pade in your simulations, it's very easy adjust this version in old versions.
+
+The main and bigger change in Pade is in how you launch your agents. Now when you install Pade via pip command or via setup.py install you install too a pade terminal command line (cli) that launch your pade applications.
+
+As example, if you put the hello world example code in a file with the name hello-agent.py and you want to launch this agent just one time, you could type in your command line interface:
+
+```shell
+$ pade hello-agent.py 
+```
+
+If you want to launch this agent 3 times, than you type:
+
+```shell
+$ pade --num 3 hello-agent.py 
+```
+
+If you wanto to launch the 3 agents in ports 20000, 20001 and 20002, than you just type:
+
+```shell
+$ pade --num 3 --port 20000 hello-agent.py 
+```
+
+Hear we have to explain some points in how Pade executes the agents.
+
+When you type the commands `--num 3` and `--port 20000` you tell to Pade command line tool to execute the content of file hello-agent.py 3 times. Each time, the file content will be executed in a new process and the attribute port will be passed as argument in this process with a unit incremment in each time. For example, in the case `--num 3` and `--port 2000`, the arguments passed for agents are 2000, 2001 and 2002.
+
+This arguments should  be accessed in the code with `sys.argv[1]`. So you can execute how many agents as you want per process. In the hello-agent.py example there is a for loop that will repeat many times as defined in agents_per_process variable. That will define the number of agents in each process. In the example, since the `--num` parameter is 3 and the agents_per_process variable is 3 the pade will start 9 agents in ports: 20000, 21000, 22000, 20001, 210001, 22001, 20002, 210002 and 22002.
+
+The command line will support mode than one agent file too, for example if you have the agents in mode than one file you could start then with a command like this:
+
+```shell
+$ pade --num 3 --port 20000 hello-agent_1.py hello-agent_2.py
+```
+
+In this case the first agent receive in the `sys.argv[1]` the value 20000 and the second, the value 20001, and so on.
+
+There is another way to launch the Pade agents. Is with a config file in the json format. Hear it's a example of config file:
+
+```json
+{ 
+    "agent_files": [
+        "agent_example_1.py",
+        "agent_example_3.py"
+    ],
+    "port": 20000,
+    "num": 2,
+    "pade_ams": {
+        "host": "localhost",
+        "port": 8000
+    },
+    "pade_web": {
+        "active": true,
+        "host": "localhost",
+        "port": 5000
+    },
+    "pade_sniffer": {
+        "active": true,
+        "host": "localhost",
+        "port": 8001
+    },
+    "session": {
+        "username": "pade_user",
+        "email": "pade_user@pade.com",
+        "password": "12345"    
+    }
+}
+```
+
+To launch then, just type the command line:
+
+```shell
+pade --config_file pade_config.json
+```
+
+If you need to execute simulations with a high number of agents that send and receive messages, something like 500 agents sending 5 messages per second, is recommended that you launch your pade session with a option `--no_pade_sniffer` because the register of this messages in database will overhead your pade execution. Than, the example could be:
+
+```shell
+$ pade --num 3 --port 20000  --no_pade_sniffer hello-agent_1.py hello-agent_2.py
+```
+
+To show teh agents in action, show the video in this link: [pade agents start example]()

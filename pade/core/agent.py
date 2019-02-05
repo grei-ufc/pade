@@ -49,7 +49,7 @@ from pade.behaviours.protocols import FipaRequestProtocol, FipaSubscribeProtocol
 from pade.acl.aid import AID
 from pade.misc.utility import display_message
 from pickle import dumps, loads
-
+import random
 # Class that implements a protocol that enables
 # the exchange of messages between agents.
 
@@ -77,6 +77,7 @@ class AgentProtocol(PeerProtocol):
         a conection is established between an agent
         in client mode and an agent in server mode.
         """
+        # display_message(self.fact.agent_ref.aid.name, 'Connection Made')
         PeerProtocol.connectionMade(self)
 
     def connectionLost(self, reason):
@@ -148,6 +149,7 @@ class AgentFactory(protocol.ClientFactory):
         in the connection between client and server.
         """
         display_message(self.aid.name, 'Connection Failed...')
+        print(reason)
 
     def clientConnectionLost(self, connector, reason):
         """This method is called when the connection between
@@ -173,8 +175,10 @@ class Agent_(object):
         self.mosaik_connection = None
         self.aid = aid
         self.debug = debug
+        
         # ALL: create a aid object with the aid of ams
         self.ams = dict()
+        self.sniffer = dict()
         self.behaviours = list()
         self.system_behaviours = list()
         self.__messages = list()
@@ -216,6 +220,23 @@ class Agent_(object):
             try:
                 self.__ams['name'] = value['name']
                 self.__ams['port'] = value['port']
+            except (Exception, e):
+                raise e
+
+    @property
+    def sniffer(self):
+        return self.__sniffer
+
+    @sniffer.setter
+    def sniffer(self, value):
+        self.__sniffer = dict()
+        if value == dict():
+            self.__sniffer['name'] = 'localhost'
+            self.__sniffer['port'] = 8001
+        else:
+            try:
+                self.__sniffer['name'] = value['name']
+                self.__sniffer['port'] = value['port']
             except (Exception, e):
                 raise e
     """
@@ -283,8 +304,18 @@ class Agent_(object):
         message.set_message_id()
         message.set_datetime_now()
 
+        c = 0.0
+        if len(message.receivers) >= 20:
+            receivers = [message.receivers[i:i+20] for i in range(0, len(message.receivers), 20)]
+            for r in receivers:
+                reactor.callLater(c, self._send, message, r)
+                c += 0.5
+        else:
+            self._send(message, message.receivers)
+
+    def _send(self, message, receivers):
         # "for" iterates on the message receivers
-        for receiver in message.receivers:
+        for receiver in receivers:
             for name in self.agentInstance.table:
                 # "if" verifies if the receiver name is among the available agents
                 if receiver.localname in name and receiver.localname != self.aid.localname:
@@ -294,7 +325,7 @@ class Agent_(object):
                     receiver.setHost(self.agentInstance.table[name].host)
                     # makes a connection to the agent and sends the message.
                     self.agentInstance.messages.append((receiver, message))
-                    if self.debug == True:
+                    if self.debug:
                         print(('[MESSAGE DELIVERY]',
                                message.performative,
                                'FROM',
@@ -388,10 +419,12 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
         display_message(self.agent.aid.name, 'Identification process done.')
 
     def handle_refuse(self, message):
-        display_message(self.agent.aid.name, message.content)
+        if self.agent.debug:
+            display_message(self.agent.aid.name, message.content)
 
     def handle_inform(self, message):
-        display_message(self.agent.aid.name, 'Table update')
+        if self.agent.debug:
+            display_message(self.agent.aid.name, 'Table update')
         self.agent.agentInstance.table = loads(message.content)
 
 
@@ -408,11 +441,12 @@ class CompConnection(FipaRequestProtocol):
 
     def handle_request(self, message):
         super(CompConnection, self).handle_request(message)
-        display_message(self.agent.aid.localname, 'request message received')
+        if self.agent.debug:
+            display_message(self.agent.aid.localname, 'request message received')
         reply = message.create_reply()
         reply.set_performative(ACLMessage.INFORM)
         reply.set_content('Im Live')
-        self.agent.send(reply)
+        reactor.callLater(random.uniform(0.0, 1.0), self.agent.send, reply)
 
 
 # Main Agent Class
@@ -438,13 +472,14 @@ class Agent(Agent_):
     def react(self, message):
         super(Agent, self).react(message)
 
-        # sends the received message to AMS
-        # building of the message to be sent to AMS.
-        _message = ACLMessage(ACLMessage.INFORM)
-        ams_aid = AID('ams@' + self.ams['name'] + ':' + str(self.ams['port']))
-        _message.add_receiver(ams_aid)
-        _message.set_content(dumps({
-        'ref' : 'MESSAGE',
-        'message' : message}))
-        _message.set_system_message(is_system_message=True)
-        self.send(_message)
+        if 'ams' not in message.sender.name and 'sniffer' not in self.aid.name:
+            # sends the received message to Sniffer
+            # building of the message to be sent to Sniffer.
+            _message = ACLMessage(ACLMessage.INFORM)
+            sniffer_aid = AID('sniffer@' + self.sniffer['name'] + ':' + str(self.sniffer['port']))
+            _message.add_receiver(sniffer_aid)
+            _message.set_content(dumps({
+            'ref' : 'MESSAGE',
+            'message' : message}))
+            _message.set_system_message(is_system_message=True)
+            self.send(_message)
