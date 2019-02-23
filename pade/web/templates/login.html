@@ -32,20 +32,23 @@
             <p align="center">
                 <img src="{{url_for('static', filename='pade_logo.png')}}" alt="PADE LOGO" height="180" width="180">
             </p>
-<!--
-            <h2 class="form-signin-heading">Sign in PADE Web Interface</h2>
--->
 
             {{ wtf.quick_form(form) }}
 
-            <br>
-            <br>
-            <br>
-            <p align="center">
-                <a href="{{ url_for('register') }}"><button class="btn btn-success btn-lg">New User</button></a>
-            </p>
+
+            {% if countUsers == 0 %}
+
+                <br>
+                <br>
+                <br>
+                <p align="center">
+                    <a href="{{ url_for('register') }}"><button class="btn btn-success btn-lg">New User</button></a>
+                </p>
+
+            {% endif %}
+
         </form>
 
-    </div> <!-- /container -->
+    </div>
     {% endblock %}
 </html>

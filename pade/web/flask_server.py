@@ -218,6 +218,7 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    countUsers = User.query.count()
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -235,7 +236,7 @@ def login():
             login_user(user, remember)
             return redirect(url_for('index'))
         else:
-            return render_template('login.html', form=form)
+            return render_template('login.html', form=form, countUsers=countUsers)
 
 
 @app.route('/logout', methods=['GET', 'POST'])
@@ -254,15 +255,16 @@ def index():
 
 @app.route('/messagesTable')
 def messagesTable():
-    messages = Message.query.order_by('date desc').limit(5)
+    messages = Message.query.order_by(Message.date.desc()).limit(5)
     return render_template('messagesTable.html', messages=messages)
 
 
 @app.route('/manage_users', methods=['GET', 'POST'])
 @login_required
 def manage_users():
+    current = current_user
     users = User.query.all()
-    return render_template('manage_users.html', users=users)
+    return render_template('manage_users.html', users=users, current=current)
 
 
 @app.route('/session/<session_id>')
@@ -321,26 +323,49 @@ def message_page(message_id):
 @app.route('/diagrams', methods=['GET', 'POST'])
 @login_required
 def diagrams():
-    messages = Message.query.order_by(Message.date).all()
-    _messages = list()
-    msgs_id = list()
+    # messages = Message.query.order_by(Message.date).limit(100)
+    # _messages = list()
+    # msgs_id = list()
+    #
+    # for msg in messages:
+    #     if msg.message_id in msgs_id:
+    #         messages.remove(msg)
+    #         continue
+    #     msgs_id.append(msg.message_id)
+    #
+    # messages_diagram = ''
+    # for msg in messages:
+    #
+    #     for receiver in msg.receivers:
+    #         content = msg.content
+    #         sender = msg.sender
+    #         receivers = msg.receivers
+    #         performative = msg.performative
+    #
+    #
+    #         # Limiting the size of the message to be displayed
+    #         if len(content) > 50:
+    #             content = "Content is too big to be displayed :( \n\n Please adjust your message."
+    #
+    #         messages_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
+    #         messages_diagram += sender + '->' + receivers + ': ' + content + '\n'
 
-    for msg in messages:
-        if msg.message_id in msgs_id:
-            messages.remove(msg)
-            continue
-        msgs_id.append(msg.message_id)
+    messages = Message.query.order_by(Message.date).limit(300)
 
     messages_diagram = ''
-    for msg in messages:
-        for receiver in msg.receivers:
-            message = str(msg.content)
-            # Limiting the size of the message to be displayed
-            if(len(message) > 50):
-                message = "Content is too big to be displayed :( \n\n Please adjust your message."
 
-            messages_diagram += str(msg.sender) + '-->' + str(receiver) + ': ' + str(msg.performative) + '\n'
-            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(message) + '\n'
+    for msg in messages:
+        content = msg.content
+        sender = msg.sender.split("@")[0]
+        receivers = msg.receivers
+        performative = msg.performative
+
+        # Limiting the size of the message to be displayed
+        if len(content) > 50:
+            content = "Content is too big to be displayed :( \n\n Please adjust your message."
+
+        messages_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
+        messages_diagram += sender + '->' + receivers + ': ' + content + '\n'
 
     return render_template('diagrams.html', messages=messages_diagram)
 

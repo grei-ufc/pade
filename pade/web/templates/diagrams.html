@@ -1,9 +1,10 @@
 {% include 'header.html' %}
 
 <head>
-    <script src="/static/underscore-min.js"></script>
-    <script src="/static/raphael-min.js"></script>
-    <script src="/static/sequence-diagram-min.js"></script>
+    <script src="../static/webfont.js"></script>
+    <script src="../static/snap.svg-min.js"></script>
+    <script src="../static/underscore-min.js"></script>
+    <script src="../static/sequence-diagram-min.js"></script>
 </head>
 
 <body>
@@ -42,37 +43,8 @@
 </body>
 
 <script>
-    var diagram = Diagram.parse(document.getElementById('txt').innerText)
-    diagram.drawSVG('diagram', {theme:'simple'})
-</script>
-
-<script>
-
-    function loadData() {
-        var position = $(".diagram").scrollTop;
-        console.log(position);
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                var response = $($.parseHTML(xhttp.responseText));
-
-                var text = $('.diagram').html;
-                console.log(text);
-
-                $(".diagram").html(response.find(".diagram").html());
-                $(".diagram").sequenceDiagram({theme: "simple"});
-                $(".diagram").scrollTop = position;
-            }
-        };
-        xhttp.open("GET", "http://localhost:5000/diagrams", true);
-        xhttp.send();
-        setTimeout(loadData, 2000);
-    }
-
-    $(document).ready(function() {
-        // run the first time; all subsequent calls will take care of themselves
-        setTimeout(loadData, 2000);
-    });
+    var diagram = Diagram.parse(document.getElementById('txt').innerText);
+    diagram.drawSVG("diagram", {theme:'simple'});
 </script>
 
 {% include 'footer.html' %}
