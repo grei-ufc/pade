@@ -5,46 +5,51 @@
     <script src="../static/snap.svg-min.js"></script>
     <script src="../static/underscore-min.js"></script>
     <script src="../static/sequence-diagram-min.js"></script>
-</head>
-
-<body>
 
     <style>
         .btn-primary {
             display: inline-block;
-            float:right;
+            float: right;
             margin: 10px;
-            }
+        }
     </style>
+</head>
 
-    {% block content %}
+<body>
 
-    <div class="container">
-        <div class="page-header">
-            <h1>Agents Diagram!</h1>
+{% block content %}
+
+<div class="container">
+
+    <form action="/messages" method="post" style="margin-bottom: 10px">
+        <button type="submit" class="btn btn-primary">Messages View</button>
+    </form>
+
+    <div class="row">
+        <h2>Messages Diagram</h2>
+    </div>
+
+    <div class="row">
+
+        <pre id="txt" class="hidden">
+            {{ messages }}
+        </pre>
+
+        <div class="container" id="diagram">
+
         </div>
 
-        <form action="/messages" method="post" style="margin-bottom: 10px">
-            <button type="submit" class="btn btn-primary">Change perspective</button>
-        </form>
-
     </div>
 
-    <pre id="txt" class="hidden">
-        {{ messages }}
-    </pre>
+</div>
 
-    <div class="container" id="diagram">
-
-    </div>
-
-    {% endblock %}
+{% endblock %}
 
 </body>
 
 <script>
     var diagram = Diagram.parse(document.getElementById('txt').innerText);
-    diagram.drawSVG("diagram", {theme:'simple'});
+    diagram.drawSVG("diagram", {theme: 'simple'});
 </script>
 
 {% include 'footer.html' %}

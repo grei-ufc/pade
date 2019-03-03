@@ -42,29 +42,17 @@
                 </div>
             </div>
 
-            <!--<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h2>Messages</h2>
-                <div class="list-group">
-                    {% for message in messages %}
-                        <a href="/messages/{{ message.id }}" class="list-group-item" style="height: 50px; padding: 5px 15px;">
-                            <h4>Message ID: {{ message.id }}</h4>
-                            <p>Sender: {{ message.sender }}</p>
-                            <p>Content: {{ message.content }}</p>
-                        </a>
-                    {% endfor %}
-                </div>
-            </div>-->
-
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" id="messagesTable">
-            <!-- Table will be rendered via AJAX -->
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" id="messagesTable" style="overflow: auto">
+                <!-- Table will be rendered via AJAX -->
             </div>
 
         </div>
         <!-- TODO - Implement function to create a new agent -->
-        <div class="nav navbar-nav navbar-left">
+        <!--<div class="nav navbar-nav navbar-left">
             <a href="#"><button class="btn btn-default">Create new agent</button></a>
-        </div>
+        </div>-->
     </div>
+
     {% endblock %}
 
     <script type="text/javascript">
@@ -74,12 +62,12 @@
 
         function refreshTable(){
             $('#messagesTable').load('/messagesTable', function(){
-               setTimeout(refreshTable, 5000);
+               setTimeout(refreshTable, 1000);
             });
         }
     </script>
 
-    <script>
+<!--    <script>
         function loadData() {
             var xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function() {
@@ -96,7 +84,7 @@
             // run the first time; all subsequent calls will take care of themselves
             setTimeout(loadData, 2000);
         });
-    </script>
+    </script>-->
 </body>
 
 {% include 'footer.html' %}

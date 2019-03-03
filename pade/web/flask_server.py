@@ -1,4 +1,5 @@
 import os
+import datetime
 
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for
@@ -145,6 +146,7 @@ def create_database():
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
 @app.route('/set_admin', methods=['GET', 'POST'])
 def set_admin():
     current = current_user
@@ -249,6 +251,7 @@ def logout():
 @app.route('/')
 @login_required
 def index():
+    get_agents()
     sessions = Session.query.all()
     return render_template('index.html', sessions=sessions)
 
@@ -281,6 +284,17 @@ def agent_messages(agent_id):
     agent = AgentModel.query.filter_by(id=agent_id).first()
     messages = agent.messages
     return render_template('agent_messages.html', messages=messages, agent=agent)
+
+
+def get_agents():
+    agents = AgentModel.query.all()
+    char1 = '@'
+    char2 = ':'
+    instances = ''
+    for a in agents:
+        origin = a.name[a.name.find(char1)+1:a.name.find(char2)]
+        if origin not in instances:
+            instances += origin
 
 
 @app.route('/session/agents', methods=['POST'])
@@ -377,24 +391,50 @@ def messages():
     senders = []
     performatives = []
 
-    if request.method == 'POST':
-        sender = request.form.get('sender')
-        performative = request.form.get('performative')
-
-        if sender:
-            messages = Message.query.filter_by(sender=sender)
-            return render_template('messages.html', messages=messages, sender=sender, performative=performative)
-
-        if performative:
-            messages = Message.query.filter_by(performative=performative)
-            return render_template('messages.html', messages=messages, sender=sender, performative=performative)
-
     for message in messages:
-        if not message.sender in senders[:]:
+        if message.sender not in senders[:]:
             senders.append(message.sender)
 
-        if not message.performative in performatives[:]:
+        if message.performative not in performatives[:]:
             performatives.append(message.performative)
+
+    if request.method == 'POST':
+        selectedSender = request.form.get('sender')
+        selectedPerformative = request.form.get('performative')
+        agentName = request.form.get('agentName')
+        content = request.form.get('content')
+        timeStart = request.form.get('timeStart')
+        timeStop = request.form.get('timeStop')
+
+        if agentName:
+            messages = Message.query.filter(or_(Message.sender.contains(agentName),
+                                                Message.receivers.contains(agentName)))
+            render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
+
+        if content:
+            messages = Message.query.filter(Message.content.contains(content))
+            render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
+
+        if selectedSender or selectedPerformative or timeStart and timeStop:
+
+            if timeStart:
+                start = timeStart.replace("T", " ") + ":00.000000"
+                stop = timeStop.replace("T", " ") + ":00.000000"
+                dateObjectStart = datetime.datetime.strptime(start, '%Y-%m-%d %H:%M:%S.%f')
+                dateObjectStop = datetime.datetime.strptime(stop, '%Y-%m-%d %H:%M:%S.%f')
+
+                messages = Message.query.filter(Message.date.between(dateObjectStart, dateObjectStop))
+
+            if selectedSender == '':
+                messages = Message.query.filter_by(performative=selectedPerformative)
+
+            if selectedPerformative == '':
+                messages = Message.query.filter_by(sender=selectedSender)
+
+            if selectedSender != '' and selectedPerformative != '':
+                messages = Message.query.filter_by(performative=selectedPerformative, sender=selectedSender)
+
+            return render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
 
     return render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
 
