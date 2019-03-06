@@ -99,19 +99,19 @@ The main and bigger change in Pade is in how you launch your agents. Now when yo
 As example, if you put the hello world example code in a file with the name hello-agent.py and you want to launch this agent just one time, you could type in your command line interface:
 
 ```shell
-$ pade hello-agent.py 
+$ pade start_runtime hello-agent.py 
 ```
 
 If you want to launch this agent 3 times, than you type:
 
 ```shell
-$ pade --num 3 hello-agent.py 
+$ pade start_runtime --num 3 hello-agent.py 
 ```
 
 If you wanto to launch the 3 agents in ports 20000, 20001 and 20002, than you just type:
 
 ```shell
-$ pade --num 3 --port 20000 hello-agent.py 
+$ pade start_runtime --num 3 --port 20000 hello-agent.py 
 ```
 
 Hear we have to explain some points in how Pade executes the agents.
@@ -123,7 +123,7 @@ This arguments should  be accessed in the code with `sys.argv[1]`. So you can ex
 The command line will support mode than one agent file too, for example if you have the agents in mode than one file you could start then with a command like this:
 
 ```shell
-$ pade --num 3 --port 20000 hello-agent_1.py hello-agent_2.py
+$ pade start_runtime --num 3 --port 20000 hello-agent_1.py hello-agent_2.py
 ```
 
 In this case the first agent receive in the `sys.argv[1]` the value 20000 and the second, the value 20001, and so on.
@@ -139,6 +139,7 @@ There is another way to launch the Pade agents. Is with a config file in the jso
     "port": 20000,
     "num": 2,
     "pade_ams": {
+        "launch": true,
         "host": "localhost",
         "port": 8000
     },
@@ -163,13 +164,29 @@ There is another way to launch the Pade agents. Is with a config file in the jso
 To launch then, just type the command line:
 
 ```shell
-pade --config_file pade_config.json
+pade start_runtime --config_file pade_config.json
 ```
 
 If you need to execute simulations with a high number of agents that send and receive messages, something like 500 agents sending 5 messages per second, is recommended that you launch your pade session with a option `--no_pade_sniffer` because the register of this messages in database will overhead your pade execution. Than, the example could be:
 
 ```shell
-$ pade --num 3 --port 20000  --no_pade_sniffer hello-agent_1.py hello-agent_2.py
+$ pade start_runtime --num 3 --port 20000  --no_pade_sniffer hello-agent_1.py hello-agent_2.py
 ```
+
+Another useful commands in Pade CLI are:
+
+```shell
+$ pade create_pade_db
+```
+
+```shell
+$ pade drop_pade_db
+```
+
+```shell
+$ pade start_web_interface
+```
+
+To show a complete list of pade comands in the CLI, just type `pade` in terminal command line.
 
 To show teh agents in action, show the video in this link: [pade agents start example]()

@@ -196,6 +196,7 @@ def start_runtime(num, agent_files, port, pade_ams, pade_web, pade_sniffer, user
     config['session']['email'] = 'pade_user@pade.com'
     config['session']['password'] = password
     config['pade_ams'] = dict()
+    config['pade_ams']['launch'] = True
     config['pade_ams']['host'] = 'localhost'
     config['pade_ams']['port'] = 8000
     config['pade_sniffer'] = dict()
