@@ -12,11 +12,11 @@ No código a seguir utiliza *call_later()* é utilizado na classe *Remetente()* 
 
 ::
 
-    from pade.misc.utility import display_message
-    from pade.misc.common import set_ams, start_loop
+    from pade.misc.utility import display_message, start_loop, call_later
     from pade.core.agent import Agent
-    from pade.acl.aid import AID
     from pade.acl.messages import ACLMessage
+    from pade.acl.aid import AID
+    from sys import argv
 
 
     class Remetente(Agent):
@@ -24,10 +24,10 @@ No código a seguir utiliza *call_later()* é utilizado na classe *Remetente()* 
             super(Remetente, self).__init__(aid=aid, debug=False)
 
         def on_start(self):
-            self.call_later(4.0, self.send_message)
-
+            call_later(5.0, self.send_message)
+        
         def send_message(self):
-            display_message(self.aid.localname, 'Enviando Mensagem')
+            display_message(self.aid.localname, 'Enviando Mensagem...')
             message = ACLMessage(ACLMessage.INFORM)
             message.add_receiver(AID('destinatario'))
             message.set_content('Ola')
@@ -47,16 +47,10 @@ No código a seguir utiliza *call_later()* é utilizado na classe *Remetente()* 
 
     if __name__ == '__main__':
 
-        set_ams('localhost', 8000, debug=False)
+        destinatario_agent = Destinatario(AID(name='destinatario'))
+        agents.append(destinatario_agent)
 
-        agentes = list()
+        remetente_agent = Remetente(AID(name='remetente'))
+        agents.append(remetente_agent)
 
-        destinatario = Destinatario(AID(name='destinatario'))
-        destinatario.ams = {'name': 'localhost', 'port': 8000}
-        agentes.append(destinatario)
-
-        remetente = Remetente(AID(name='remetente'))
-        remetente.ams = {'name': 'localhost', 'port': 8000}
-        agentes.append(remetente)
-
-        start_loop(agentes, gui=True)
+        start_loop(agents)

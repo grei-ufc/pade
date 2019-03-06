@@ -21,15 +21,43 @@ PADE é simples!
 ~~~~~~~~~~~~~~~~~
 
 ::
-    # este é o arquivo start_ams.py
-    from pade.misc.common import PadeSession
+
+    # agent_example_1.py
+    # A simple hello agent in PADE!
+
+    from pade.misc.utility import display_message, start_loop
+    from pade.core.agent import Agent
+    from pade.acl.aid import AID
+    from sys import argv
+
+    class AgenteHelloWorld(Agent):
+        def __init__(self, aid):
+            super(AgenteHelloWorld, self).__init__(aid=aid)
+            display_message(self.aid.localname, 'Hello World!')
+
 
     if __name__ == '__main__':
-        s = PadeSession()
-        s.add_all_agents([])
-        s.register_user(username='pade_user', email='user@pade.com', password='12345')
-        s.start_loop()
+        agents_per_process = 3
+        c = 0
+        agents = list()
+        for i in range(agents_per_process):
+            port = int(argv[1]) + c
+            agent_name = 'agent_hello_{}@localhost:{}'.format(port, port)
+            agente_hello = AgenteHelloWorld(AID(name=agent_name))
+            agents.append(agente_hello)
+            c += 1000
+        
+        start_loop(agents)
 
+Neste arquivo exemplo (que está na pasta de exemplos no repositório PADE) é possível visualizar três sessões bem definidas.
+
+A primeira contém as importações necessárias de classes que se encontram nos módulos do pade.
+
+Na segunda uma classe que herda da classe pade Agent é definida com as pricipais atribuições do agente.
+
+Na terceira parte que está encapsulada em uma estrutura if são realizados os procedimentos para lançar os agentes.
+
+Se você quiser saber mais basta seguir a documentação aqui: :ref:`hello-world-page`. 
 
 E fácil de instalar!
 ~~~~~~~~~~~~~~~~~~~~
@@ -39,7 +67,9 @@ Para instalar o PADE basta executar o seguinte comando em um terminal linux:
 ::
 
     $ pip install pade
-    $ python start_ams.py
+    $ pade --port 20000 agent_example_1.py
+
+Veja mais aqui: :ref:`installation-page`.
 
 Funcionalidades
 ~~~~~~~~~~~~~~~
@@ -84,7 +114,6 @@ Guia do Usuário
 
    user/instalacao.rst
    user/hello-world
-   user/meu-primeiro-agente
    user/agentes-temporais
    user/enviando-mensagens
    user/recebendo-mensagens

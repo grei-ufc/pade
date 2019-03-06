@@ -303,6 +303,8 @@ class FipaContractNetProtocol(Behaviour):
             if self.message.performative == ACLMessage.CFP:
 
                 self.cfp_qty = len(self.message.receivers)
+                self.received_qty = 0
+                self.proposes = []
                 self.agent.send(self.message)
 
                 self.timed_behaviour()

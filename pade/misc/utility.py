@@ -35,8 +35,8 @@ def display_message(name, data):
         Method do displsy message in the console.
     """
     date = datetime.now()
-    date = date.strftime('%d/%m/%Y %H:%M:%S --> ')
-    click.echo(click.style('[{}] {}'.format(name, date), fg='green') + str(data))
+    date = date.strftime('%d/%m/%Y %H:%M:%S.%f')[:-3]
+    click.echo(click.style('[{}] {} --> '.format(name, date), fg='green') + str(data))
     # print('[' + name + '] ' + date + str(data))
 
 
@@ -45,7 +45,7 @@ def call_in_thread(method, *args):
 
 
 def call_later(self, time, method, *args):
-        return reactor.callLater(time, method, *args)
+    return reactor.callLater(time, method, *args)
 
 
 def start_loop(agents):

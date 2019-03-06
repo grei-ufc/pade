@@ -34,12 +34,11 @@ O diagrama de comunicação do protocolo FIPA-Request está mostrado na Figura a
 
 Para exemplificar o protocolo FIPA-Request, iremos utilizar como exemplo a interação entre dois agentes, um agente relogio, que a cada um segundo exibe na tela a data e o horário atuais, mas com um problema, o agente relogio não sabe calcular nem a data, e muito menos o horário atual. Assim, ele precisa requisitar estas informações do agente horario que consegue calcular estas informações.
 
-Dessa forma, será utilizado o protocolo FIPA-Request, para que estas informações sejam trocadas entre os dois agentes, sendo o agente relógio o iniciante, no processo de requisição e o agente horário, o participante, segue o código do exemplo:
+Dessa forma, será utilizado o protocolo FIPA-Request, para que estas informações sejam trocadas entre os dois agentes, sendo o agente relógio o iniciante, no processo de requisição e o agente horário, o participante, segue o código do exemplo, que corresponde ao arquivo exemplo agent_example_3.py:
 
 ::
     
-    from pade.misc.common import start_loop, set_ams
-    from pade.misc.utility import display_message
+    from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
     from pade.acl.messages import ACLMessage
     from pade.acl.aid import AID
@@ -47,11 +46,11 @@ Dessa forma, será utilizado o protocolo FIPA-Request, para que estas informaç�
     from pade.behaviours.protocols import TimedBehaviour
 
     from datetime import datetime
-
+    from sys import argv
 
     class CompRequest(FipaRequestProtocol):
-        """Comportamento FIPA Request
-        do agente Horario"""
+        """FIPA Request Behaviour of the Time agent.
+        """
         def __init__(self, agent):
             super(CompRequest, self).__init__(agent=agent,
                                               message=None,
@@ -59,7 +58,7 @@ Dessa forma, será utilizado o protocolo FIPA-Request, para que estas informaç�
 
         def handle_request(self, message):
             super(CompRequest, self).handle_request(message)
-            display_message(self.agent.aid.localname, 'mensagem request recebida')
+            display_message(self.agent.aid.localname, 'request message received')
             now = datetime.now()
             reply = message.create_reply()
             reply.set_performative(ACLMessage.INFORM)
@@ -68,8 +67,8 @@ Dessa forma, será utilizado o protocolo FIPA-Request, para que estas informaç�
 
 
     class CompRequest2(FipaRequestProtocol):
-        """Comportamento FIPA Request
-        do agente Relogio"""
+        """FIPA Request Behaviour of the Clock agent.
+        """
         def __init__(self, agent, message):
             super(CompRequest2, self).__init__(agent=agent,
                                                message=message,
@@ -80,8 +79,7 @@ Dessa forma, será utilizado o protocolo FIPA-Request, para que estas informaç�
 
 
     class ComportTemporal(TimedBehaviour):
-        """Comportamento FIPA Request
-        do agente Relogio"""
+        """Timed Behaviour of the Clock agent"""
         def __init__(self, agent, time, message):
             super(ComportTemporal, self).__init__(agent, time)
             self.message = message
@@ -91,50 +89,53 @@ Dessa forma, será utilizado o protocolo FIPA-Request, para que estas informaç�
             self.agent.send(self.message)
 
 
-    class AgenteHorario(Agent):
-        """Classe que define o agente Horario"""
+    class TimeAgent(Agent):
+        """Class that defines the Time agent."""
         def __init__(self, aid):
-            super(AgenteHorario, self).__init__(aid=aid, debug=False)
+            super(TimeAgent, self).__init__(aid=aid, debug=False)
 
             self.comport_request = CompRequest(self)
 
             self.behaviours.append(self.comport_request)
 
 
-    class AgenteRelogio(Agent):
-        """Classe que define o agente Relogio"""
-        def __init__(self, aid):
-            super(AgenteRelogio, self).__init__(aid=aid)
+    class ClockAgent(Agent):
+        """Class thet defines the Clock agent."""
+        def __init__(self, aid, time_agent_name):
+            super(ClockAgent, self).__init__(aid=aid)
 
-            # mensagem que requisita horario do horario
+            # message that requests time of Time agent.
             message = ACLMessage(ACLMessage.REQUEST)
             message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
-            message.add_receiver(AID(name='horario'))
+            message.add_receiver(AID(name=time_agent_name))
             message.set_content('time')
 
             self.comport_request = CompRequest2(self, message)
-            self.comport_temp = ComportTemporal(self, 1.0, message)
+            self.comport_temp = ComportTemporal(self, 8.0, message)
 
             self.behaviours.append(self.comport_request)
             self.behaviours.append(self.comport_temp)
 
 
-    def main():
-        agentes = list()
-        set_ams('localhost', 8000, debug=False)
-
-        a = AgenteHorario(AID(name='horario'))
-        a.ams = {'name': 'localhost', 'port': 8000}
-        agentes.append(a)
-
-        a = AgenteRelogio(AID(name='relogio'))
-        a.ams = {'name': 'localhost', 'port': 8000}
-        agentes.append(a)
-
-        start_loop(agentes, gui=True)
-
     if __name__ == '__main__':
-        main()
+
+        agents_per_process = 1
+        c = 0
+        agents = list()
+        for i in range(agents_per_process):
+            port = int(argv[1]) + c
+            time_agent_name = 'agent_time_{}@localhost:{}'.format(port, port)
+            time_agent = TimeAgent(AID(name=time_agent_name))
+            agents.append(time_agent)
+            
+            clock_agent_name = 'agent_clock_{}@localhost:{}'.format(port - 10000, port - 10000)
+            clock_agent = ClockAgent(AID(name=clock_agent_name), time_agent_name)
+            agents.append(clock_agent)
+
+            c += 500
+
+        start_loop(agents)
+
 
 
 Na primeira parte do código são importadas todos módulos e classes necessários à construção dos agentes, logo em seguida as classes que implementam o protocolo são definidas, as classes ComptRequest e ComptRequest2 que serão associadas aos comportamentos dos agentes horario e relogio, respectivamente. Como o agente relogio precisa, a cada segundo enviar requisição ao agente horario, então também deve ser associado a este agente um comportamento temporal, definido na classe ComportTemporal que envia uma solicitação ao agente horario, a cada segundo.
@@ -155,26 +156,25 @@ O protocolo FIPA-Contract-Net é utilizado para situações onde é necessário 
     :width: 4.5in
 
 
-Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é mostrado abaixo, com a solicitação de um agente iniciante por potência elétrica a outros dois agentes participantes:
+Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é mostrado abaixo, com a solicitação de um agente iniciante por potência elétrica a outros dois agentes participantes. Este código corresponde ao arquivo exemplo agent_example_4.py:
 
 ::
 
-    from pade.misc.common import start_loop, set_ams
-    from pade.misc.utility import display_message
+    from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
-    from pade.acl.messages import ACLMessage
     from pade.acl.aid import AID
+    from pade.acl.messages import ACLMessage
     from pade.behaviours.protocols import FipaContractNetProtocol
-
+    from sys import argv
+    from random import uniform
 
     class CompContNet1(FipaContractNetProtocol):
         '''CompContNet1
 
-           Comportamento FIPA-ContractNet Iniciante que envia mensagens
-           CFP para outros agentes alimentadores solicitando propostas
-           de restauração. Este comportamento também faz a analise das
-           das propostas e analisa-as selecionando a que julga ser a
-           melhor'''
+           Initial FIPA-ContractNet Behaviour that sends CFP messages
+           to other feeder agents asking for restoration proposals.
+           This behaviour also analyzes the proposals and selects the
+           one it judges to be the best.'''
 
         def __init__(self, agent, message):
             super(CompContNet1, self).__init__(
@@ -187,85 +187,84 @@ Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é most
 
             super(CompContNet1, self).handle_all_proposes(proposes)
 
-            melhor_propositor = None
-            maior_potencia = 0.0
-            demais_propositores = list()
-            display_message(self.agent.aid.name, 'Analisando propostas...')
+            best_proposer = None
+            higher_power = 0.0
+            other_proposers = list()
+            display_message(self.agent.aid.name, 'Analyzing proposals...')
 
             i = 1
 
-            # lógica de seleção de propostas pela maior potência disponibilizada
+            # logic to select proposals by the higher available power.
             for message in proposes:
                 content = message.content
-                potencia = float(content)
+                power = float(content)
                 display_message(self.agent.aid.name,
-                                'Analisando proposta {i}'.format(i=i))
+                                'Analyzing proposal {i}'.format(i=i))
                 display_message(self.agent.aid.name,
-                                'Potencia Ofertada: {pot}'.format(pot=potencia))
+                                'Power Offered: {pot}'.format(pot=power))
                 i += 1
-                if potencia > maior_potencia:
-                    if melhor_propositor is not None:
-                        demais_propositores.append(melhor_propositor)
+                if power > higher_power:
+                    if best_proposer is not None:
+                        other_proposers.append(best_proposer)
 
-                    maior_potencia = potencia
-                    melhor_propositor = message.sender
+                    higher_power = power
+                    best_proposer = message.sender
                 else:
-                    demais_propositores.append(message.sender)
+                    other_proposers.append(message.sender)
 
             display_message(self.agent.aid.name,
-                            'A melhor proposta foi de: {pot} VA'.format(
-                                pot=maior_potencia))
+                            'The best proposal was: {pot} VA'.format(
+                                pot=higher_power))
 
-            if demais_propositores != []:
+            if other_proposers != []:
                 display_message(self.agent.aid.name,
-                                'Enviando respostas de recusa...')
-                resposta = ACLMessage(ACLMessage.REJECT_PROPOSAL)
-                resposta.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
-                resposta.set_content('')
-                for agente in demais_propositores:
-                    resposta.add_receiver(agente)
+                                'Sending REJECT_PROPOSAL answers...')
+                answer = ACLMessage(ACLMessage.REJECT_PROPOSAL)
+                answer.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
+                answer.set_content('')
+                for agent in other_proposers:
+                    answer.add_receiver(agent)
 
-                self.agent.send(resposta)
+                self.agent.send(answer)
 
-            if melhor_propositor is not None:
+            if best_proposer is not None:
                 display_message(self.agent.aid.name,
-                                'Enviando resposta de aceitacao...')
+                                'Sending ACCEPT_PROPOSAL answer...')
 
-                resposta = ACLMessage(ACLMessage.ACCEPT_PROPOSAL)
-                resposta.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
-                resposta.set_content('OK')
-                resposta.add_receiver(melhor_propositor)
-                self.agent.send(resposta)
+                answer = ACLMessage(ACLMessage.ACCEPT_PROPOSAL)
+                answer.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
+                answer.set_content('OK')
+                answer.add_receiver(best_proposer)
+                self.agent.send(answer)
 
         def handle_inform(self, message):
             """
             """
             super(CompContNet1, self).handle_inform(message)
 
-            display_message(self.agent.aid.name, 'Mensagem INFORM recebida')
+            display_message(self.agent.aid.name, 'INFORM message received')
 
         def handle_refuse(self, message):
             """
             """
             super(CompContNet1, self).handle_refuse(message)
 
-            display_message(self.agent.aid.name, 'Mensagem REFUSE recebida')
+            display_message(self.agent.aid.name, 'REFUSE message received')
 
         def handle_propose(self, message):
             """
             """
             super(CompContNet1, self).handle_propose(message)
 
-            display_message(self.agent.aid.name, 'Mensagem PROPOSE recebida')
+            display_message(self.agent.aid.name, 'PROPOSE message received')
 
 
     class CompContNet2(FipaContractNetProtocol):
         '''CompContNet2
 
-           Comportamento FIPA-ContractNet Participante que é acionado
-           quando um agente recebe uma mensagem do Tipo CFP enviando logo
-           em seguida uma proposta e caso esta seja selecinada realiza as
-           as análises de restrição para que seja possível a restauração'''
+           FIPA-ContractNet Participant Behaviour that runs when an agent
+           receives a CFP message. A proposal is sent and if it is selected,
+           the restrictions are analized to enable the restoration.'''
 
         def __init__(self, agent):
             super(CompContNet2, self).__init__(agent=agent,
@@ -283,12 +282,12 @@ Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é most
             super(CompContNet2, self).handle_cfp(message)
             self.message = message
 
-            display_message(self.agent.aid.name, 'Mensagem CFP recebida')
+            display_message(self.agent.aid.name, 'CFP message received')
 
-            resposta = self.message.create_reply()
-            resposta.set_performative(ACLMessage.PROPOSE)
-            resposta.set_content(str(self.agent.pot_disp))
-            self.agent.send(resposta)
+            answer = self.message.create_reply()
+            answer.set_performative(ACLMessage.PROPOSE)
+            answer.set_content(str(self.agent.pot_disp))
+            self.agent.send(answer)
 
         def handle_reject_propose(self, message):
             """
@@ -296,7 +295,7 @@ Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é most
             super(CompContNet2, self).handle_reject_propose(message)
 
             display_message(self.agent.aid.name,
-                            'Mensagem REJECT_PROPOSAL recebida')
+                            'REJECT_PROPOSAL message received')
 
         def handle_accept_propose(self, message):
             """
@@ -304,34 +303,38 @@ Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é most
             super(CompContNet2, self).handle_accept_propose(message)
 
             display_message(self.agent.aid.name,
-                            'Mensagem ACCEPT_PROPOSE recebida')
+                            'ACCEPT_PROPOSE message received')
 
-            resposta = message.create_reply()
-            resposta.set_performative(ACLMessage.INFORM)
-            resposta.set_content('OK')
-            self.agent.send(resposta)
+            answer = message.create_reply()
+            answer.set_performative(ACLMessage.INFORM)
+            answer.set_content('OK')
+            self.agent.send(answer)
 
 
-    class AgenteIniciante(Agent):
+    class AgentInitiator(Agent):
 
-        def __init__(self, aid):
-            super(AgenteIniciante, self).__init__(aid=aid, debug=False)
+        def __init__(self, aid, participants):
+            super(AgentInitiator, self).__init__(aid=aid, debug=False)
 
             message = ACLMessage(ACLMessage.CFP)
             message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
             message.set_content('60.0')
-            message.add_receiver(AID('AP1'))
-            message.add_receiver(AID('AP2'))
 
+            for participant in participants:
+                message.add_receiver(AID(name=participant))
+
+            self.call_later(8.0, self.launch_contract_net_protocol, message)
+
+        def launch_contract_net_protocol(self, message):
             comp = CompContNet1(self, message)
             self.behaviours.append(comp)
-            self.call_later(2.0, comp.on_start)
+            comp.on_start()
 
 
-    class AgenteParticipante(Agent):
+    class AgentParticipant(Agent):
 
         def __init__(self, aid, pot_disp):
-            super(AgenteParticipante, self).__init__(aid=aid, debug=False)
+            super(AgentParticipant, self).__init__(aid=aid, debug=False)
 
             self.pot_disp = pot_disp
 
@@ -340,21 +343,32 @@ Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é most
             self.behaviours.append(comp)
 
     if __name__ == "__main__":
+        agents_per_process = 2
+        c = 0
+        agents = list()
+        for i in range(agents_per_process):
+            port = int(argv[1]) + c        
+            k = 10000
+            participants = list()
 
-        set_ams('localhost', 5000, debug=False)
+            agent_name = 'agent_participant_{}@localhost:{}'.format(port - k, port - k)
+            participants.append(agent_name)
+            agente_part_1 = AgentParticipant(AID(name=agent_name), uniform(100.0, 500.0))
+            agents.append(agente_part_1)
 
-        aa_1 = AgenteIniciante(AID(name='AI1'))
-        aa_1.ams = {'name': 'localhost', 'port': 5000}
+            agent_name = 'agent_participant_{}@localhost:{}'.format(port + k, port + k)
+            participants.append(agent_name)
+            agente_part_2 = AgentParticipant(AID(name=agent_name), uniform(100.0, 500.0))
+            agents.append(agente_part_2)
 
-        aa_2 = AgenteParticipante(AID(name='AP1'), 150.0)
-        aa_2.ams = {'name': 'localhost', 'port': 5000}
+            agent_name = 'agent_initiator_{}@localhost:{}'.format(port, port)
+            agente_init_1 = AgentInitiator(AID(name=agent_name), participants)
+            agents.append(agente_init_1)
 
-        aa_3 = AgenteParticipante(AID(name='AP2'), 100.0)
-        aa_3.ams = {'name': 'localhost', 'port': 5000}
+            c += 1000
+        
+        start_loop(agents)
 
-        agents_list = list([aa_1, aa_2, aa_3])
-
-        start_loop(agents_list, gui=True)
 
 O código que implementa os agentes que se comunicam utilizando o protocolo FIPA-ContractNet, definine as duas classes do protocolo, a primeira implementa o comportamento do agente Iniciante (CompContNet1) e a segunda implementa o comportamento do agente participante (CompContNet2). Note que para a classe iniciante é necessário que uma mensagem do tipo CFP (call for proposes) seja montada e o método on_start() seja chamado, isso é feito dentro da classe que implementa os agente iniciante, AgenteIniciante(), já a classe AgenteParticipante(), implementa os agentes que participarão da negociação como propositores.
 
@@ -377,23 +391,22 @@ O protocolo FIPA-Subscribe, implementa o comportamento de editor-assinante, que 
 
 Para assinar a informação o agente precisa enviar uma mensagem SUSBCRIBE para o agente editor. Que por sua vez pode aceitar ou recusar a assinatura (AGREE/REFUSE). Quando uma informação é atualizada, então o editor publica esta informação para todos os seus assinantes, enviando-os mensagens INFORM.
 
-O código que implementa um agente editor e dois agentes assinantes utilizando PADE pode ser visualizado abaixo:
+O código que implementa um agente editor e dois agentes assinantes utilizando PADE pode ser visualizado abaixo e corresponde ao arquivo exemplo agent_example_5.py:
 
 ::
-    
-    from pade.misc.common import start_loop, set_ams
-    from pade.misc.utility import display_message
+
+    from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
     from pade.acl.aid import AID
     from pade.acl.messages import ACLMessage
     from pade.behaviours.protocols import FipaSubscribeProtocol, TimedBehaviour
-    from numpy import sin
+    from sys import argv
+    import random
 
-
-    class SubscribeInitiator(FipaSubscribeProtocol):
+    class SubscriberProtocol(FipaSubscribeProtocol):
 
         def __init__(self, agent, message):
-            super(SubscribeInitiator, self).__init__(agent,
+            super(SubscriberProtocol, self).__init__(agent,
                                                      message,
                                                      is_initiator=True)
 
@@ -404,20 +417,19 @@ O código que implementa um agente editor e dois agentes assinantes utilizando P
             display_message(self.agent.aid.name, message.content)
 
 
-    class SubscribeParticipant(FipaSubscribeProtocol):
+    class PublisherProtocol(FipaSubscribeProtocol):
 
         def __init__(self, agent):
-            super(SubscribeParticipant, self).__init__(agent,
+            super(PublisherProtocol, self).__init__(agent,
                                                        message=None,
                                                        is_initiator=False)
 
         def handle_subscribe(self, message):
             self.register(message.sender)
             display_message(self.agent.aid.name, message.content)
-
             resposta = message.create_reply()
             resposta.set_performative(ACLMessage.AGREE)
-            resposta.set_content('Pedido de subscricao aceito')
+            resposta.set_content('Subscribe message accepted')
             self.agent.send(resposta)
 
         def handle_cancel(self, message):
@@ -425,7 +437,7 @@ O código que implementa um agente editor e dois agentes assinantes utilizando P
             display_message(self.agent.aid.name, message.content)
 
         def notify(self, message):
-            super(SubscribeParticipant, self).notify(message)
+            super(PublisherProtocol, self).notify(message)
 
 
     class Time(TimedBehaviour):
@@ -439,26 +451,30 @@ O código que implementa um agente editor e dois agentes assinantes utilizando P
             super(Time, self).on_time()
             message = ACLMessage(ACLMessage.INFORM)
             message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
-            message.set_content(str(sin(self.inc)))
-
+            message.set_content(str(random.random()))
             self.notify(message)
             self.inc += 0.1
 
 
-    class AgenteInitiator(Agent):
+    class AgentSubscriber(Agent):
 
         def __init__(self, aid, message):
-            super(AgenteInitiator, self).__init__(aid)
-            self.protocol = SubscribeInitiator(self, message)
+            super(AgentSubscriber, self).__init__(aid)
+
+            self.call_later(8.0, self.launch_subscriber_protocol, message)
+
+        def launch_subscriber_protocol(self, message):
+            self.protocol = SubscriberProtocol(self, message)
             self.behaviours.append(self.protocol)
+            self.protocol.on_start()
 
 
-    class AgenteParticipante(Agent):
+    class AgentPublisher(Agent):
 
         def __init__(self, aid):
-            super(AgenteParticipante, self).__init__(aid)
+            super(AgentPublisher, self).__init__(aid)
 
-            self.protocol = SubscribeParticipant(self)
+            self.protocol = PublisherProtocol(self)
             self.timed = Time(self, self.protocol.notify)
 
             self.behaviours.append(self.protocol)
@@ -466,22 +482,34 @@ O código que implementa um agente editor e dois agentes assinantes utilizando P
 
     if __name__ == '__main__':
 
-        set_ams('localhost', 5000, debug=False)
+        agents_per_process = 2
+        c = 0
+        agents = list()
+        for i in range(agents_per_process):
+            port = int(argv[1]) + c        
+            k = 10000
+            participants = list()
 
-        editor = AgenteParticipante(AID('editor'))
-        editor.ams = {'name': 'localhost', 'port': 5000}
+            agent_name = 'agent_publisher_{}@localhost:{}'.format(port, port)
+            participants.append(agent_name)
+            agent_pub_1 = AgentPublisher(AID(name=agent_name))
+            agents.append(agent_pub_1)
 
-        msg = ACLMessage(ACLMessage.SUBSCRIBE)
-        msg.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
-        msg.set_content('Pedido de subscricao')
-        msg.add_receiver('editor')
+            msg = ACLMessage(ACLMessage.SUBSCRIBE)
+            msg.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
+            msg.set_content('Subscription request')
+            msg.add_receiver(agent_pub_1.aid)
 
-        ass1 = AgenteInitiator(AID('assinante_1'), msg)
-        ass1.ams = {'name': 'localhost', 'port': 5000}
+            agent_name = 'agent_subscriber_{}@localhost:{}'.format(port + k, port + k)
+            participants.append(agent_name)
+            agent_sub_1 = AgentSubscriber(AID(name=agent_name), msg)
+            agents.append(agent_sub_1)
 
-        ass2 = AgenteInitiator(AID('assinante_2'), msg)
-        ass2.ams = {'name': 'localhost', 'port': 5000}
+            agent_name = 'agent_subscriber_{}@localhost:{}'.format(port - k, port - k)
+            agent_sub_2 = AgentSubscriber(AID(name=agent_name), msg)
+            agents.append(agent_sub_2)
 
-        agentes = [editor, ass1, ass2]
+            c += 1000
 
-        start_loop(agentes, gui=True)
+        start_loop(agents)
+

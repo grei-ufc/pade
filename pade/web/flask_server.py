@@ -189,8 +189,10 @@ def diagrams():
 
     messages_diagram = ''
     for msg in messages:
-        for receiver in msg.receivers:
-            messages_diagram += str(msg.sender) + '->' + str(receiver) + ': ' + str(msg.performative) + '\n'
+        for receiver in msg.receivers.split(';'):
+            s = str(msg.sender).split('@')[0]
+            r = str(receiver).split('@')[0]
+            messages_diagram += s + '->' + r + ': ' + str(msg.performative) + '\n'
     return render_template('diagrams.html', messages=messages_diagram)
 
 @app.route('/post',  methods=['POST', 'GET'])

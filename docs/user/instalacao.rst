@@ -1,3 +1,6 @@
+
+.. _installation-page:
+
 Instalação
 ==========
 
@@ -18,7 +21,7 @@ Pronto! O Pade está instalado!
 Instalação via GitHub
 ---------------------
 
-Se você quiser ter acesso ao fonte do PADE e instala-lo a partir do fonte, basta digitar as seguintes linhas no terminal:
+Se você quiser ter acesso ao fonte do PADE e instala-lo a partir do repositório oficial, basta digitar os seguintes comandos no terminal:
 
 .. code-block:: console
 
@@ -26,11 +29,11 @@ Se você quiser ter acesso ao fonte do PADE e instala-lo a partir do fonte, bast
     $ cd pade
     $ python setup.py install
 
-Pronto o PADE está pronto para ser utilizado, faça um teste no interpretador Python digitando:
+Pronto o PADE está pronto para ser utilizado, faça um teste entrando na pasta de exemplos e digitando na linha de comandos:
 
 ::
 
-    import pade
+    pade --port 20000 agent_example_1.py
 
 Instalando o PADE em um ambiente virtual
 ----------------------------------------
@@ -61,3 +64,5 @@ Agora basta instalar o pade, por meio do pip:
 .. code-block:: console
 
 	$ pip install pade
+
+.. note:: Você pode utilizar também a excelente distribuição python para computação científica Anaconda. Veja como aqui: `AnacondaInc <https://www.anaconda.com/distribution/>`_.

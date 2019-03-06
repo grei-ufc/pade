@@ -1,4 +1,3 @@
-#!coding=utf-8
 # Hello world in PADE!
 #
 # Criado por Lucas S Melo em 21 de julho de 2015 - Fortaleza, Ceará - Brasil

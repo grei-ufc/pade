@@ -7,9 +7,6 @@ import time
 import json
 import datetime
 
-from pade.core import new_ams
-from pade.core import sniffer
-
 
 class FlaskServerProcess(multiprocessing.Process):
     """
@@ -106,6 +103,9 @@ def main(config):
     # -------------------------------------------------------------
     session = config.get('session')
     pade_ams = config.get('pade_ams')
+
+    from pade.core import new_ams
+
     if pade_ams is None:
         commands = 'python {} {} {} {}'.format(new_ams.__file__,
                                                session['username'],
@@ -115,18 +115,22 @@ def main(config):
         p = subprocess.Popen(commands, stdin=subprocess.PIPE)
         processes.append(p)
     else:
-        commands = 'python {} {} {} {}'.format(new_ams.__file__,
-                                               session['username'],
-                                               session['email'],
-                                               session['password'])
-        commands = shlex.split(commands)
-        p = subprocess.Popen(commands, stdin=subprocess.PIPE)
-        processes.append(p)
+        if pade_ams['launch']:
+            commands = 'python {} {} {} {}'.format(new_ams.__file__,
+                                                   session['username'],
+                                                   session['email'],
+                                                   session['password'])
+            commands = shlex.split(commands)
+            p = subprocess.Popen(commands, stdin=subprocess.PIPE)
+            processes.append(p)
 
     # -------------------------------------------------------------
     # inicializa o agente Sniffer
     # -------------------------------------------------------------
     pade_sniffer = config.get('pade_sniffer')
+
+    from pade.core import sniffer
+
     if pade_sniffer is None:
         time.sleep(2.0)
         commands = 'python {}'.format(sniffer.__file__)
@@ -168,7 +172,11 @@ def main(config):
 
 
 
-@click.command()
+@click.group()
+def cmd():
+    pass
+
+@cmd.command()
 @click.argument('agent_files', nargs=-1)
 @click.option('--num', default=1)
 @click.option('--port', default=2000)
@@ -178,8 +186,7 @@ def main(config):
 @click.option('--username', prompt='please enter a username', default='pade_user')
 @click.option('--password', prompt=True, hide_input=True, default='12345')
 @click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
-def cmd(num, agent_files, port, pade_ams, pade_web, pade_sniffer, username, password):
-
+def start_runtime(num, agent_files, port, pade_ams, pade_web, pade_sniffer, username, password):
     config = dict()
     config['agent_files'] = agent_files
     config['num'] = num
@@ -201,3 +208,37 @@ def cmd(num, agent_files, port, pade_ams, pade_web, pade_sniffer, username, pass
     config['pade_web']['port'] = 5000
 
     main(config)
+
+@cmd.command()
+def create_pade_db():
+    click.echo(click.style('[...] Creating Pade tables in selected data base.', fg='red'))
+    from pade.web.flask_server import db
+    db.create_all()
+    click.echo(click.style('[ok_] Tables created in selected data base', fg='green'))
+
+
+@cmd.command()
+def drop_pade_db():
+    click.echo(click.style('[...] Droping Pade tables in selected data base.', fg='red'))
+    from pade.web.flask_server import db    
+    db.drop_all()
+    click.echo(click.style('[ok_] Tables droped in selected data base', fg='green'))
+
+
+@cmd.command()
+def start_web_interface():
+    click.echo(click.style('[...] Starting Flask web interface.', fg='red'))
+    
+    p = FlaskServerProcess()
+    p.daemon = True
+    p.start()
+
+    while True:
+        time.sleep(2.0)
+        
+        if interrupted:
+            click.echo(click.style('\nStoping PADE...', fg='red'))
+            p.kill()
+            break
+
+    click.echo(click.style('[ok_] Flask web interface stopped', fg='green'))

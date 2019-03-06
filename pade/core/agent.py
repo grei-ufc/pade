@@ -148,8 +148,7 @@ class AgentFactory(protocol.ClientFactory):
         """This method is clled upon a failure 
         in the connection between client and server.
         """
-        display_message(self.aid.name, 'Connection Failed...')
-        print(reason)
+        pass
 
     def clientConnectionLost(self, connector, reason):
         """This method is called when the connection between
@@ -331,7 +330,7 @@ class Agent_(object):
                                'FROM',
                                message.sender.name,
                                'TO',
-                               message.receivers))
+                               receiver.name))
                     try:
                         reactor.connectTCP(self.agentInstance.table[
                                            name].host, self.agentInstance.table[name].port, self.agentInstance)
