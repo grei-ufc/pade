@@ -33,7 +33,7 @@ Pronto o PADE está pronto para ser utilizado, faça um teste entrando na pasta 
 
 ::
 
-    pade --port 20000 agent_example_1.py
+    pade start_runtime --port 20000 agent_example_1.py
 
 Instalando o PADE em um ambiente virtual
 ----------------------------------------

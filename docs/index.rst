@@ -67,7 +67,7 @@ Para instalar o PADE basta executar o seguinte comando em um terminal linux:
 ::
 
     $ pip install pade
-    $ pade --port 20000 agent_example_1.py
+    $ pade start_runtime --port 20000 agent_example_1.py
 
 Veja mais aqui: :ref:`installation-page`.
 
@@ -112,7 +112,8 @@ Guia do Usuário
 .. toctree::
    :maxdepth: 2
 
-   user/instalacao.rst
+   user/instalacao
+   user/pade-cli
    user/hello-world
    user/agentes-temporais
    user/enviando-mensagens
@@ -126,12 +127,12 @@ Guia do Usuário
 
 
 
-Referência da API do PADE 
--------------------------
+.. Referência da API do PADE 
+.. -------------------------
 
-.. toctree::
-   :maxdepth: 2
+.. .. toctree::
+..    :maxdepth: 2
 
-   api
+..    api
 
 

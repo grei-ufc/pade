@@ -46,7 +46,7 @@ Na linha de comando do terminal digite:
 
 .. code-block:: console
 
-    $ pade --port 20000 agent_example_1.py
+    $ pade start_runtime --port 20000 agent_example_1.py
 
 Pronto! Se tudo der certo você deve estar vendo na tela do seu terminal a splash screen do pade, parecida com esta: 
 
