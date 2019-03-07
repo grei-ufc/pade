@@ -27,6 +27,7 @@ os.path.join(basedir, 'data.sqlite')
 app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
+
 # configuracao para utilizacao de chave de seguranca
 # em formularios submetidos pelo metodo POST
 app.config['SECRET_KEY'] = 'h5xzTxz2ksytu8GJjei37KHI8t0unJKN7EQ8KOPU3Khkjhkjguv'
@@ -39,6 +40,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.session_protection = 'strong'
 login_manager.login_view = 'login'
+
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -262,6 +264,12 @@ def messagesTable():
     return render_template('messagesTable.html', messages=messages)
 
 
+@app.route('/messagesList', methods=['GET'])
+def messagesList():
+    messages = Message.query.all()
+    return render_template('messagesList.html', messages=messages)
+
+
 @app.route('/manage_users', methods=['GET', 'POST'])
 @login_required
 def manage_users():
@@ -337,6 +345,11 @@ def message_page(message_id):
 @app.route('/diagrams', methods=['GET', 'POST'])
 @login_required
 def diagrams():
+    return render_template('diagrams.html')
+
+
+@app.route('/messages_diagram', methods=['GET'])
+def messages_diagram():
     # messages = Message.query.order_by(Message.date).limit(100)
     # _messages = list()
     # msgs_id = list()
@@ -364,7 +377,7 @@ def diagrams():
     #         messages_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
     #         messages_diagram += sender + '->' + receivers + ': ' + content + '\n'
 
-    messages = Message.query.order_by(Message.date).limit(300)
+    messages = Message.query.order_by(Message.date)
 
     messages_diagram = ''
 
@@ -381,7 +394,7 @@ def diagrams():
         messages_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
         messages_diagram += sender + '->' + receivers + ': ' + content + '\n'
 
-    return render_template('diagrams.html', messages=messages_diagram)
+    return render_template('messagesDiagrams.html', messages=messages_diagram)
 
 
 @app.route('/messages', methods=['GET', 'POST'])
@@ -391,12 +404,17 @@ def messages():
     senders = []
     performatives = []
 
+    # This for loop its used to get all the senders and performatives from the messages being sent,
+    # so it can be used in the filters
     for message in messages:
         if message.sender not in senders[:]:
             senders.append(message.sender)
 
         if message.performative not in performatives[:]:
             performatives.append(message.performative)
+
+    if request.method == 'GET':
+        return render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
 
     if request.method == 'POST':
         selectedSender = request.form.get('sender')
@@ -434,9 +452,7 @@ def messages():
             if selectedSender != '' and selectedPerformative != '':
                 messages = Message.query.filter_by(performative=selectedPerformative, sender=selectedSender)
 
-            return render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
-
-    return render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
+        return render_template('messagesFiltered.html', messages=messages, senders=senders, performatives=performatives)
 
 
 @app.route('/post',  methods=['POST', 'GET'])
@@ -447,10 +463,15 @@ def my_post():
         return 'Hello ' + str(request.form['name'])
 
 
-def run_server():
+def run_server(secure):
+    if secure:
+        login_manager._login_disabled = False
+    else:
+        login_manager._login_disabled = True
+
     app.run(host='0.0.0.0', port=5000, debug=None)
 
 
 if __name__ == '__main__':
     manager.run()
-    run_server()
+    run_server(secure)

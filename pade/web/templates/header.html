@@ -8,15 +8,17 @@
 
 <style>
 
-    .navbar {
-        height: 60px;
+    .navbar-header {
+        float: right;
+        display: block;
+        width: 50px;
     }
 
     .navbar .nav > li {
-        display:        inline;
-        color:          red;
-        font-family:    Garamond;
-        font-size:      1.5em;
+        display: inline;
+        color: red;
+        font-family: Garamond;
+        font-size: 1.5em;
         vertical-align: center;
     }
 
@@ -45,7 +47,6 @@
         </div>
 
         <div class="navbar-collapse collapse">
-
             <ul class="nav navbar-nav">
                 <li><a href="/">Home</a></li>
                 <li><a href="/messages">Messages</a></li>
@@ -57,12 +58,11 @@
 
             <ul class="nav navbar-nav navbar-right">
                 {% if current_user.is_authenticated %}
-                    <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
+                <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
                 {% else %}
-                    <li><a href="{{ url_for('login') }}">Sign In</a></li>
+                <li><a href="{{ url_for('login') }}">Sign In</a></li>
                 {% endif %}
             </ul>
-
         </div>
     </div>
 </div>

@@ -1,11 +1,6 @@
 {% include 'header.html' %}
 
 <head>
-    <script src="../static/webfont.js"></script>
-    <script src="../static/snap.svg-min.js"></script>
-    <script src="../static/underscore-min.js"></script>
-    <script src="../static/sequence-diagram-min.js"></script>
-
     <style>
         .btn-primary {
             display: inline-block;
@@ -29,16 +24,9 @@
         <h2>Messages Diagram</h2>
     </div>
 
-    <div class="row">
 
-        <pre id="txt" class="hidden">
-            {{ messages }}
-        </pre>
-
-        <div class="container" id="diagram">
-
-        </div>
-
+    <div class="row" id="diagram">
+        <!-- The diagram will be rendered via AJAX -->
     </div>
 
 </div>
@@ -47,9 +35,16 @@
 
 </body>
 
-<script>
-    var diagram = Diagram.parse(document.getElementById('txt').innerText);
-    diagram.drawSVG("diagram", {theme: 'simple'});
+<script type="text/javascript">
+    $(document).ready(function () {
+        refreshTable();
+    });
+
+    function refreshTable() {
+        $('#diagram').load('/messages_diagram', function () {
+            setTimeout(refreshTable, 5000);
+        });
+    }
 </script>
 
 {% include 'footer.html' %}
