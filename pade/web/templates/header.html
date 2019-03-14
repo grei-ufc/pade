@@ -53,7 +53,9 @@
                 <!--
                 <li><a href="/session">Manage Agents</a></li>
                 -->
+                {% if current_user.is_authenticated %}
                 <li><a href="/manage_users">Manage Users</a></li>
+                {% endif %}
             </ul>
 
             <ul class="nav navbar-nav navbar-right">
