@@ -2,12 +2,13 @@ import os
 import datetime
 
 from flask import Flask
-from flask import request, render_template, flash, redirect, url_for
+from flask import request, render_template, flash, redirect, url_for, jsonify
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, login_required, login_user, logout_user, UserMixin, current_user
 from flask_wtf import FlaskForm
 from flask_migrate import Migrate, MigrateCommand
 from flask_sqlalchemy import SQLAlchemy
+from flask_marshmallow import Marshmallow
 from flask_script import Manager
 from flask_login import UserMixin
 
@@ -15,7 +16,6 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, valid
 from wtforms.validators import Required, Email, Length
 
 from werkzeug.security import generate_password_hash, check_password_hash
-
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -43,6 +43,8 @@ login_manager.login_view = 'login'
 
 
 db = SQLAlchemy(app)
+ma = Marshmallow(app)
+
 migrate = Migrate(app, db)
 
 manager = Manager(app)
@@ -118,6 +120,21 @@ class Message(db.Model):
 
     def __repr__(self):
         return 'Message %s' % self.id
+
+
+class SessionSchema(ma.ModelSchema):
+    class Meta:
+        model = Session
+
+
+class AgentSchema(ma.ModelSchema):
+    class Meta:
+        model = AgentModel
+
+
+class MessageSchema(ma.ModelSchema):
+    class Meta:
+        model = Message
 
 
 class LoginForm(FlaskForm):
@@ -294,17 +311,6 @@ def agent_messages(agent_id):
     return render_template('agent_messages.html', messages=messages, agent=agent)
 
 
-def get_agents():
-    agents = AgentModel.query.all()
-    char1 = '@'
-    char2 = ':'
-    instances = ''
-    for a in agents:
-        origin = a.name[a.name.find(char1)+1:a.name.find(char2)]
-        if origin not in instances:
-            instances += origin
-
-
 @app.route('/session/agents', methods=['POST'])
 def manageAgent():
     agent = request.form.get('stop')
@@ -340,6 +346,20 @@ def manageAgent():
 def message_page(message_id):
     message = Message.query.filter_by(id=message_id).first()
     return render_template('message.html', message=message)
+
+
+@app.route('/sessions', methods=['GET', 'POST'])
+@login_required
+def manage_sessions():
+    return render_template('sessions.html')
+
+
+@app.route('/get_agents', methods=['GET'])
+def get_agents():
+    agent_schema = AgentSchema(many=True)
+    result = AgentModel.query.all()
+    output = agent_schema.dump(result).data
+    return jsonify({'agents': output})
 
 
 @app.route('/diagrams', methods=['GET', 'POST'])
