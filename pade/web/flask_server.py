@@ -1,5 +1,6 @@
 import os
 import datetime
+import requests
 
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for, jsonify
@@ -270,7 +271,6 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    get_agents()
     sessions = Session.query.all()
     return render_template('index.html', sessions=sessions)
 
@@ -354,12 +354,39 @@ def manage_sessions():
     return render_template('sessions.html')
 
 
-@app.route('/get_agents', methods=['GET'])
-def get_agents():
-    agent_schema = AgentSchema(many=True)
-    result = AgentModel.query.all()
-    output = agent_schema.dump(result).data
-    return jsonify({'agents': output})
+@app.route('/remote_sessions', methods=['GET'])
+def get_sessions():
+    data = []
+    agents = []
+
+    sessions = Session.query.all()
+    for session in sessions:
+        data = {'session_name': session.name,
+                'session_id': session.id,
+                'session_date': session.date,
+                'session_state': session.state,
+                'session_agents': []
+                }
+
+        for agent in session.agents:
+            data_agents = {'agent_id': agent.id,
+                           'agent_session_id': agent.session.id,
+                           'agent_name': agent.name,
+                           'agent_date': agent.date,
+                           'agent_state': agent.state,
+                           'agent_messages': []
+                           }
+
+            message_schema = MessageSchema(many=True)
+            result = Message.query.filter_by(agent_id=agent.id)
+            messages = message_schema.dump(result).data
+
+            data_agents['agent_messages'] = messages
+            agents.append(data_agents)
+
+        data['session_agents'] = agents
+
+    return jsonify({'sessions': data})
 
 
 @app.route('/diagrams', methods=['GET', 'POST'])
