@@ -378,8 +378,8 @@ def get_sessions():
                            }
 
             message_schema = MessageSchema(many=True)
-            result = Message.query.filter_by(agent_id=agent.id)
-            messages = message_schema.dump(result).data
+            result = Message.query.filter_by(agent_id=agent.id).all()
+            messages = message_schema.dump(result)
 
             data_agents['agent_messages'] = messages
             agents.append(data_agents)
