@@ -1,0 +1,162 @@
+{% include 'header.html' %}
+
+<script>
+    $(function () {
+
+        $('.list-group-item').on('click', function () {
+            $('.glyphicon', this)
+                .toggleClass('glyphicon-chevron-right')
+                .toggleClass('glyphicon-chevron-down');
+        });
+
+    });
+</script>
+
+<style>
+    .just-padding {
+        padding: 15px;
+    }
+
+    .list-group.list-group-root {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .list-group.list-group-root .list-group {
+        margin-bottom: 0;
+    }
+
+    .list-group.list-group-root .list-group-item {
+        border-radius: 0;
+        border-width: 1px 0 0 0;
+    }
+
+    .list-group.list-group-root > .list-group-item:first-child {
+        border-top-width: 0;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group-item {
+        padding-left: 30px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group-item {
+        padding-left: 45px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group-item {
+        padding-left: 60px;
+    }
+
+    .list-group-item .glyphicon {
+        margin-right: 5px;
+    }
+</style>
+
+<body>
+
+{% block content %}
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <div class="just-padding">
+                <div class="list-group list-group-root well">
+
+                    {% for key, value in data.items() %}
+
+                        {% for new_key, new_value in value.items() %}
+
+                            {% if new_key == 'session_agents' %}
+
+                                <a href="#agents" class="list-group-item" data-toggle="collapse">
+                                    <i class="glyphicon glyphicon-chevron-right"></i>Agents
+                                </a>
+                                <div class="list-group collapse" id="agents">
+
+                                    {% for agents in new_value %}
+
+                                    <a href="#" class="list-group-item"><b>Agent</b></a>
+                                    <div class="list-group">
+
+                                        {% for a, d in agents.items() %}
+
+                                        {% if a == 'agent_date' %}
+
+                                        <a href="#" class="list-group-item">Agent Start: {{ d }} </a>
+
+                                        {% elif a == 'agent_id' %}
+
+                                        <a href="#" class="list-group-item">Agent ID: {{ d }} </a>
+
+                                        {% elif a == 'agent_messages' and d|length > 1 %}
+
+                                            {% for message in d %}
+
+                                                <a href="#" class="list-group-item"><b>Message</b></a>
+                                                <div class="list-group">
+                                                    {% for m, c in message.items() %}
+
+                                                        <a href="#" class="list-group-item">{{ m }}: {{ c }}</a>
+
+                                                    {%endfor%}
+                                                </div>
+
+                                            {% endfor %}
+
+                                        {% elif a == 'agent_name' %}
+
+                                        <a href="#" class="list-group-item">Agent Name: {{ d }} </a>
+
+                                        {% elif a == 'agent_session_id' %}
+
+                                        <a href="#" class="list-group-item">Agent Session ID: {{ d }} </a>
+
+                                        {% elif a == 'agent_state' %}
+
+                                        <a href="#" class="list-group-item">Agent State: {{ d }} </a>
+
+                                        {% endif %}
+
+                                        {% endfor %}
+
+                                    </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% elif new_key == 'session_date' %}
+
+                                <a href="#" class="list-group-item">Date: {{ new_value }}</a>
+
+                            {% elif new_key == 'session_id' %}
+
+                                <a href="#" class="list-group-item">ID: {{ new_value }}</a>
+
+                            {% elif new_key == 'session_name' %}
+
+                                <a href="#" class="list-group-item">Name: {{ new_value }}</a>
+
+                            {% elif new_key == 'session_state' %}
+
+                                <a href="#" class="list-group-item">State: {{ new_value }}</a>
+
+                            {% endif %}
+
+                        {% endfor %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+</body>
+
+{% include 'footer.html' %}

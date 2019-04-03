@@ -25,7 +25,7 @@
 
     <div class="container">
         <div class="row">
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+            <div class="col-sm-4">
                 <h2>Sessions</h2>
                 <div class="list-group">
                     {% for session in sessions %}
@@ -45,7 +45,7 @@
                 </a>
             </div>
 
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6" id="messagesTable" style="overflow: auto">
+            <div class="col-sm-8" id="messagesTable" style="overflow: auto">
                 <!-- Table will be rendered via AJAX -->
             </div>
 
@@ -69,25 +69,6 @@
             });
         }
     </script>
-
-<!--    <script>
-        function loadData() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (xhttp.readyState == 4 && xhttp.status == 200) {
-                    var response = $($.parseHTML(xhttp.responseText));
-                    $(".list-group").html(response.find(".list-group").html());
-                }
-            };
-            xhttp.open("GET", "http://localhost:5000", true);
-            xhttp.send();
-            setTimeout(loadData, 2000);
-        };
-        $(document).ready(function() {
-            // run the first time; all subsequent calls will take care of themselves
-            setTimeout(loadData, 2000);
-        });
-    </script>-->
 </body>
 
 {% include 'footer.html' %}

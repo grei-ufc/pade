@@ -379,7 +379,7 @@ def get_sessions():
 
             message_schema = MessageSchema(many=True)
             result = Message.query.filter_by(agent_id=agent.id).all()
-            messages = message_schema.dump(result)
+            messages = message_schema.dump(result).data
 
             data_agents['agent_messages'] = messages
             agents.append(data_agents)
@@ -387,6 +387,16 @@ def get_sessions():
         data['session_agents'] = agents
 
     return jsonify({'sessions': data})
+
+
+@app.route('/send_request', methods=['GET', 'POST'])
+def send_request():
+    if request.method == 'GET':
+        return render_template('sessions.html')
+    if request.method == 'POST':
+        host = request.form.get('host_ip')
+        data = requests.get('http://' + host + ':5000/remote_sessions').json()
+        return render_template('remote_sessions.html', data=data)
 
 
 @app.route('/diagrams', methods=['GET', 'POST'])

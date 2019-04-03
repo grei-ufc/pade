@@ -6,20 +6,21 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-            <h2>Remote Session</h2>
+        <h2>Remote Session</h2>
 
-            <form class="form-inline" method="POST" action="{{ url_for('manage_sessions') }}">
+        <form class="form-inline" method="POST" action="{{ url_for('send_request') }}">
 
-                <div class="form-group">
-                    <input type="text" class="form-control" minlength="7" maxlength="15" size="15" placeholder="Host IP"
-                           pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
-                </div>
+            <h4>Enter the PADE remote instance IP: </h4>
 
-                <button type="submit" class="btn btn-default">Conect!</button>
+            <div class="form-group">
+                <input type="text" name="host_ip" class="form-control" minlength="7" maxlength="15" size="15"
+                       placeholder="e.g 192.168.0.100"
+                       pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
+            </div>
 
-            </form>
+            <button type="submit" class="btn btn-default">Connect!</button>
 
+        </form>
     </div>
 </div>
 
