@@ -1,0 +1,105 @@
+{% include 'header.html' %}
+
+<body>
+
+
+    {% block content %}
+
+    <div class="container">
+        <div class="page-header">
+            <h2>Message {{ message.id }}</h2>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-8 col-md-8 col-lg-8">
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <form class="form-horizontal">
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Date</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.date.hour }}:{{ message.date.minute }}:{{ message.data.second }} - {{ message.data.day }}/{{ message.data.month }}/{{ message.data.year }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-2 control-label">Conv. Id</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.conversation_id }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-sm-2 control-label">Sender</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.sender }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-sm-2 control-label">Receivers</label>
+                                <div class="col-sm-6">
+                                    {% for receiver in message.receivers %}
+                                        <p class="form-control-static">{{ receiver }}</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-sm-2 control-label">Performative</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.performative }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-sm-2 control-label">Protocol</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.protocol }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-sm-2 control-label">Content</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.content }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-sm-2 control-label">Ontology</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.ontology }}</p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword" class="col-sm-2 control-label">Language</label>
+                                <div class="col-sm-6">
+                                    <p class="form-control-static">{{ message.language }}</p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <script>
+    //     function loadData() {
+    //         var xhttp = new XMLHttpRequest();
+    //         xhttp.onreadystatechange = function() {
+    //             if (xhttp.readyState == 4 && xhttp.status == 200) {
+    //                 var response = $($.parseHTML(xhttp.responseText));
+    //                 $(".list-group").html(response.find(".list-group").html());
+    //             }
+    //         };
+    //         xhttp.open("GET", "http://localhost:5000", true);
+    //         xhttp.send();
+    //         setTimeout(loadData, 2000);
+    //     };
+    //     $(document).ready(function() {
+    //         // run the first time; all subsequent calls will take care of themselves
+    //         setTimeout(loadData, 2000);
+    //     });
+    </script>
+</body>
+
+{% include 'footer.html' %}

@@ -1,0 +1,54 @@
+{% include 'header.html' %}
+
+<body>
+
+    {% block content %}
+    <div class="container">
+        <div class="page-header">
+            <h1>Hello, PADE!</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h2>Sessions</h2>
+                <div class="list-group">
+                    {% for session in sessions %}
+                        <a href="/session/{{ session.id }}" class="list-group-item">
+                            <h4>Sessão: {{ session.name }}</h4>
+                            <p>Inicio: {{ session.date.hour }}:{{ session.date.minute }}:{{ session.date.second }} - {{ session.date.day }}/{{ session.date.month }}/{{ session.date.year }}</p>
+                            <p>Estado: {{ session.state }}</p>
+                            <p id="name" type="hidden" value="{{ session.name }}"></p>
+                            <p id="id" type="hidden" value={{ session.id }}></p>
+                            <p id="inicio" type="hidden" value="{{ session.date.hour }}:{{ session.date.minute }}:{{ session.date.second }} - {{ session.date.day }}/{{ session.date.month }}/{{ session.date.year }}"></p>
+                            <p id="estado" type="hidden" value="{{ session.state }}"></p>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <script>
+        function loadData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    var response = $($.parseHTML(xhttp.responseText));
+                    $(".list-group").html(response.find(".list-group").html());
+                }
+            };
+            xhttp.open("GET", "http://localhost:5000", true);
+            xhttp.send();
+            setTimeout(loadData, 2000);
+        };
+        $(document).ready(function() {
+            // run the first time; all subsequent calls will take care of themselves
+            setTimeout(loadData, 2000);
+        });
+    </script>
+</body>
+
+{% include 'footer.html' %}

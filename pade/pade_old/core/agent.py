@@ -47,7 +47,7 @@ from pade.acl.messages import ACLMessage
 from pade.behaviours.protocols import Behaviour
 from pade.behaviours.protocols import FipaRequestProtocol, FipaSubscribeProtocol
 from pade.acl.aid import AID
-from pade.scheduler.core import Scheduler
+from pade.scheduler import Scheduler
 from pade.misc.utility import display_message
 
 from pickle import dumps, loads
@@ -128,7 +128,7 @@ class AgentFactory(protocol.ClientFactory):
 
         self.messages = []  # stores the messages to be sent.
 
-        # method that executes the agent's behaviour defined
+        # method that executes the agent's behaviour defined 
         # both by the user and by the System-PADE.
         self.react = agent_ref.react
         # method that executes the agent's behaviour defined both
@@ -147,7 +147,7 @@ class AgentFactory(protocol.ClientFactory):
         return protocol
 
     def clientConnectionFailed(self, connector, reason):
-        """This method is clled upon a failure
+        """This method is clled upon a failure 
         in the connection between client and server.
         """
         pass
@@ -172,11 +172,11 @@ class Agent_(object):
     6. abstract method to be used when implementing the agents' behaviour when they receive a message
     """
 
-    def __init__(self, aid, debug = False, filter_ams_messages = True):
+    def __init__(self, aid, debug=False):
         self.mosaik_connection = None
         self.aid = aid
         self.debug = debug
-
+        
         # ALL: create an aid object with the aid of ams
         self.ams = dict()
         self.sniffer = dict()
@@ -185,9 +185,8 @@ class Agent_(object):
         self.__messages = list()
         self.ILP = None
 
-        # Extra attributes
-        self.scheduler = Scheduler(self) # Scheduler object to manage the behaviours of this agent
-        self.filter_ams_messages = filter_ams_messages # It indicates if the ams messages will be filtered
+        # Scheduler object to manage the behaviours of this agent
+        self.scheduler = Scheduler(self)
 
     @property
     def aid(self):
@@ -197,8 +196,6 @@ class Agent_(object):
     def aid(self, value):
         if isinstance(value, AID):
             self.__aid = value
-        elif isinstance(value, str):
-            self.__aid = AID(name = value)
         else:
             raise ValueError('aid object type must be AID!')
 
@@ -271,13 +268,16 @@ class Agent_(object):
                 raise ValueError(
                     'behaviour must be a subclass of Behaviour class!')
         else:
-            self.__behaviours = value
+            #self.__behaviours = value
+            self.scheduler.add_behaviour(value)
 
     def add_behaviour(self, behaviour):
-        ''' This method adds behaviours to Scheduler
-        '''
-        #self.behaviours.append(behaviour)
-        self.scheduler.add_behaviour(behaviour)
+        if not issubclass(behaviour.__class__, Behaviour):
+            raise ValueError(
+                'behaviour must be a subclass of Behaviour class!')
+        else:
+            #self.behaviours.append(behaviour)
+            self.scheduler.add_behaviour(behaviour)
 
     @property
     def system_behaviours(self):
@@ -308,11 +308,6 @@ class Agent_(object):
         else:
             for behaviour in self.behaviours:
                 behaviour.execute(message)
-            # Passes the received message to all behaviours
-            if not self.filter_ams_messages or message.sender.getLocalName() != 'ams':
-                self.scheduler.receive_message(message)
-
-
 
     def send(self, message):
         """This method sends an ACL message to the agents specified
@@ -388,27 +383,16 @@ class Agent_(object):
                 message.add_receiver(agent_aid)
 
     def on_start(self):
-        """This method defines the initial behaviours
+        """This method defines the initial behaviours 
         of an agent.
         """
         # This "for" adds the standard behaviours specified
         # by the user.
         for system_behaviour in self.system_behaviours:
             system_behaviour.on_start()
-
-        reactor.callLater(1.0, self.__launch_agent_behaviours)
-        self.setup()
-
-        # This call starts the Scheduler
-        #self.scheduler.run()
-
-    def setup(self):
-        ''' This method is an alternative to initiate agents without
-        override the self.on_start() method in the subclasses.
-        '''
-        pass
-
-
+        
+        reactor.callLater(2.0, self.__launch_agent_behaviours)
+    
     def __launch_agent_behaviours(self):
         for behaviour in self.behaviours:
             behaviour.on_start()
@@ -430,14 +414,14 @@ class Agent_(object):
         """
         self.ams = ams
         self.agentInstance = AgentFactory(agent_ref=self)
-
+        
 
 
 # PADE behaviours that compose the Agent class.
 
 class SubscribeBehaviour(FipaSubscribeProtocol):
     """
-        This class implements the behaviour of the
+        This class implements the behaviour of the 
         agent that identifies it to the AMS.
     """
     def __init__(self, agent, message):
@@ -461,7 +445,7 @@ class CompConnection(FipaRequestProtocol):
     """
         This class implements the agent's behaviour
         that answers the solicitations the AMS
-        makes to detect if the agent is connected or not.
+        makes to detect if the agent is connected or not. 
     """
     def __init__(self, agent):
         super(CompConnection, self).__init__(agent=agent,
@@ -483,8 +467,8 @@ class CompConnection(FipaRequestProtocol):
 class Agent(Agent_):
     def __init__(self, aid, debug=False):
         super(Agent, self).__init__(aid=aid, debug=debug)
-
-        self.comport_connection = CompConnection(self)
+        
+        self.comport_connection = CompConnection(self)        
         self.system_behaviours.append(self.comport_connection)
 
     def update_ams(self,ams):
