@@ -407,38 +407,10 @@ def diagrams():
 
 @app.route('/messages_diagram', methods=['GET'])
 def messages_diagram():
-    # messages = Message.query.order_by(Message.date).limit(100)
-    # _messages = list()
-    # msgs_id = list()
-    #
-    # for msg in messages:
-    #     if msg.message_id in msgs_id:
-    #         messages.remove(msg)
-    #         continue
-    #     msgs_id.append(msg.message_id)
-    #
-    # messages_diagram = ''
-    # for msg in messages:
-    #
-    #     for receiver in msg.receivers:
-    #         content = msg.content
-    #         sender = msg.sender
-    #         receivers = msg.receivers
-    #         performative = msg.performative
-    #
-    #
-    #         # Limiting the size of the message to be displayed
-    #         if len(content) > 50:
-    #             content = "Content is too big to be displayed :( \n\n Please adjust your message."
-    #
-    #         messages_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
-    #         messages_diagram += sender + '->' + receivers + ': ' + content + '\n'
+    data = Message.query.order_by(Message.date)
+    data_diagram = ''
 
-    messages = Message.query.order_by(Message.date)
-
-    messages_diagram = ''
-
-    for msg in messages:
+    for msg in data:
         content = msg.content
         sender = msg.sender.split("@")[0]
         receivers = msg.receivers
@@ -448,22 +420,22 @@ def messages_diagram():
         if len(content) > 50:
             content = "Content is too big to be displayed :( \n\n Please adjust your message."
 
-        messages_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
-        messages_diagram += sender + '->' + receivers + ': ' + content + '\n'
+        data_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
+        data_diagram += sender + '->' + receivers + ': ' + content + '\n'
 
-    return render_template('messagesDiagrams.html', messages=messages_diagram)
+    return render_template('messagesDiagrams.html', messages=data_diagram)
 
 
 @app.route('/messages', methods=['GET', 'POST'])
 @login_required
 def messages():
-    messages = Message.query.all()
+    data = Message.query.all()
     senders = []
     performatives = []
 
     # This for loop its used to get all the senders and performatives from the messages being sent,
     # so it can be used in the filters
-    for message in messages:
+    for message in data:
         if message.sender not in senders[:]:
             senders.append(message.sender)
 
@@ -471,45 +443,41 @@ def messages():
             performatives.append(message.performative)
 
     if request.method == 'GET':
-        return render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
+        return render_template('messages.html', messages=data, senders=senders, performatives=performatives)
 
     if request.method == 'POST':
-        selectedSender = request.form.get('sender')
-        selectedPerformative = request.form.get('performative')
-        agentName = request.form.get('agentName')
-        content = request.form.get('content')
-        timeStart = request.form.get('timeStart')
-        timeStop = request.form.get('timeStop')
+        data.clear()
+        data = set()
 
-        if agentName:
-            messages = Message.query.filter(or_(Message.sender.contains(agentName),
-                                                Message.receivers.contains(agentName)))
-            render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
+        ###############################
+        # Capturing values from input #
+        ###############################
+        selected_sender = request.form.get('sender')
+        selected_performative = request.form.get('performative')
+        agent_name = request.form.get('agentName')
+        content = request.form.get('content')
+        time_start = request.form.get('timeStart')
+        time_stop = request.form.get('timeStop')
+
+        if agent_name:
+            data = Message.query.filter(Message.sender.contains(agent_name))\
+                .filter(Message.receivers.contains(agent_name))
 
         if content:
-            messages = Message.query.filter(Message.content.contains(content))
-            render_template('messages.html', messages=messages, senders=senders, performatives=performatives)
+            data = Message.query.filter(Message.content.contains(content))
 
-        if selectedSender or selectedPerformative or timeStart and timeStop:
+        if selected_performative:
+            data = Message.query.filter(Message.performative == selected_performative)
 
-            if timeStart:
-                start = timeStart.replace("T", " ") + ":00.000000"
-                stop = timeStop.replace("T", " ") + ":00.000000"
-                dateObjectStart = datetime.datetime.strptime(start, '%Y-%m-%d %H:%M:%S.%f')
-                dateObjectStop = datetime.datetime.strptime(stop, '%Y-%m-%d %H:%M:%S.%f')
+        if selected_sender:
+            data = Message.query.filter(Message.sender == selected_sender)
 
-                messages = Message.query.filter(Message.date.between(dateObjectStart, dateObjectStop))
+        if time_start:
+            start = time_start.replace("T", " ") + ":00.000000"
+            stop = time_stop.replace("T", " ") + ":59.999999"
+            data = Message.query.filter(Message.date > start).filter(Message.date < stop)
 
-            if selectedSender == '':
-                messages = Message.query.filter_by(performative=selectedPerformative)
-
-            if selectedPerformative == '':
-                messages = Message.query.filter_by(sender=selectedSender)
-
-            if selectedSender != '' and selectedPerformative != '':
-                messages = Message.query.filter_by(performative=selectedPerformative, sender=selectedSender)
-
-        return render_template('messagesFiltered.html', messages=messages, senders=senders, performatives=performatives)
+        return render_template('messagesFiltered.html', messages=data, senders=senders, performatives=performatives)
 
 
 @app.route('/post',  methods=['POST', 'GET'])
