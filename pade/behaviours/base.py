@@ -77,3 +77,10 @@ class BaseBehaviour(Behaviour):
 		''' It returns the status of this behaviour.
 		'''
 		return self.bkd
+
+	def on_end(self):
+		''' The scheduler will calls this method after the self.done()
+		method returns True and before the end of this behaviour. It is
+		the last action of a behaviour.
+		'''
+		pass

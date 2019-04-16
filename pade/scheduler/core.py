@@ -6,7 +6,7 @@ of the system agents.
 '''
 
 from threading import Thread
-from pade.behaviours.behaviour import BaseBehaviour
+from pade.behaviours.base import BaseBehaviour
 
 class Scheduler(object):
 	''' Scheduler class basically executes the behaviours (under
@@ -136,5 +136,6 @@ class Task(Thread):
 			else:
 				self.scheduler.enqueue(self.behaviour) # Goes to active queue
 		else:
-			self.scheduler.remove_behaviour(self.behaviour)
-			self.scheduler.kill(self)
+			self.behaviour.on_end() # Lasts actions of the behaviour
+			self.scheduler.remove_behaviour(self.behaviour) # Behaviour remotion
+		self.scheduler.kill(self) # Thread will die after its execution (only once)

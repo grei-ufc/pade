@@ -172,7 +172,7 @@ class Agent_(object):
     6. abstract method to be used when implementing the agents' behaviour when they receive a message
     """
 
-    def __init__(self, aid, debug = False, filter_ams_messages = True):
+    def __init__(self, aid, debug = False, ignore_ams_messages = True):
         self.mosaik_connection = None
         self.aid = aid
         self.debug = debug
@@ -187,7 +187,7 @@ class Agent_(object):
 
         # Extra attributes
         self.scheduler = Scheduler(self) # Scheduler object to manage the behaviours of this agent
-        self.filter_ams_messages = filter_ams_messages # It indicates if the ams messages will be filtered
+        self.ignore_ams_messages = ignore_ams_messages # It indicates if the ams messages will be filtered
 
     @property
     def aid(self):
@@ -308,8 +308,8 @@ class Agent_(object):
         else:
             for behaviour in self.behaviours:
                 behaviour.execute(message)
-            # Passes the received message to all behaviours
-            if not self.filter_ams_messages or message.sender.getLocalName() != 'ams':
+        # Passes the received message to all behaviours
+        if not self.ignore_ams_messages or message.sender.getLocalName() != 'ams':
                 self.scheduler.receive_message(message)
 
 
@@ -481,8 +481,8 @@ class CompConnection(FipaRequestProtocol):
 # Main Agent Class
 
 class Agent(Agent_):
-    def __init__(self, aid, debug=False):
-        super(Agent, self).__init__(aid=aid, debug=debug)
+    def __init__(self, aid, debug=False, ignore_ams_messages = True):
+        super(Agent, self).__init__(aid=aid, debug=debug, ignore_ams_messages = ignore_ams_messages)
 
         self.comport_connection = CompConnection(self)
         self.system_behaviours.append(self.comport_connection)
