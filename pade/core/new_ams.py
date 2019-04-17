@@ -265,7 +265,7 @@ class AMS(Agent_):
         message.set_system_message(is_system_message=True)
 
         self.comport_conn_verify = CompConnectionVerify(self, message)
-        self.comport_send_conn_messages = ComportSendConnMessages(self, message, 10.0)
+        self.comport_send_conn_messages = ComportSendConnMessages(self, message, 5.0)
         self.comport_conn_verify_timed = ComportVerifyConnTimed(self, 20.0)
         self.comport_conn_verify_reg = CompVerifyRegister(self)
 

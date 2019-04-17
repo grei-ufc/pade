@@ -28,8 +28,8 @@ class BaseBehaviour(Behaviour):
 		'''
 		if self.messages != []:
 			message = self.messages[0]
-			self.messages = messages[1:]
-			return self.messages[0]
+			self.messages = self.messages[1:]
+			return message
 		else:
 			return None
 
@@ -84,3 +84,9 @@ class BaseBehaviour(Behaviour):
 		the last action of a behaviour.
 		'''
 		pass
+
+	def has_messages(self):
+		''' A method to returns if this behaviour has messages in its
+		received messages queue.
+		'''
+		return self.messages != []

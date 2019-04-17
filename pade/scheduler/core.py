@@ -7,6 +7,7 @@ of the system agents.
 
 from threading import Thread
 from pade.behaviours.base import BaseBehaviour
+from pade.misc.utility import display
 
 class Scheduler(object):
 	''' Scheduler class basically executes the behaviours (under
@@ -83,6 +84,7 @@ class Scheduler(object):
 		''' It passes the arrived message to all existing behaviours (all
 		behaviours in the self.behaviours queue).
 		'''
+		#display(self.agent, '<> Recebi uma mensagem aleatória! <>')
 		for behaviour in self.behaviours:
 			behaviour.receive(message)
 		self.unblock_behaviours()
@@ -91,7 +93,7 @@ class Scheduler(object):
 		''' It puts the behaviours from blocked behaviours queue to
 		active tasks queue.
 		'''
-		activated_behaviours = []
+		'''activated_behaviours = []
 		for behaviour in self.blocked_behaviours:
 			behaviour.unblock()
 			self.enqueue(behaviour)
@@ -100,15 +102,23 @@ class Scheduler(object):
 		# This for is needed because new behaviours may have been added
 		# in the blocked behaviours queue.
 		for behaviour in activated_behaviours:
-			self.blocked_behaviours.remove(behaviour)
+			self.blocked_behaviours.remove(behaviour)'''
 		#self.wakeup()
+		display(self.agent, 'Behaviours to unblock: %d.' % len(self.blocked_behaviours))
+		while len(self.blocked_behaviours) > 0:
+			behaviour = self.blocked_behaviours[0]
+			behaviour.unblock()
+			self.enqueue(behaviour)
+			self.blocked_behaviours = self.blocked_behaviours[1:]
+			del behaviour
+		display(self.agent, 'Behaviours unblocked.')
 
 	def block(self, behaviour):
 		''' It puts a behaviour to the blocked behaviours queue, after
 		its BaseBehaviour.done() method was executed.
 		'''
 		if isinstance(behaviour, BaseBehaviour):
-			self.blocked_behaviours.append(behaviour)
+			self.blocked_behaviours.append(behaviour) # Put in the blocked list
 		else:
 			raise ValueError('behaviour object type must be BaseBehaviour!')
 
@@ -131,7 +141,7 @@ class Task(Thread):
 		'''
 		self.behaviour.action() # Execute the behaviour actions
 		if not self.behaviour.done(): # Verifies if the behaviour will execute again
-			if self.behaviour.blocked(): # Verifies if the behaviour was blocked
+			if self.behaviour.blocked() and not self.behaviour.has_messages():
 				self.scheduler.block(self.behaviour) # Goes to blocked queue
 			else:
 				self.scheduler.enqueue(self.behaviour) # Goes to active queue

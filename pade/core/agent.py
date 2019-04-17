@@ -172,7 +172,7 @@ class Agent_(object):
     6. abstract method to be used when implementing the agents' behaviour when they receive a message
     """
 
-    def __init__(self, aid, debug = False, ignore_ams_messages = True):
+    def __init__(self, aid, debug = False):
         self.mosaik_connection = None
         self.aid = aid
         self.debug = debug
@@ -185,9 +185,6 @@ class Agent_(object):
         self.__messages = list()
         self.ILP = None
 
-        # Extra attributes
-        self.scheduler = Scheduler(self) # Scheduler object to manage the behaviours of this agent
-        self.ignore_ams_messages = ignore_ams_messages # It indicates if the ams messages will be filtered
 
     @property
     def aid(self):
@@ -200,7 +197,7 @@ class Agent_(object):
         elif isinstance(value, str):
             self.__aid = AID(name = value)
         else:
-            raise ValueError('aid object type must be AID!')
+            raise ValueError('aid object type must be AID or str!')
 
     @property
     def debug(self):
@@ -273,12 +270,6 @@ class Agent_(object):
         else:
             self.__behaviours = value
 
-    def add_behaviour(self, behaviour):
-        ''' This method adds behaviours to Scheduler
-        '''
-        #self.behaviours.append(behaviour)
-        self.scheduler.add_behaviour(behaviour)
-
     @property
     def system_behaviours(self):
         return self.__system_behaviours
@@ -308,11 +299,6 @@ class Agent_(object):
         else:
             for behaviour in self.behaviours:
                 behaviour.execute(message)
-        # Passes the received message to all behaviours
-        if not self.ignore_ams_messages or message.sender.getLocalName() != 'ams':
-                self.scheduler.receive_message(message)
-
-
 
     def send(self, message):
         """This method sends an ACL message to the agents specified
@@ -377,7 +363,7 @@ class Agent_(object):
         """
 
         for agent_aid in self.agentInstance.table.values():
-                message.add_receiver(agent_aid)
+            message.add_receiver(agent_aid)
 
         self.send(message)
 
@@ -396,17 +382,8 @@ class Agent_(object):
         for system_behaviour in self.system_behaviours:
             system_behaviour.on_start()
 
-        reactor.callLater(1.0, self.__launch_agent_behaviours)
-        self.setup()
-
-        # This call starts the Scheduler
-        #self.scheduler.run()
-
-    def setup(self):
-        ''' This method is an alternative to initiate agents without
-        override the self.on_start() method in the subclasses.
-        '''
-        pass
+        #reactor.callLater(2.0, self.__launch_agent_behaviours)
+        self.__launch_agent_behaviours()
 
 
     def __launch_agent_behaviours(self):
@@ -481,13 +458,17 @@ class CompConnection(FipaRequestProtocol):
 # Main Agent Class
 
 class Agent(Agent_):
-    def __init__(self, aid, debug=False, ignore_ams_messages = True):
-        super(Agent, self).__init__(aid=aid, debug=debug, ignore_ams_messages = ignore_ams_messages)
+    def __init__(self, aid, debug=False, ignore_ams = True):
+        super(Agent, self).__init__(aid=aid, debug=debug)
 
         self.comport_connection = CompConnection(self)
         self.system_behaviours.append(self.comport_connection)
 
-    def update_ams(self,ams):
+        # Extra attributes
+        self.scheduler = Scheduler(self) # Scheduler object to manage the behaviours of this agent
+        self.ignore_ams = ignore_ams # It indicates if the ams messages will be filtered
+
+    def update_ams(self, ams):
         super(Agent,self).update_ams(ams)
         message = ACLMessage(ACLMessage.SUBSCRIBE)
         message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
@@ -512,3 +493,22 @@ class Agent(Agent_):
             'message' : message}))
             _message.set_system_message(is_system_message=True)
             self.send(_message)
+
+        # Passes the received message to all behaviours
+        if not self.ignore_ams or not message.system_message:
+            self.scheduler.receive_message(message)
+
+    def setup(self):
+        ''' This method is an alternative to initiate agents without
+        override the self.on_start() method in the subclasses.
+        '''
+        pass
+
+    def on_start(self):
+        super().on_start()
+        self.setup()
+
+    def add_behaviour(self, behaviour):
+        ''' This method adds behaviours to Scheduler
+        '''
+        self.scheduler.add_behaviour(behaviour)
