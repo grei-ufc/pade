@@ -2,6 +2,8 @@ import os
 import datetime
 import requests
 
+from requests.exceptions import Timeout
+
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for, jsonify
 from flask_bootstrap import Bootstrap
@@ -121,6 +123,17 @@ class Message(db.Model):
 
     def __repr__(self):
         return 'Message %s' % self.id
+
+
+class RemoteSession(db.Model):
+    __tablename__ = 'remote_sessions'
+    id = db.Column(db.Integer, primary_key=True)
+    ip = db.Column(db.String)
+    content = db.Column(db.String)
+    last_updated = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return 'Ip address %s' % self.ip
 
 
 class SessionSchema(ma.ModelSchema):
@@ -395,8 +408,23 @@ def send_request():
         return render_template('sessions.html')
     if request.method == 'POST':
         host = request.form.get('host_ip')
-        data = requests.get('http://' + host + ':5000/remote_sessions').json()
-        return render_template('remote_sessions.html', data=data)
+
+        try:
+            response = requests.get('http://' + host + ':5000/remote_sessions', timeout=(10, 20))
+
+            if response:
+                print('Success!')
+                data = response.json()
+                return render_template('remote_sessions.html', data=data)
+
+            else:
+                print('Not Found.')
+                flash(u'Sorry, no PADE session was found in this IP, please check again', 'danger')
+                return render_template('sessions.html')
+        except Timeout:
+            print('The request timed out')
+            flash(u'Sorry, your request timed out, please check again', 'danger')
+            return render_template('sessions.html')
 
 
 @app.route('/diagrams', methods=['GET', 'POST'])
