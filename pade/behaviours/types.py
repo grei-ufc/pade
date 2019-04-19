@@ -89,7 +89,7 @@ class WakeUpBehaviour(OneShotBehaviour):
 		''' This is a method that executes the general functions of this 
 		behaviour type. It should not be changed in subclasses.
 		'''
-		self.sleep(self.time)
+		self.wait(self.time)
 		self.on_wake()
 
 	def on_wake(self):
@@ -115,7 +115,7 @@ class TickerBehaviour(CyclicBehaviour):
 		''' This is a method that executes the general functions of this 
 		behaviour type. It should not be changed in subclasses.
 		'''
-		self.sleep(self.time)
+		self.wait(self.time)
 		self.on_tick()
 
 	def on_tick(self):

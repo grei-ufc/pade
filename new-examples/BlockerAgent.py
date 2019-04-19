@@ -1,4 +1,6 @@
-from pade.behaviours.types import CyclicBehaviour
+from pade.acl.aid import AID
+from pade.acl.messages import ACLMessage
+from pade.behaviours.types import CyclicBehaviour, TickerBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop
 
@@ -11,9 +13,7 @@ class BlockerAgent(Agent):
 class BlockBehaviour(CyclicBehaviour):
 	def action(self):
 		message = self.read()
-		if message != None:
-			display(self.agent, 'Executing my behaviour...')
-		self.block()
+		display(self.agent, 'Running my behaviour...')
 
 
 if __name__ == '__main__':

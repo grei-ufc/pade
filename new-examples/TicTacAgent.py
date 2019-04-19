@@ -10,7 +10,7 @@ class TicTacAgent(Agent):
 class NoiseBehaviour(CyclicBehaviour):
 	def action(self):
 		display_message(self.agent, 'Tic-tac!')
-		self.sleep(1) # The behaviour will sleep by 1 second
+		self.wait(1) # The behaviour will sleep by 1 second
 
 
 if __name__ == '__main__':

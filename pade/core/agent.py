@@ -45,9 +45,10 @@ from pade.core.peer import PeerProtocol
 
 from pade.acl.messages import ACLMessage
 from pade.behaviours.protocols import Behaviour
+from pade.behaviours.base import BaseBehaviour
 from pade.behaviours.protocols import FipaRequestProtocol, FipaSubscribeProtocol
 from pade.acl.aid import AID
-from pade.scheduler.core import Scheduler
+from pade.scheduler.core import Scheduler, BehaviourTask
 from pade.misc.utility import display_message
 
 from pickle import dumps, loads
@@ -467,6 +468,7 @@ class Agent(Agent_):
         # Extra attributes
         self.scheduler = Scheduler(self) # Scheduler object to manage the behaviours of this agent
         self.ignore_ams = ignore_ams # It indicates if the ams messages will be filtered
+        self.active = True # It indicates whether this agent is active or not
 
     def update_ams(self, ams):
         super(Agent,self).update_ams(ams)
@@ -496,7 +498,7 @@ class Agent(Agent_):
 
         # Passes the received message to all behaviours
         if not self.ignore_ams or not message.system_message:
-            self.scheduler.receive_message(message)
+            self.receive(message)
 
     def setup(self):
         ''' This method is an alternative to initiate agents without
@@ -506,9 +508,46 @@ class Agent(Agent_):
 
     def on_start(self):
         super().on_start()
+        self.scheduler.start()
         self.setup()
 
     def add_behaviour(self, behaviour):
-        ''' This method adds behaviours to Scheduler
+        ''' It adds only once a behaviour in the scheduler. Afterwards,
+        the behaviour will be scheduled within BehaviourTask.
         '''
-        self.scheduler.add_behaviour(behaviour)
+        if isinstance(behaviour, BaseBehaviour):
+            task = BehaviourTask(behaviour, self.scheduler)
+            self.scheduler.active_tasks.append(task)
+            self.scheduler.tasks.put(task)
+        else:
+            raise ValueError('behaviour object type must be BaseBehaviour!')
+
+    def remove_task(self, task):
+        ''' It removes a task from scheduler. It must be used when a
+        behaviour finishes.
+        '''
+        try:
+            self.scheduler.active_tasks.remove(task)
+        except ValueError:
+            raise ValueError('the behaviour does not exists in scheduler.')
+
+    def receive(self, message):
+        ''' It passes the arrived message to all existing behaviours in 
+        scheduler (all behaviours in the self.scheduler.behaviours queue).
+        '''
+        #display(self.agent, '<> Recebi uma mensagem aleatória! <>')
+        for task in self.scheduler.active_tasks:
+            task.behaviour.receive(message)
+
+    def pause_agent(self):
+        ''' This method indicates to scheduler to pause its activities.
+        '''
+        super().pause_agent()
+        self.active = False
+
+    def resume_agent(self):
+        ''' This method indicates to scheduler to resume its activities.
+        '''
+        super().resume_agent()
+        self.active = True
+        self.scheduler.start()

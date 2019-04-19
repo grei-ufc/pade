@@ -1,48 +1,37 @@
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
-from pade.behaviours.types import OneShotBehaviour, WakeUpBehaviour, CyclicBehaviour
+from pade.behaviours.types import WakeUpBehaviour, CyclicBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display_message, start_loop
 
 
+# Sender Agent
 class SenderAgent(Agent):
 	def setup(self):
 		self.add_behaviour(SendMessage(self))
-		self.add_behaviour(SendMessageLater(self, 15))
+		self.add_behaviour(SendMessageLater(self, 10))
 
-
-class ReceiverAgent(Agent):
-	def setup(self):
-		self.add_behaviour(ReceiveMessage(self))
-
-
-class SendMessage(OneShotBehaviour):
-	def action(self):
+class SendMessageLater(WakeUpBehaviour):
+	def on_wake(self):
 		message = ACLMessage(ACLMessage.INFORM)
 		message.add_receiver(AID('pong'))
-		#message.set_performative('inform')
-		#message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
 		message.set_content('Hello, pong, ping is here!')
 		self.agent.send(message)
 		display_message(self.agent, 'Message sent to pong.')
 
 
-class SendMessageLater(WakeUpBehaviour):
-	def __init__(self, agent, time):
-		super().__init__(agent, time)
-
-	def on_wake(self):
-		self.agent.add_behaviour(SendMessage(self.agent))
-
+# Receiver Agent
+class ReceiverAgent(Agent):
+	def setup(self):
+		self.add_behaviour(ReceiveMessage(self))
 
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
 		message = self.read()
-		if message != None: #and message.sender.getLocalName() == 'ping':
+		if message.sender.getLocalName() == 'ping':
 			display_message(self.agent, 'I received a message from %s.' % message.sender.getLocalName())
 		else:
-			self.block()
-			display_message(self.agent, 'I was blocked. =/')
+			display_message(self.agent, 'I received a message from another agent.')
 
 
 if __name__ == '__main__':

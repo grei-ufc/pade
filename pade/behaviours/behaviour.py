@@ -5,8 +5,6 @@ order to PADE Scheduler be able to manage the agent behaviours.
 
 from pade.behaviours.protocols import Behaviour
 from pade.acl.messages import ACLMessage
-from time import sleep
-from queue import Queue
 
 class BaseBehaviour(Behaviour):
 
@@ -19,36 +17,25 @@ class BaseBehaviour(Behaviour):
 		class and explicitly calls the Behaviour.__init__() method.
 		'''
 		super().__init__(agent)
-		# Queue of received messages by the agent and unread by this behaviour
-		self.messages = Queue()
+		# It sinalizes to Scheduler if this behaviour is blocked
+		self.blocked = False		# Queue of received messages by the agent and unread by this behaviour
+		self.messages = list()
 
-	def read(self, block = True):
+	def read(self):
 		''' It gets the first message in the local message queue.
 		'''
-		if block:
-			return self.messages.get()
+		if self.messages != []:
+			message = self.messages[0]
+			self.messages = messages[1:]
+			return self.messages[0]
 		else:
-			try:
-				return self.messages.get_nowait()
-			except queue.Empty:
-				return None
-
-	def read_timeout(self, timeout):
-		''' It tries to read a message twice until the end of timeout.
-		In cases of no messages, this method returns None
-		'''
-		message = self.read(block = False)
-		if message != None:
-			return message
-		else:
-			sleep(timeout)
-			return self.read(block = False)
+			return None
 
 	def receive(self, message):
 		''' It sets a new message on local messages queue.
 		'''
 		if isinstance(message, ACLMessage):
-			self.messages.put(message)
+			self.messages.append(message)
 		else:
 			raise ValueError('message object type must be ACLMessage!')
 
@@ -65,21 +52,26 @@ class BaseBehaviour(Behaviour):
 		'''
 		pass
 
-	def wait(self, timeout):
+	def block(self):
+		''' This method blocks a behaviour until an event occurs
+		in the system (the agent receives a message). This block method
+		wait the finish of the self.action() execution, blocking the 
+		behaviour afterwards.
+		'''
+		self.blocked = True
+
+	def sleep(self, timeout):
 		''' This method sleeps a behaviour until occurs a timeout. The
 		behaviour will execute normally afterwards.
 		'''
 		sleep(timeout)
 
-	def on_end(self):
-		''' The scheduler will calls this method after the self.done()
-		method returns True and before the end of this behaviour. It is
-		the last action of a behaviour.
+	def unblock(self):
+		''' This method sinalizes to Scheduler to unblock this behaviour.
 		'''
-		pass
+		self.blocked = False
 
-	def has_messages(self):
-		''' A method to returns if this behaviour has messages in its
-		received messages queue.
+	def blocked(self):
+		''' It returns the status of this behaviour.
 		'''
-		return self.messages.qsize() != 0
+		return self.blocked

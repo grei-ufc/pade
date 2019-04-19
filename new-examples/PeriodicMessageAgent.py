@@ -7,13 +7,7 @@ from pade.misc.utility import display_message, start_loop
 
 class SenderAgent(Agent):
 	def setup(self):
-		#self.add_behaviour(SendMessage(self))
 		self.add_behaviour(SendMessageLater(self, 10))
-
-
-class ReceiverAgent(Agent):
-	def setup(self):
-		self.add_behaviour(ReceiveMessage(self))
 
 
 class ResendMessage(TickerBehaviour):
@@ -25,7 +19,6 @@ class ResendMessage(TickerBehaviour):
 		self.agent.add_behaviour(SendMessage(self.agent, self.counter))
 		self.counter += 1
 
-
 class SendMessage(OneShotBehaviour):
 	def __init__(self, agent, counter):
 		super().__init__(agent)
@@ -33,35 +26,30 @@ class SendMessage(OneShotBehaviour):
 
 	def action(self):
 		message = ACLMessage(ACLMessage.INFORM)
-		message.add_receiver(AID('pong'))
+		message.add_receiver(AID('receiver'))
 		message.set_content('Message #%d' % self.counter)
 		self.agent.send(message)
 		display_message(self.agent, 'Message sent to pong.')
 
-
 class SendMessageLater(WakeUpBehaviour):
-	def __init__(self, agent, time):
-		super().__init__(agent, time)
-
 	def on_wake(self):
 		self.agent.add_behaviour(SendMessage(self.agent, 0))
-		self.agent.add_behaviour(ResendMessage(self.agent, 1))
+		self.agent.add_behaviour(ResendMessage(self.agent, 0.5))
 
+
+# Receiver Agent
+class ReceiverAgent(Agent):
+	def setup(self):
+		self.add_behaviour(ReceiveMessage(self))
 
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
-		#display_message(self.agent, 'The message queue has size %d' % len(self.messages))
-		#display_message(self.agent, 'SIZE: %d' % len(self.messages))
 		message = self.read()
-		if message != None and message.sender.getLocalName() == 'ping':
+		if message.sender.getLocalName() == 'sender':
 			display_message(self.agent, 'This is:  %s.' % message.content)
-		else:
-			#self.sleep(0.5)
-			self.block()
-
 
 if __name__ == '__main__':
 	agents = list()
-	agents.append(ReceiverAgent('pong'))
-	agents.append(SenderAgent('ping'))
+	agents.append(ReceiverAgent('receiver'))
+	agents.append(SenderAgent('sender'))
 	start_loop(agents)

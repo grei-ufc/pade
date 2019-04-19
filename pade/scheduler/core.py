@@ -8,123 +8,28 @@ of the system agents.
 from threading import Thread
 from pade.behaviours.base import BaseBehaviour
 from pade.misc.utility import display
+from queue import Queue
 
-class Scheduler(object):
-	''' Scheduler class basically executes the behaviours (under
-	'task form') in the active tasks queue. This class too implements
-	methods to block and unblock behavioiurs.
+class Scheduler(Thread):
+	''' Scheduler class basically executes each behaviour within a
+	thread (under BehaviourTask form, here called simply 'Task').
 	'''
 
 	def __init__(self, agent):
+		super().__init__()
 		self.agent = agent
 		self.active_tasks = list() # Active tasks queue
-		self.blocked_behaviours = list() # Blocked behaviours queue
-		self.behaviours = list() # Behaviours queue
-		self.running = False # It indicates if the scheduler is running
+		self.tasks = Queue() # Tasks queue
 
 	def run(self):
-		''' It executes all scheduled tasks in the active tasks queue.
+		''' It executes all scheduled tasks in the 'tasks' queue.
 		'''
-		self.running = True
-		while len(self.active_tasks) > 0:
-			task = self.active_tasks[0]
+		while self.agent.active:
+			task = self.tasks.get()
 			task.start()
-			self.dequeue()
-		self.running = False
-
-	def enqueue(self, behaviour):
-		''' It puts a behaviour, under the 'Task' form, on the end of active
-		tasks queue.
-		'''
-		if isinstance(behaviour, BaseBehaviour):
-			self.active_tasks.append(Task(behaviour, self))
-			self.wakeup()
-		else:
-			raise ValueError('behaviour object type must be BaseBehaviour!')
-
-	def dequeue(self):
-		''' It removes the first task from active tasks queue.
-		'''
-		self.active_tasks = self.active_tasks[1:]
-
-	def wakeup(self):
-		''' It executes the Scheduler.run() method if the Scheduler
-		intance is sleeping.
-		'''
-		if not self.running:
-			self.run()
-
-	def add_behaviour(self, behaviour):
-		''' It adds, on the first time, a behaviour in the scheduler
-		'''
-		if isinstance(behaviour, BaseBehaviour):
-			self.behaviours.append(behaviour)
-			self.enqueue(behaviour)
-		else:
-			raise ValueError('behaviour object type must be BaseBehaviour!')
-
-	def remove_behaviour(self, behaviour):
-		''' It removes a behaviour from scheduler. It must be used when a
-		behaviour finishes.
-		'''
-		try:
-			self.behaviours.remove(behaviour)
-		except ValueError:
-			raise ValueError('failed to remove the required behaviour from scheduler.')
-
-	def kill(self, thread):
-		''' It kills a thread (reference) (X_X)
-		'''
-		try:
-			del thread
-		except NameError:
-			raise NameError("this thread doesn't exists.")
-
-	def receive_message(self, message):
-		''' It passes the arrived message to all existing behaviours (all
-		behaviours in the self.behaviours queue).
-		'''
-		#display(self.agent, '<> Recebi uma mensagem aleatória! <>')
-		for behaviour in self.behaviours:
-			behaviour.receive(message)
-		self.unblock_behaviours()
-
-	def unblock_behaviours(self):
-		''' It puts the behaviours from blocked behaviours queue to
-		active tasks queue.
-		'''
-		'''activated_behaviours = []
-		for behaviour in self.blocked_behaviours:
-			behaviour.unblock()
-			self.enqueue(behaviour)
-			# It is needed to remove the behaviour form blocked list
-			activated_behaviours.append(behaviour)
-		# This for is needed because new behaviours may have been added
-		# in the blocked behaviours queue.
-		for behaviour in activated_behaviours:
-			self.blocked_behaviours.remove(behaviour)'''
-		#self.wakeup()
-		display(self.agent, 'Behaviours to unblock: %d.' % len(self.blocked_behaviours))
-		while len(self.blocked_behaviours) > 0:
-			behaviour = self.blocked_behaviours[0]
-			behaviour.unblock()
-			self.enqueue(behaviour)
-			self.blocked_behaviours = self.blocked_behaviours[1:]
-			del behaviour
-		display(self.agent, 'Behaviours unblocked.')
-
-	def block(self, behaviour):
-		''' It puts a behaviour to the blocked behaviours queue, after
-		its BaseBehaviour.done() method was executed.
-		'''
-		if isinstance(behaviour, BaseBehaviour):
-			self.blocked_behaviours.append(behaviour) # Put in the blocked list
-		else:
-			raise ValueError('behaviour object type must be BaseBehaviour!')
 
 
-
-class Task(Thread):
+class BehaviourTask(Thread):
 	''' The Task class manages each behaviour separately in an one thread,
 	deciding whether a behaviour must goes to active queue or to blocked
 	queue. Each instance of this class runs a behaviour once only.
@@ -135,17 +40,11 @@ class Task(Thread):
 		self.scheduler = scheduler
 
 	def run(self):
-		''' This method executes the BaseBehaviour.action() method, checking
-		whether a behaviour is done or blocked, and re-scheduling the
-		behaviour, if it is needed.
+		''' This method executes the BaseBehaviour.action() method, until
+		it returns False (i.e, until its end).
 		'''
-		self.behaviour.action() # Execute the behaviour actions
-		if not self.behaviour.done(): # Verifies if the behaviour will execute again
-			if self.behaviour.blocked() and not self.behaviour.has_messages():
-				self.scheduler.block(self.behaviour) # Goes to blocked queue
-			else:
-				self.scheduler.enqueue(self.behaviour) # Goes to active queue
-		else:
-			self.behaviour.on_end() # Lasts actions of the behaviour
-			self.scheduler.remove_behaviour(self.behaviour) # Behaviour remotion
-		self.scheduler.kill(self) # Thread will die after its execution (only once)
+		self.behaviour.action() # Execute the action() method at least once.
+		while not self.behaviour.done():
+			self.behaviour.action() # Execute the behaviour actions
+		self.behaviour.on_end() # Lasts actions of the behaviour
+		self.scheduler.agent.remove_task(self) # Thread will die after its behaviour execution 
