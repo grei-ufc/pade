@@ -54,108 +54,75 @@
 
 <body>
 
-{% block content %}
+    {% block content %}
 
-<div class="container">
-    <div class="row">
-        <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+    <div class="container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% set count = namespace(a=0) %}
+        {% set count2 = namespace(a=0) %}
+
+        <div class="row">
             <div class="just-padding">
                 <div class="list-group list-group-root well">
-
-                    {% for key, value in data.items() %}
-
-                        {% for new_key, new_value in value.items() %}
-
-                            {% if new_key == 'session_agents' %}
-
-                                <a href="#agents" class="list-group-item" data-toggle="collapse">
+                    {% for key, value in data.items() recursive %}
+                        {% if key == 'Agents' %}
+                            <a href="#Agents" class="list-group-item" data-toggle="collapse">
                                     <i class="glyphicon glyphicon-chevron-right"></i>Agents
-                                </a>
-                                <div class="list-group collapse" id="agents">
-
-                                    {% for agents in new_value %}
-
-                                    <a href="#" class="list-group-item"><b>Agent</b></a>
-                                    <div class="list-group">
-
-                                        {% for a, d in agents.items() %}
-
-                                        {% if a == 'agent_date' %}
-
-                                        <a href="#" class="list-group-item">Agent Start: {{ d }} </a>
-
-                                        {% elif a == 'agent_id' %}
-
-                                        <a href="#" class="list-group-item">Agent ID: {{ d }} </a>
-
-                                        {% elif a == 'agent_messages' and d|length > 1 %}
-
-                                            {% for message in d %}
-
-                                                <a href="#" class="list-group-item"><b>Message</b></a>
-                                                <div class="list-group">
-                                                    {% for m, c in message.items() %}
-
-                                                        <a href="#" class="list-group-item">{{ m }}: {{ c }}</a>
-
-                                                    {%endfor%}
-                                                </div>
-
-                                            {% endfor %}
-
-                                        {% elif a == 'agent_name' %}
-
-                                        <a href="#" class="list-group-item">Agent Name: {{ d }} </a>
-
-                                        {% elif a == 'agent_session_id' %}
-
-                                        <a href="#" class="list-group-item">Agent Session ID: {{ d }} </a>
-
-                                        {% elif a == 'agent_state' %}
-
-                                        <a href="#" class="list-group-item">Agent State: {{ d }} </a>
-
-                                        {% endif %}
-
+                            </a>
+                            <div class="list-group collapse" id="Agents">
+                                {% for agents in value %}
+                                {% set count.a = count.a + 1 %}
+                                    <a href="#agent_{{ count.a }}" class="list-group-item" data-toggle="collapse">
+                                        <i class="glyphicon glyphicon-chevron-right"></i>{{ agents['Agent Name'] }}
+                                    </a>
+                                    <div class="list-group collapse" id="agent_{{ count.a }}">
+                                        {% for new_key, new_value in agents.items() recursive %}
+                                            <a href="#" class="list-group-item"><b>{{ new_key }}</b>: {{ new_value }}</a>
                                         {% endfor %}
-
                                     </div>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            {% elif new_key == 'session_date' %}
-
-                                <a href="#" class="list-group-item">Date: {{ new_value }}</a>
-
-                            {% elif new_key == 'session_id' %}
-
-                                <a href="#" class="list-group-item">ID: {{ new_value }}</a>
-
-                            {% elif new_key == 'session_name' %}
-
-                                <a href="#" class="list-group-item">Name: {{ new_value }}</a>
-
-                            {% elif new_key == 'session_state' %}
-
-                                <a href="#" class="list-group-item">State: {{ new_value }}</a>
-
-                            {% endif %}
-
-                        {% endfor %}
-
+                                {% endfor%}
+                            </div>
+                        {% elif key == 'Messages' %}
+                            <a href="#Messages" class="list-group-item" data-toggle="collapse">
+                                    <i class="glyphicon glyphicon-chevron-right"></i>Messages
+                            </a>
+                            <div class="list-group collapse" id="Messages">
+                                {% for messages in value %}
+                                {% set count2.a = count2.a + 1 %}
+                                    <a href="#message_{{ count2.a }}" class="list-group-item" data-toggle="collapse">
+                                        <i class="glyphicon glyphicon-chevron-right"></i>{{ messages['Content'] }}
+                                    </a>
+                                    <div class="list-group collapse" id="message_{{ count2.a }}">
+                                        {% for message, content in messages.items() recursive %}
+                                            <a href="#" class="list-group-item"><b>{{ message }}</b>: {{ content }}</a>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <a href="#" class="list-group-item"><b>{{ key }}</b>: {{ value }}</a>
+                        {% endif %}
                     {% endfor %}
-
                 </div>
-
             </div>
-
         </div>
     </div>
-</div>
 
-{% endblock %}
+    {% endblock %}
 
 </body>
 

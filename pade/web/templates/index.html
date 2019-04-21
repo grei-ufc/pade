@@ -2,21 +2,22 @@
 
 <body>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }} alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-       {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
-
     {% block content %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <div class="container">
         <div class="page-header">
             <h1>Hello, PADE!</h1>
@@ -26,7 +27,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-4">
-                <h2>Sessions</h2>
+                <h2>Local Sessions</h2>
                 <div class="list-group">
                     {% for session in sessions %}
                         <a href="/session/{{ session.id }}" class="list-group-item">
@@ -40,6 +41,20 @@
                         </a>
                     {% endfor %}
                 </div>
+
+                {% if rsessions %}
+                    <h2>Remote Sessions</h2>
+                    <div class="list-group">
+                        {% for rsession in rsessions %}
+                            <a href="/rsession/{{ rsession.id }}" class="list-group-item">
+                                <h4>ID: {{ rsession.id }}</h4>
+                                <p>Host: {{ rsession.ip }}</p>
+                                <p>Last Updated: {{ rsession.last_updated.hour }}:{{ rsession.last_updated.minute }}:{{ rsession.last_updated.second }} - {{ rsession.last_updated.day }}/{{ rsession.last_updated.month }}/{{ rsession.last_updated.year }}</p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
                 <a href="/sessions">
                     <button type="button" class="btn btn-primary">Add Remote PADE Session</button>
                 </a>

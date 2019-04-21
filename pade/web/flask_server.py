@@ -1,6 +1,7 @@
 import os
 import datetime
 import requests
+import json
 
 from requests.exceptions import Timeout
 
@@ -102,6 +103,7 @@ class AgentModel(db.Model):
     date = db.Column(db.DateTime)
     state = db.Column(db.String(64))
     messages = db.relationship('Message', backref='agent')
+
     def __repr__(self):
         return 'Agent %s' % self.name
 
@@ -134,6 +136,11 @@ class RemoteSession(db.Model):
 
     def __repr__(self):
         return 'Ip address %s' % self.ip
+
+    def __init__(self, ip, content, time):
+        self.ip = ip
+        self.content = content
+        self.last_updated = time
 
 
 class SessionSchema(ma.ModelSchema):
@@ -285,7 +292,8 @@ def logout():
 @login_required
 def index():
     sessions = Session.query.all()
-    return render_template('index.html', sessions=sessions)
+    rsessions = RemoteSession.query.all()
+    return render_template('index.html', sessions=sessions, rsessions=rsessions)
 
 
 @app.route('/messagesTable')
@@ -314,6 +322,14 @@ def session_page(session_id):
     session = Session.query.filter_by(id=session_id).first()
     agents = session.agents
     return render_template('agentes.html', session=session, agents=agents)
+
+
+@app.route('/rsession/<rsession_id>')
+@login_required
+def rsession_pade(rsession_id):
+    res = RemoteSession.query.filter_by(id=rsession_id).first()
+    data = json.loads(res.content)
+    return render_template('remote_sessions.html', data=data)
 
 
 @app.route('/session/agent/<agent_id>')
@@ -370,36 +386,55 @@ def manage_sessions():
 @app.route('/remote_sessions', methods=['GET'])
 def get_sessions():
     data = []
-    agents = []
 
+    # List to store agents over the loop
+    agents = []
+    messages = []
     sessions = Session.query.all()
+
     for session in sessions:
-        data = {'session_name': session.name,
-                'session_id': session.id,
-                'session_date': session.date,
-                'session_state': session.state,
-                'session_agents': []
+        data = {'Session Name': session.name,
+                'Session ID': session.id,
+                'Session Date': session.date,
+                'Session State': session.state,
+                'Agents': [],
+                'Messages': []
                 }
 
         for agent in session.agents:
-            data_agents = {'agent_id': agent.id,
-                           'agent_session_id': agent.session.id,
-                           'agent_name': agent.name,
-                           'agent_date': agent.date,
-                           'agent_state': agent.state,
-                           'agent_messages': []
+            data_agents = {'Agent ID': agent.id,
+                           'Session Agent ID': agent.session.id,
+                           'Agent Name': agent.name,
+                           'Agent Date': agent.date,
+                           'Agent State': agent.state,
                            }
 
-            message_schema = MessageSchema(many=True)
-            result = Message.query.filter_by(agent_id=agent.id).all()
-            messages = message_schema.dump(result).data
+            for m in agent.messages:
+                data_messages = {'Message ID': m.id,
+                                 'Agent Message ID': m.agent_id,
+                                 'Conversation ID': m.conversation_id,
+                                 'Message Date': m.date,
+                                 'Message Performative': m.performative,
+                                 'Protocol': m.protocol,
+                                 'Sender': m.sender,
+                                 'Receivers': m.receivers,
+                                 'Content': m.content,
+                                 'Ontology': m.ontology,
+                                 'Language': m.language,
+                                 }
 
-            data_agents['agent_messages'] = messages
+                messages.append(data_messages)
+
+            data['Messages'] = messages
             agents.append(data_agents)
 
-        data['session_agents'] = agents
+            #message_schema = MessageSchema(many=True)
+            #result = Message.query.filter_by(agent_id=agent.id).all()
+            #messages = message_schema.dump(result)
 
-    return jsonify({'sessions': data})
+        data['Agents'] = agents
+
+    return jsonify(data)
 
 
 @app.route('/send_request', methods=['GET', 'POST'])
@@ -413,18 +448,25 @@ def send_request():
             response = requests.get('http://' + host + ':5000/remote_sessions', timeout=(10, 20))
 
             if response:
-                print('Success!')
                 data = response.json()
+                time = datetime.datetime.now()
+                save_remote_session(host, response.content, time)
+                flash(u'A remote PADE instance was found and saved automatically! :)', 'success')
                 return render_template('remote_sessions.html', data=data)
 
             else:
-                print('Not Found.')
                 flash(u'Sorry, no PADE session was found in this IP, please check again', 'danger')
                 return render_template('sessions.html')
         except Timeout:
-            print('The request timed out')
             flash(u'Sorry, your request timed out, please check again', 'danger')
             return render_template('sessions.html')
+
+
+def save_remote_session(ip, content, time):
+    s = RemoteSession(ip, content, time)
+    db.session.add(s)
+    db.session.flush()
+    db.session.commit()
 
 
 @app.route('/diagrams', methods=['GET', 'POST'])
@@ -474,22 +516,17 @@ def messages():
         return render_template('messages.html', messages=data, senders=senders, performatives=performatives)
 
     if request.method == 'POST':
-        data.clear()
-        data = set()
+
+        data = []
 
         ###############################
         # Capturing values from input #
         ###############################
         selected_sender = request.form.get('sender')
         selected_performative = request.form.get('performative')
-        agent_name = request.form.get('agentName')
         content = request.form.get('content')
         time_start = request.form.get('timeStart')
         time_stop = request.form.get('timeStop')
-
-        if agent_name:
-            data = Message.query.filter(Message.sender.contains(agent_name))\
-                .filter(Message.receivers.contains(agent_name))
 
         if content:
             data = Message.query.filter(Message.content.contains(content))
