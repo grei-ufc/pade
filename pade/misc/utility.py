@@ -43,7 +43,7 @@ def display_message(name, data):
     # print('[' + name + '] ' + date + str(data))
 
 def display(agent, message):
-    ''' This function shows a message in PADE console
+    ''' This function shows a message in PADE console without date and hour.
     '''
     click.echo(click.style('[{}] --> '.format(agent.aid.localname), fg='green') + str(message))
 
