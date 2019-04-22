@@ -12,7 +12,6 @@ from flask_login import LoginManager, login_required, login_user, logout_user, U
 from flask_wtf import FlaskForm
 from flask_migrate import Migrate, MigrateCommand
 from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
 from flask_script import Manager
 from flask_login import UserMixin
 
@@ -47,7 +46,6 @@ login_manager.login_view = 'login'
 
 
 db = SQLAlchemy(app)
-ma = Marshmallow(app)
 
 migrate = Migrate(app, db)
 
@@ -141,21 +139,6 @@ class RemoteSession(db.Model):
         self.ip = ip
         self.content = content
         self.last_updated = time
-
-
-class SessionSchema(ma.ModelSchema):
-    class Meta:
-        model = Session
-
-
-class AgentSchema(ma.ModelSchema):
-    class Meta:
-        model = AgentModel
-
-
-class MessageSchema(ma.ModelSchema):
-    class Meta:
-        model = Message
 
 
 class LoginForm(FlaskForm):
@@ -428,10 +411,6 @@ def get_sessions():
             data['Messages'] = messages
             agents.append(data_agents)
 
-            #message_schema = MessageSchema(many=True)
-            #result = Message.query.filter_by(agent_id=agent.id).all()
-            #messages = message_schema.dump(result)
-
         data['Agents'] = agents
 
     return jsonify(data)
@@ -444,22 +423,32 @@ def send_request():
     if request.method == 'POST':
         host = request.form.get('host_ip')
 
-        try:
-            response = requests.get('http://' + host + ':5000/remote_sessions', timeout=(10, 20))
+        # Checking if the session hasn't been added already
+        res = RemoteSession.query.filter_by(ip=host).first()
 
-            if response:
-                data = response.json()
-                time = datetime.datetime.now()
-                save_remote_session(host, response.content, time)
-                flash(u'A remote PADE instance was found and saved automatically! :)', 'success')
-                return render_template('remote_sessions.html', data=data)
-
-            else:
-                flash(u'Sorry, no PADE session was found in this IP, please check again', 'danger')
-                return render_template('sessions.html')
-        except Timeout:
-            flash(u'Sorry, your request timed out, please check again', 'danger')
+        if res:
+            flash(u'This session has already been added, you can see it on the home page', 'warning')
             return render_template('sessions.html')
+        elif host == '0.0.0.0':
+            flash(u'You cannot add a localhost session', 'warning')
+            return render_template('sessions.html')
+        else:
+            try:
+                response = requests.get('http://' + host + ':5000/remote_sessions', timeout=(10, 20))
+
+                if response:
+                    data = response.json()
+                    time = datetime.datetime.now()
+                    save_remote_session(host, response.content, time)
+                    flash(u'A remote PADE instance was found and saved automatically! :)', 'success')
+                    return render_template('remote_sessions.html', data=data)
+
+                else:
+                    flash(u'Sorry, no PADE session was found in this IP, please check again', 'danger')
+                    return render_template('sessions.html')
+            except Timeout:
+                flash(u'Sorry, your request timed out, please check again', 'danger')
+                return render_template('sessions.html')
 
 
 def save_remote_session(ip, content, time):
