@@ -35,6 +35,8 @@ class PeerProtocol(Protocol):
     """docstring for PeerProtocol"""
 
     message = None
+    mosaik_msg_id = None
+    await_gen = None
 
     def __init__(self, fact):
         self.fact = fact
@@ -55,7 +57,12 @@ class PeerProtocol(Protocol):
 
     def connectionLost(self, reason):
         if self.message is not None:
-            message = pickle.loads(self.message)
+            try:
+                message = pickle.loads(self.message)
+            except:
+                print('Message not understood')
+                print(self.message)
+                return
             return message
 
     def dataReceived(self, data):
@@ -64,7 +71,6 @@ class PeerProtocol(Protocol):
             self.message += data
         else:
             self.message = data
-
         # ------------------------------------
         # make a verification if the message
         # is a MOSAIK message
@@ -74,11 +80,54 @@ class PeerProtocol(Protocol):
             # get mosaik connection for assync
             if self.fact.agent_ref.mosaik_connection is None:
                 self.fact.agent_ref.mosaik_connection = self
-            # print(self.message)
-            message = self.fact.agent_ref.mosaik_sim._process_message(self.message)
-            if message is not None:
+
+            # recebe o gerador retornado pelo método _process_message()
+            gen = self.fact.agent_ref.mosaik_sim._process_message(self.message,
+                                                                  self.mosaik_msg_id)
+
+            # o gerador retornado por _process_message é ativado
+            try:
+                message = next(gen)
+            except StopIteration as e:
+                message = e.value
+
+            # se o valor retornado pelo gerador for uma mensagem
+            # no padrão Mosaik, isso é, não é nem um inteiro, nem
+            # um valor None, então a mensagem é transmitida para 
+            # o Mosaik
+            if message is not None and not isinstance(message, int):
                 self.transport.write(message)
-            self.message = None
+                self.message = None
+            else:
+                # Caso a variável self.mosaik_msg_id não tenha o valor
+                # None, significa que ela está armazenando o ID da 
+                # mensagem step que originou a requisição assíncrona
+                # e que o método step() está aguardando a finalização
+                # da mensagem assíncrona. Entrar neste if significa
+                # que a resposta da requisição assíncrona foi recebida
+                if self.mosaik_msg_id:
+                    try:
+                        message = next(self.await_gen)    
+                    except StopIteration as e:
+                        message = e.value
+                    if message is not None:
+                        self.transport.write(message)
+                        self.message = None
+                        self.mosaik_msg_id = None
+                        self.await_gen = None
+                else:
+                    # Caso o valor retornado por _process_message()
+                    # seja um inteiro, representando o ID da mensagem
+                    # Mosaik que está pausada aguardando o resultado
+                    # da requisição assíncrona, esse valor é armazenado
+                    # na variável self.mosaik_msg_id, e o gerador que retornou
+                    # este valor é armazenado na variável self.await_gen
+                    self.mosaik_msg_id = message
+                    self.await_gen = gen
+                    self.message = None
+
+    def got_mosaik_message(self, message):
+        self.transport.write(message)
 
     def send_message(self, message):
         l = len(message)

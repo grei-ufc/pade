@@ -457,7 +457,7 @@ class Agent(Agent_):
         self.comport_connection = CompConnection(self)        
         self.system_behaviours.append(self.comport_connection)
 
-    def update_ams(self,ams):
+    def update_ams(self, ams):
         super(Agent,self).update_ams(ams)
         message = ACLMessage(ACLMessage.SUBSCRIBE)
         message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)

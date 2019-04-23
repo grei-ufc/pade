@@ -391,7 +391,7 @@ class FipaContractNetProtocol(Behaviour):
         """
         super(FipaContractNetProtocol, self).timed_behaviour()
 
-        reactor.callLater(self.timeout, self.execute_on_timeout)
+        #reactor.callLater(self.timeout, self.execute_on_timeout)
 
     def execute_on_timeout(self):
         """This method executes the handle_all_proposes method if any 

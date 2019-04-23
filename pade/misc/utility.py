@@ -25,7 +25,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from twisted.internet import reactor
+from twisted.internet import reactor, threads
 
 from datetime import datetime
 import click
@@ -44,11 +44,15 @@ def call_in_thread(method, *args):
     reactor.callInThread(method, *args)
 
 
-def call_later(self, time, method, *args):
+def call_later(time, method, *args):
     return reactor.callLater(time, method, *args)
 
+def defer_to_thread(block_method, result_method, *args):
+    d = threads.deferToThread(block_method, *args)
+    d.addCallback(result_method)
 
 def start_loop(agents):
+    reactor.suggestThreadPoolSize(30)
     for agent in agents:
         agent.update_ams(agent.ams)
         agent.on_start()

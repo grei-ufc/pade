@@ -323,7 +323,7 @@ class AMS(Agent_):
             self._verify_user_in_session(self.session)
 
 if __name__ == '__main__':
-    ams = AMS()
+    ams = AMS(port=int(sys.argv[4]))
     # instantiates AMS agent and calls listenTCP method
     # from Twisted to launch the agent
     ams_agent = AMS() # TODO: precisa implementar a passagem de parametros

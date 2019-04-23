@@ -14,6 +14,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from pickle import loads, dumps
 import random
 import os
+import sys
 
 basedir = os.path.abspath(os.path.dirname(flask_server.__file__))
 
@@ -99,5 +100,5 @@ class Sniffer(Agent):
                     self.buffer_control = False
 
 if __name__ == '__main__':
-    sniffer = Sniffer()
+    sniffer = Sniffer(port=sys.argv[1])
     start_loop([sniffer])
