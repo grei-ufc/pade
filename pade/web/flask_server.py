@@ -1,4 +1,5 @@
 import os
+import tempfile
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for
 from flask_bootstrap import Bootstrap
@@ -11,8 +12,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug import generate_password_hash, check_password_hash
 
-
-basedir = os.path.abspath(os.path.dirname(__file__))
+basedir = tempfile.gettempdir()
 
 app = Flask(__name__)
 

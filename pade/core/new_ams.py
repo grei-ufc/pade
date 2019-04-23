@@ -5,7 +5,7 @@ from pade.behaviours.protocols import TimedBehaviour, FipaRequestProtocol, FipaS
 from pade.misc.utility import display_message
 
 from pade.web import flask_server
-from pade.web.flask_server import db, Session, User
+from pade.web.flask_server import db, Session, User, basedir
 
 from pickle import dumps, loads
 from datetime import datetime
@@ -22,9 +22,7 @@ import random
 import os
 import sys
 
-basedir = os.path.abspath(os.path.dirname(flask_server.__file__))
-
-ENGINE = create_engine('sqlite:///{}/data.sqlite'.format(basedir))
+ENGINE = create_engine('sqlite:///' + os.path.join(basedir, 'data.sqlite'))
 TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
 TWISTED_ENGINE.run_callable = ENGINE.run_callable
 
