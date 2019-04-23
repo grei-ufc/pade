@@ -3,7 +3,7 @@ from pade.acl.aid import AID
 from pade.misc.utility import display_message, start_loop
 
 from pade.web import flask_server
-from pade.web.flask_server import AgentModel
+from pade.web.flask_server import AgentModel, basedir
 
 
 from alchimia import wrap_engine
@@ -15,9 +15,7 @@ from pickle import loads, dumps
 import random
 import os
 
-basedir = os.path.abspath(os.path.dirname(flask_server.__file__))
-
-ENGINE = create_engine('sqlite:///{}/data.sqlite'.format(basedir))
+ENGINE = create_engine('sqlite:///' + os.path.join(basedir, 'data.sqlite'))
 TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
 TWISTED_ENGINE.run_callable = ENGINE.run_callable
 
