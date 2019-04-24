@@ -27,7 +27,7 @@ The main alterations made in PADE's code came from a fork by the [LAAI Research 
 
 
 ## List of alterations
-Here you will find a list with the modules and files changed by this update. New features are marked with *.
+Here you will find a list with the modules and files changed by this update. New features are marked with \*.
 
 **Module:** pade.core.agent
 - _Agent_.**\_\_init__(...)**
@@ -74,7 +74,6 @@ Next, the `done()` method must implements the end of the behaviour, in other wor
 To better understand how PADE executes behaviours actions, the diagram bellow synthesis the behaviours cycle within PADE scheduler.
 
 ![Behaviours life cycle diagram on PADE](images/behaviours_lifecycle.png)
-Format: ![Alt Text](Summarizes the behaviours life cycle on PADE.)
 
 At each execution, a behaviour will perform its `action()` method, executing soon after its `done()` method. If the `done()` method returns `True`, the behaviour will be executed again; if the `done()` method returns `False`, the behaviour will execute its `on_end()` method and, so, will ends. The `on_end()` method can be overridden to execute post-execution actions. It is useful for signalizes when a behaviour ended of for clearing control structures used in the behaviour execution.
 
