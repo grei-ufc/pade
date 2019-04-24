@@ -4,6 +4,7 @@ are used to model the agent behaviours.
 '''
 
 from pade.behaviours.base import BaseBehaviour
+from pade.acl.messages import ACLMessage
 
 class SimpleBehaviour(BaseBehaviour):
 
@@ -145,10 +146,19 @@ class SequentialBehaviour(OneShotBehaviour):
 		for behaviour in self.subbehaviours:
 			behaviour.action()
 			while not behaviour.done():
-				pass
-
+				self.wait(0.1)
+			behaviour.on_end()
 
 	def add_subbehaviour(self, behaviour):
 		''' This method adds sub-behaviours in this behaviour
 		'''
 		self.subbehaviours.append(behaviour)
+
+	def receive(self, message):
+		''' Overridden method to pass a received message to sub-behaviours.
+		'''
+		if isinstance(message, ACLMessage):
+			for behaviour in self.subbehaviours:
+				behaviour.messages.put(message)
+		else:
+			raise ValueError('message object type must be ACLMessage!')

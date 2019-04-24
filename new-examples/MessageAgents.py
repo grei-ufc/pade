@@ -8,7 +8,6 @@ from pade.misc.utility import display_message, start_loop
 # Sender Agent
 class SenderAgent(Agent):
 	def setup(self):
-		self.add_behaviour(SendMessage(self))
 		self.add_behaviour(SendMessageLater(self, 10))
 
 class SendMessageLater(WakeUpBehaviour):

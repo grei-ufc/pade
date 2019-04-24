@@ -13,19 +13,19 @@ class SequentialAgent(Agent):
 		# Adding 'sequential' into agent
 		self.add_behaviour(sequential)
 
-
+# Behaviour that counts from 1 to 10
 class Count1_10(OneShotBehaviour):
 	def action(self):
 		for num in range(1,11):
 			display(self.agent, num)
 
-
+# Behaviour that counts from 11 to 20
 class Count11_20(OneShotBehaviour):
 	def action(self):
 		for num in range(11,21):
 			display(self.agent, num)
 
-
+# Behaviour that counts from 21 to 30
 class Count21_30(OneShotBehaviour):
 	def action(self):
 		for num in range(21,31):
