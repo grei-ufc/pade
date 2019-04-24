@@ -623,12 +623,12 @@ If you find a bug or need any specific help, fell free to submit us an _issue_ o
 + [Filipe Saraiva](mailto:saraiva@ufpa.br) (Project coordinator)
 + [Italo Campos](mailto:italo.ramon.campos@gmail.com) (Update programmer)
 
-[Universidade Federal do Pará](https://portal.ufpa.br)
-Instituto de Ciências Exatas e Naturais
-Faculdade de Computação
+[Universidade Federal do Pará](https://portal.ufpa.br)  
+Instituto de Ciências Exatas e Naturais  
+Faculdade de Computação  
 Belém-PA, Brasil
 
-[comment]: # ([Federal University of Pará](https://portal.ufpa.br\))
+[comment]: # ([Federal University of Pará]\(https://portal.ufpa.br\))
 [comment]: # (Exact and Natural Sciences Institute)
 [comment]: # (Computation Faculty)
 [comment]: # (Belém-PA, Brazil)
