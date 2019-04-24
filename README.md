@@ -36,6 +36,8 @@ $ cd pade
 $ python setup.py install
 ```
 
+See the complete process in this video: [HOW TO install PADE](https://asciinema.org/a/ELHfOxZnMUjZyLa8bITJ0AQnP)
+
 ## Docker
 
 Build container
