@@ -22,15 +22,6 @@ import random
 import os
 import sys
 
-ENGINE = create_engine('sqlite:///' + os.path.join(basedir, 'data.sqlite'))
-TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
-TWISTED_ENGINE.run_callable = ENGINE.run_callable
-
-METADATA = MetaData()
-METADATA.bind = ENGINE
-AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
-
-
 # Behaviour that sends the connection verification messages.
 
 class ComportSendConnMessages(TimedBehaviour):
@@ -321,6 +312,19 @@ class AMS(Agent_):
             self._verify_user_in_session(self.session)
 
 if __name__ == '__main__':
+
+    display_message('AMS', 'creating tables in database...')
+    db.create_all()
+    display_message('AMS', 'tables created in database.')
+
+    ENGINE = create_engine('sqlite:///' + os.path.join(basedir, 'data.sqlite'))
+    TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
+    TWISTED_ENGINE.run_callable = ENGINE.run_callable
+
+    METADATA = MetaData()
+    METADATA.bind = ENGINE
+    AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
+    
     ams = AMS(port=int(sys.argv[4]))
     # instantiates AMS agent and calls listenTCP method
     # from Twisted to launch the agent
