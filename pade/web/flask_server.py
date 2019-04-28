@@ -2,6 +2,7 @@ import os
 import datetime
 import requests
 import json
+import pagan
 
 from requests.exceptions import Timeout
 
@@ -302,6 +303,7 @@ def manage_users():
 @app.route('/session/<session_id>')
 @login_required
 def session_page(session_id):
+    generate_agent_avatars()
     session = Session.query.filter_by(id=session_id).first()
     agents = session.agents
     return render_template('agentes.html', session=session, agents=agents)
@@ -532,6 +534,32 @@ def messages():
             data = Message.query.filter(Message.date > start).filter(Message.date < stop)
 
         return render_template('messagesFiltered.html', messages=data, senders=senders, performatives=performatives)
+
+
+def generate_agent_avatars():
+    # Defining the directory to save the avatars images
+    path = os.path.abspath(os.path.dirname(__file__)) + '/static'
+
+    # Checking for existing avatars in directory
+    files = os.listdir(path)
+
+    # Querying agents
+    agents = AgentModel.query.all()
+
+    for a in agents:
+        # Converting the agent object to string (agent name)
+        name = str(a)
+        name = name[6:-17]
+
+        if any(name in s for s in files):
+            # If any avatar image with the agent name already exists
+            # then nothing is necessary
+            pass
+        else:
+            # If no avatar image with the agent name was found
+            # then one is created
+            img = pagan.Avatar(name, pagan.SHA512)
+            img.save(path, name)
 
 
 @app.route('/post',  methods=['POST', 'GET'])
