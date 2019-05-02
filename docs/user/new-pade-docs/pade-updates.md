@@ -60,6 +60,15 @@ Here you will find a list with the modules and files changed by this update. New
 - _WakeUpBehaviour_*
 - _TickerBehaviour_*
 - _SequentialBehaviour_*
+<br>
+
+**Module:** pade.acl.filters
+- _Filter_.**\_\_init__()**
+- _Filter_.**ontology***
+- _Filter_.**sender_local_name***
+- _Agent_.**set_ontology()***
+- _Agent_.**set_sender_local_name()***
+- _Agent_.**filter()**
 
 
 ## Agent Behaviours on PADE

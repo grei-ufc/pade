@@ -38,6 +38,9 @@ class Filter():
         self.sender = None
         self.performative = None
         self.protocol = None
+        self.ontology = None
+        self.sender_local_name = None
+
     
     def set_sender(self, aid):
         self.sender = aid
@@ -50,6 +53,15 @@ class Filter():
     
     def set_protocol(self, protocol):
         self.protocol = protocol
+
+    def set_ontology(self, ontology):
+        self.ontology = ontology
+
+    def set_sender_local_name(self, local_name):
+        if isinstance(local_name, AID):
+            self.sender_local_name = local_name.getLocalName()
+        else:
+            self.sender_local_name = local_name
     
     def filter(self, message):
         state = True
@@ -65,7 +77,13 @@ class Filter():
         
         if self.protocol != None and self.protocol != message.protocol:
             state = False
-            
+
+        if self.ontology != None and self.ontology != message.ontology:
+            state = False
+
+        if self.sender == None and self.sender_local_name != None and self.sender_local_name != message.sender.getLocalName():
+            state = False
+
         return state
 
 if __name__ == '__main__':
