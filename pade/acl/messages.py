@@ -513,6 +513,46 @@ class ACLMessage(ET.Element):
         # Remove the unpicklable entries.
         return state
 
+    def clone(self):
+        ''' Returns a new ACLMessage object cloned from this class
+        '''
+        clone = ACLMessage()
+        if self.performative != None:
+            clone.set_performative(self.performative)
+        if self.system_message != None:
+            clone.set_system_message(self.system_message)
+        if self.sender != None:
+            clone.set_sender(self.sender)
+        if self.receivers != []:
+            for receiver in self.receivers:
+                clone.add_receiver(receiver)
+        if self.reply_to != []:
+            for name in self.reply_to:
+                clone.add_reply_to(name)
+        if self.content != None:
+            clone.set_content(self.content)
+        if self.language != None:
+            clone.set_language(self.language)
+        if self.encoding != None:
+            clone.set_encoding(self.encoding)
+        if self.ontology != None:
+            clone.set_ontology(self.ontology)
+        if self.protocol != None:
+            clone.set_protocol(self.protocol)
+        if self.conversationID != None:
+            clone.set_conversation_id(self.conversationID)
+        if self.reply_with != None:
+            clone.set_reply_with(self.reply_with)
+        if self.reply_to != None:
+            clone.set_in_reply_to(self.in_reply_to)
+        if self.reply_by != None:
+            clone.set_reply_by(self.reply_by)
+        
+        return clone
+
+    def reset_receivers(self):
+        self.receivers = list()
+
 if __name__ == '__main__':
 
     msg = ACLMessage()

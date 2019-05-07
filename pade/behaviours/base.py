@@ -7,6 +7,7 @@ from pade.behaviours.protocols import Behaviour
 from pade.acl.messages import ACLMessage
 from time import sleep
 from queue import Queue
+import queue
 
 class BaseBehaviour(Behaviour):
 

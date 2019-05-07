@@ -1,5 +1,7 @@
-﻿# PADE Update (LAAI | UFPA)
-###### Released at 4-22-2019
+﻿
+# Doc 1: Behaviours in PADE
+##### PADE Update (LAAI | UFPA), released at 4-22-2019
+
 
 
 ## Content
@@ -31,45 +33,60 @@ Here you will find a list with the modules and files changed by this update. New
 
 **Module:** pade.core.agent
 - _Agent_.**\_\_init__(...)**
-- _Agent_.**scheduler***
-- _Agent_.**ignore_ams***
-- _Agent_.**react()**
+- _Agent_.**scheduler\***
+- _Agent_.**ignore_ams\***
+- _Agent_.**active\***
+- _Agent_.**deliverer\***
+- _Agent_.**react(message)**
 - _Agent_.**on_start()**
-- _Agent_.**setup()***
-- _Agent_.**add_behaviour(behaviour)***
+- _Agent_.**setup()\***
+- _Agent_.**add_behaviour(behaviour)\***
+- _Agent_.**remove_task(task)\***
+- _Agent_.**receive(message)\***
+- _Agent_.**pause_agent()**
+- _Agent_.**resume_agent()**
+- _Agent_.**send(message)**
+- _Agent_.**receiver_available(receiver)\***
 - _Agent_\_.**aid(value)**
+<br>
+
+ **Module:** pade.core.delivery
+- _Deliverer_\*
 <br>
 
  **Module:** pade.misc.utility
 - **display_message(name, data)**
-- **display(agent, message)***
+- **display(agent, message)\***
 <br>
 
 **Module:** pade.scheduler.core
-- _Scheduler_*
+- _Scheduler_\*
 <br>
 
  **Module:** pade.behaviours.base
-- _BaseBehaviour_*
+- _BaseBehaviour_\*
 <br>
 
  **Module:** pade.behaviours.types
-- _SimpleBehaviour_*
-- _OneShotBehaviour_*
-- _CyclicBehaviour_*
-- _WakeUpBehaviour_*
-- _TickerBehaviour_*
-- _SequentialBehaviour_*
+- _SimpleBehaviour_\*
+- _OneShotBehaviour_\*
+- _CyclicBehaviour_\*
+- _WakeUpBehaviour_\*
+- _TickerBehaviour_\*
+- _SequentialBehaviour_\*
 <br>
 
 **Module:** pade.acl.filters
 - _Filter_.**\_\_init__()**
-- _Filter_.**ontology***
-- _Filter_.**sender_local_name***
-- _Agent_.**set_ontology()***
-- _Agent_.**set_sender_local_name()***
+- _Filter_.**ontology\***
+- _Filter_.**sender_local_name\***
+- _Agent_.**set_ontology()\***
+- _Agent_.**set_sender_local_name()\***
 - _Agent_.**filter()**
 
+**Module:** pade.acl.messages
+- _ACLMessage_.**clone()\***
+- _ACLMessage_.**reset_receivers()\***
 
 ## Agent Behaviours on PADE
 In this session we will approach quickly the new way to program behaviours in PADE. The used paradigm is based in JADE programming, so, if you want to know more about this agent-based programing style, see some examples with behaviours in JADE.

@@ -44,6 +44,7 @@ from twisted.protocols.basic import LineReceiver
 from pade.core.peer import PeerProtocol
 
 from pade.acl.messages import ACLMessage
+from pade.core.delivery import DeliverPostponedMessage
 from pade.behaviours.protocols import Behaviour
 from pade.behaviours.base import BaseBehaviour
 from pade.behaviours.protocols import FipaRequestProtocol, FipaSubscribeProtocol
@@ -459,7 +460,7 @@ class CompConnection(FipaRequestProtocol):
 # Main Agent Class
 
 class Agent(Agent_):
-    def __init__(self, aid, debug=False, ignore_ams = True):
+    def __init__(self, aid, debug=False, ignore_ams = True, wait_time = 300):
         super(Agent, self).__init__(aid=aid, debug=debug)
 
         self.comport_connection = CompConnection(self)
@@ -469,6 +470,7 @@ class Agent(Agent_):
         self.scheduler = Scheduler(self) # Scheduler object to manage the behaviours of this agent
         self.ignore_ams = ignore_ams # It indicates if the ams messages will be filtered
         self.active = True # It indicates whether this agent is active or not
+        self.deliverer = DeliverPostponedMessage(self, wait_time)
 
     def update_ams(self, ams):
         super(Agent,self).update_ams(ams)
@@ -509,6 +511,7 @@ class Agent(Agent_):
     def on_start(self):
         super().on_start()
         self.scheduler.start()
+        self.add_behaviour(self.deliverer)
         self.setup()
 
     def add_behaviour(self, behaviour):
@@ -551,3 +554,29 @@ class Agent(Agent_):
         super().resume_agent()
         self.active = True
         self.scheduler.start()
+
+    def send(self, message):
+        ''' This method checks if a receiver is already capable to receive
+        messages. If not, the agent will try to send the message by 5 
+        minutes (by default).
+        '''
+        receivers = list()
+        for receiver in message.receivers:
+            if not self.receiver_available(receiver):
+                postponed_message = message.clone()
+                postponed_message.reset_receivers()
+                postponed_message.add_receiver(receiver)
+                self.deliverer.deliver(postponed_message)
+            else:
+                receivers.append(receiver)
+        message.reset_receivers()
+        for receiver in receivers:
+            message.add_receiver(receiver)
+        super().send(message)
+
+
+    def receiver_available(self, receiver):
+        for address in self.agentInstance.table:
+            if receiver.getLocalName() in address:
+                return True
+        return False
