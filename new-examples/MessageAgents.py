@@ -1,22 +1,22 @@
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
-from pade.behaviours.types import WakeUpBehaviour, CyclicBehaviour
+from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
 from pade.core.agent import Agent
-from pade.misc.utility import display_message, start_loop
+from pade.misc.utility import display, start_loop
 
 
-# Sender Agent
+# Customer Agent
 class SenderAgent(Agent):
 	def setup(self):
-		self.add_behaviour(SendMessageLater(self, 10))
+		self.add_behaviour(SendMessage(self))
 
-class SendMessageLater(WakeUpBehaviour):
-	def on_wake(self):
+class SendMessage(OneShotBehaviour):
+	def action(self):
 		message = ACLMessage(ACLMessage.INFORM)
-		message.add_receiver(AID('pong'))
-		message.set_content('Hello, pong, ping is here!')
+		message.add_receiver(AID('receiver'))
+		message.set_content('Hello! :)')
 		self.agent.send(message)
-		display_message(self.agent, 'Message sent to pong.')
+		display(self.agent, 'I sent a message to receiver.')
 
 
 # Receiver Agent
@@ -27,14 +27,11 @@ class ReceiverAgent(Agent):
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
 		message = self.read()
-		if message.sender.getLocalName() == 'ping':
-			display_message(self.agent, 'I received a message from %s.' % message.sender.getLocalName())
-		else:
-			display_message(self.agent, 'I received a message from another agent.')
+		display(self.agent, 'I received a message with the content: %s.' % message.content)
 
 
 if __name__ == '__main__':
 	agents = list()
-	agents.append(ReceiverAgent('pong'))
-	agents.append(SenderAgent('ping'))
+	agents.append(ReceiverAgent('receiver'))
+	agents.append(SenderAgent('sender'))
 	start_loop(agents)

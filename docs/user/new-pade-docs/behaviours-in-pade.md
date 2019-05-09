@@ -1,5 +1,4 @@
-﻿
-# Doc 1: Behaviours in PADE
+﻿# Doc 1: Behaviours in PADE
 ##### PADE Update (LAAI | UFPA), released at 4-22-2019
 
 
@@ -80,35 +79,35 @@ Here you will find a list with the modules and files changed by this update. New
 - _Filter_.**\_\_init__()**
 - _Filter_.**ontology\***
 - _Filter_.**sender_local_name\***
-- _Agent_.**set_ontology()\***
-- _Agent_.**set_sender_local_name()\***
-- _Agent_.**filter()**
+- _Filter_.**set_ontology()\***
+- _Filter_.**set_sender_local_name()\***
+- _Filter_.**filter()**
 
 **Module:** pade.acl.messages
 - _ACLMessage_.**clone()\***
 - _ACLMessage_.**reset_receivers()\***
 
 ## Agent Behaviours on PADE
-In this session we will approach quickly the new way to program behaviours in PADE. The used paradigm is based in JADE programming, so, if you want to know more about this agent-based programing style, see some examples with behaviours in JADE.
+In this session we will approach quickly the new way to program behaviours in PADE. The used paradigm is based in [JADE](https://jade.tilab.com/) programming, so, if you want to know more about this agent-based programing style, see some examples with behaviours in JADE.
 
 The first one thing to keep in mind while developing behaviours is that behaviours have two important methods to be implemented. They are: `action()` and `done()` methods.
 
 The `action()` method is the most important to be implemented, because is it that will perform the actions of the behaviour (consequently, of the agent). All "hard code" of behaviour must be put on `action()` method.
 
-Next, the `done()` method must implements the end of the behaviour, in other words, it must to tells the PADE when a behaviour finishes its actions. This method must returns a `boolean`, which indicates if a behaviour ended by returning `True`, otherwise, returning `False`. There are cases where you don't need to implement this method, because it is predefined, as we will see later.
+Next, the `done()` method must implements the end of the behaviour, in other words, it must to tells the PADE when a behaviour finishes its actions. This method must returns a `boolean`, which indicates whether a behaviour is ended (by returning `True`), or not (by returning `False`). There are cases where you don't need to implement this method, because it is predefined, as we will see later.
 
 To better understand how PADE executes behaviours actions, the diagram bellow synthesis the behaviours cycle within PADE scheduler.
 
 ![Behaviours life cycle diagram on PADE](images/behaviours_lifecycle.png)
 
-At each execution, a behaviour will perform its `action()` method, executing soon after its `done()` method. If the `done()` method returns `True`, the behaviour will be executed again; if the `done()` method returns `False`, the behaviour will execute its `on_end()` method and, so, will ends. The `on_end()` method can be overridden to execute post-execution actions. It is useful for signalizes when a behaviour ended of for clearing control structures used in the behaviour execution.
+At each execution, a behaviour will perform its `action()` method, executing soon after its `done()` method. If the `done()` method returns `False`, the behaviour will be executed again; if the `done()` method returns `True`, the behaviour will execute its `on_end()` method and, so, will ends. The `on_end()` method can be overridden to execute post-execution actions. It is useful for signalizes when a behaviour ended of for clearing control structures used in the behaviour execution.
 
-Basically, behaviours may be of two types: finite behaviours or infinite behaviours. They do exactly what their names mean, that is, finite behaviors end at a definite time (its `done()` method will returns `True` in a determined time) and infinite behaviors never end (its `done()` method never will returns `True`). The classes, in PADE, that implement the finite behaviours are `OneShotBehaviour` and `WakeUpBehaviour`. In its turn, the classes that implement the infinite behaviours are `CyclicBehaviour` and`TickerBehaviour`. The `SimpleBehaviour` class is a general model, while `SequentialBehaviour` class models a special type of behaviour that will be discussed later.
+Basically, behaviours may be of two types: finite behaviours or infinite behaviours. They do exactly what their names mean, that is, finite behaviors end at a definite time (its `done()` method will returns `True` in a determined time) and infinite behaviors never end (its `done()` method never will returns `True`). The classes in PADE that implement the finite behaviours are `OneShotBehaviour` and `WakeUpBehaviour`. In its turn, the classes that implement the infinite behaviours are `CyclicBehaviour` and`TickerBehaviour`. The `SimpleBehaviour` class is a general model, while `SequentialBehaviour` class models a special type of behaviour that will be discussed later.
 
 To further explain the features of the behaviours classes in PADE, we will see each one of them separately in the next sub-sessions.
 
 ### OneShotBehaviour class
-The `OneShotBehaviour` class is a class that models finite behaviours. Its main feature is that its `done()` method always returns `True`, always ending after its first execution. Let's look at an example by writing a `OneShotBehaviour` that makes an agent say "hello world".
+The `OneShotBehaviour` class is a class that models finite behaviours. Its main characteristic is that its `done()` method always returns `True`, ending the behaviour soon after its first execution. Let's look at an example by writing a `OneShotBehaviour` that makes an agent says "hello world".
 
 ```python
 # Needed imports
@@ -145,14 +144,14 @@ if __name__ == '__main__':
 ```
 First, we defined the `HelloWorldAgent`, adding on it the behaviours that it will execute on its startup. We did it using two methods of `Agent` class:  with `Agent.setup()` method, we are able to put any code that configure the agent in its startup, including its initial behaviours; in its turn, the `Agent.add_behaviour(BaseBehaviour)` method is used to attach a behaviour to be executed by an agent.
 
-> The `BaseBehaviour` class is the basic class from which all other behaviours inherit from, that is, all behavior classes general type is `BaseBehaviour`.
+> The `BaseBehaviour` class is the basic class from which all other behaviours inherit from, that is, the general type of all behavior classes is `BaseBehaviour`.
 
-After writing the agent, we defined the `SayHello` behaviour. The only one method needed to be implemented is the `SayHello.action()` method. This method defines the action that the agent will takes when performs this behaviour. To `OneShotBehaviour` no other method is needed to be implemented.
+After writing the agent, we defined the `SayHello` behaviour. The only one method needed to be implemented is the `SayHello.action()`. This method defines the **action** that the agent will takes when performs this behaviour. To `OneShotBehaviour` no other method is needed to be implemented.
 
-The last lines deal with the initiation of the agents within PADE's loop. While instantiating new agents, we need to give to they unique names. This names are passed to Agent constructor method under string form or by using an `AID` object. The `start_loop(list)` function receives a list of agents that will be executed on PADE. To start the agents, execute `pade start-runtime file_name.py` on a terminal and enjoy it!
+The last lines deal with the initiation of the agents within PADE's loop. While instantiating new agents, we need to give to they unique names. This names are passed to Agent constructor method under string form or by using an `AID` object. The `start_loop(list)` function receives a list of agents that will be executed on PADE. To start the agents, execute `pade start-runtime file_name.py` on a terminal and enjoy it! 0\/
 
 ### WakeUpBehaviour class
-The `WakeUpBehaviour` too implements a finite behaviour, with the important difference that this behaviour will wait for a time to, then, perform its actions. Another important spot to focus is that this class implements its actions on `on_wake()` method, rather `action()` method. We can see an example bellow that models an agent that wait 5 seconds to do an ask.
+The `WakeUpBehaviour` too implements a finite behaviour, with the important difference that this behaviour will wait for a time before perform its actions. Another important spot to focus is that this class implements its actions on `on_wake()` method, rather `action()` method. We can see an example below that models an agent which waits by 5 seconds to makes an ask.
 
 ``` python
 # Needed imports
@@ -188,10 +187,10 @@ if __name__ == '__main__':
 	# Passing the agent list to main loop of PADE
 	start_loop(agents_list)
 ```
-Now, executing the `pade start-runtime file_name.py` command in a terminal, we will see the agent waiting 5 seconds before prints the ask "Am I late?" in the screen. However, this task is done only once, because it is a finite behaviour.
+Now, executing the `pade start-runtime file_name.py` command in a terminal, we will see the agent waiting 5 seconds before prints the ask "Am I late?" in the screen. However, this task is performed only once, because it is a finite behaviour.
 
 ### SimpleBehaviour class
-The `SimpleBehaviour` class is the simplest pre-implemented behaviour model in PADE (oh, really?). "Simple" means that you must program the `action()` and `done()` methods. The advantage of this behaviour model is that you can customize its end. Bellow there is an example where an agent counts and shows in console a counting from 1 to 10.
+The `SimpleBehaviour` class is the simplest pre-implemented behaviour model in PADE (oh, really?). "Simple" means that you must program the `action()` and `done()` methods. The advantage of this behaviour model is that you can customize its end. Below there is an example where an agent counts and shows in console a counting from 1 to 10.
 
 ``` python
 from pade.behaviours.types import SimpleBehaviour
@@ -231,7 +230,7 @@ if __name__ == '__main__':
 This code will create an agent to count from 1 to 10. When the `CounterAgent.counter` variable reach the value 10, the `done()` method will return `True`, finishing the behaviour. We used too the `on_end()` method to signalizes when the counting is ended. 
 
 ### CyclicBehaviour class
-This is a class that implements a infinite behaviours. The main difference between this class and those that implement finite behaviours (specially `OneShotBehavior`) is that the `done()` method of this class always returns `False`, never ending. The cyclic classes have a close relation with behaviours blocking and messages receiving , but it will be explained in the next docs.
+This is a class that implements a infinite behaviours. The main difference between this class and those that implement finite behaviours is that the `done()` method of this class always returns `False`, never ending. The cyclic classes have a close relation with behaviours blocking and messages receiving , but it will be explained in the next docs.
 
 Now, we will see an example of an agent that models a clock and shows a message every 1 second.
 
@@ -256,7 +255,7 @@ if __name__ == '__main__':
 There is not much difference between this code and the codes shown above, except that the `CyclicBehaviour` will execute indefinitely. Moreover, is common to use **blocking** and **waiting** methods with cyclic behaviours, like the `BaseBehaviour.wait(float)` method. This method will stop the behaviour until the `timeout` argument passed to it ends. It is useful, in our example, to make `TicTacAgent` shows messages within a limit of time (one second, like a clock).
 
 ### TickerBehaviour class
-This is the another class that implements infinite behaviours. Like `WakeUpBehaviour`, objects from this class will wait a timeout to, then, execute its actions. The difference between the classes is that the `TickerBehaviour` will execute indefinitely. It is important to highlight that the method that implements actions on this class is the `on_tick()` method, rather `action()`.
+This is the another class that implements infinite behaviours. Like `WakeUpBehaviour`, objects from this class will wait a timeout before execute its actions. The difference between the classes is that the `TickerBehaviour` will execute indefinitely. It is important to highlight that the method that implements actions on this class is the `on_tick()` method, rather `action()`.
 
 We will remake the clock example, now using the `TickerBehaviour` class. The code follows bellow.
 
@@ -278,7 +277,7 @@ if __name__ == '__main__':
 ```
 
 ### SequentialBehaviour class
-This is the most different class implementing behaviours in PADE. All behaviours in PADE are scheduled parallel, however, some times is necessary perform behaviours in a sequential mode. The `SequentialBehaviour` class implements sequential behaviours, by adding its sub-behaviours. The sub-behaviours are added one by one, following an order, which defines the order that the behaviours will be executed. 
+This is the most different class implementing behaviours in PADE. All behaviours in PADE are scheduled parallel, however, some times is necessary perform behaviours in a sequential mode. The `SequentialBehaviour` class implements sequential behaviours, by adding sub-behaviours in it. The sub-behaviours are added one by one, following an order, which defines the order that the behaviours will be executed. 
 
 Unlike others behaviours, a `SequentialBehaviour` does not require implementation of any of its action methods, simply adding this behaviour to an agent to run its sub-behaviours. The example bellow shows a simple implementation of this class.
 
@@ -320,7 +319,9 @@ class Count21_30(OneShotBehaviour):
 if __name__ == '__main__':
 	start_loop([SequentialAgent('seq')])
 ```
-In the above example, we used three `OneShotBehaviour` implementations that do different counting. However, the instantiation of `SequentialBehaviour` object is which defines the execution order of these behaviours. We used the `add_subbehaviour(BaseBehavior)` method to add any `BaseBehaviour` subclass as sub-behaviour of `sequential` object. The adding order defines the execution order of `sequential` sub-behaviours. To test it, try to swap the order in which the behaviours are added in `sequential` and see what happens with your counting.
+In the above example, we used three `OneShotBehaviour` implementations that do different counting. However, the instantiation of `SequentialBehaviour` object is which defines the execution order of these behaviours.
+
+In the code above, we used the `add_subbehaviour(BaseBehavior)` method to add any `BaseBehaviour` subclass as sub-behaviour of `sequential` object. The adding order defined the execution order of `sequential` sub-behaviours. To test it, try to swap the order in which the behaviours are added in `sequential` and see what happens with your counting.
 
 Finally, we used the `Agent.add_behaviour(BaseBehaviour)` method to add the `sequential` object to the agent. At this moment, the `sequential` behaviour will execute its sub-behaviours.
 
@@ -340,14 +341,14 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
 	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
+		- `block`: `bool` argument that set the mode of the method to wait a message arrives (blocking) or not (non blocking).
 	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
+		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the message queue. If `block` is `True`, this method always returns an `ACLMessage` object.
 		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
 
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
+- **read_timeout(timeout)**: tries to read the first message from the message queue. If there is no messages to read, the behaviour is blocked and will wait by `timeout` seconds. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if the message queue remains empty.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
 	- _Returns:_
 		- `ACLMessage`: if there is at least one message in the messages queue.
 		- `None`: if there are no messages in the messages queue.
@@ -368,7 +369,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait.
 	- _Returns:_
 		- `None`
 
@@ -378,7 +379,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **has_messages()**: verifies if the messages queue of this behaviour has messages.
 	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
+		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
 
 ### OneShotBehaviour
@@ -390,14 +391,14 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
 	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
+		- `block`: `bool` argument that set the mode of the method to wait a message arrives (blocking) or not (non blocking).
 	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
+		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the message queue. If `block` is `True`, this method always returns an `ACLMessage` object.
 		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
 
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
+- **read_timeout(timeout)**: tries to read the first message from the message queue. If there is no messages to read, the behaviour is blocked and will wait by `timeout` seconds. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if the message queue remains empty.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
 	- _Returns:_
 		- `ACLMessage`: if there is at least one message in the messages queue.
 		- `None`: if there are no messages in the messages queue.
@@ -418,7 +419,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait.
 	- _Returns:_
 		- `None`
 
@@ -428,7 +429,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **has_messages()**: verifies if the messages queue of this behaviour has messages.
 	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
+		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
 
 ### CyclicBehaviour
@@ -440,14 +441,14 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
 	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
+		- `block`: `bool` argument that set the mode of the method to wait a message arrives (blocking) or not (non blocking).
 	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
+		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the message queue. If `block` is `True`, this method always returns an `ACLMessage` object.
 		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
 
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
+- **read_timeout(timeout)**: tries to read the first message from the message queue. If there is no messages to read, the behaviour is blocked and will wait by `timeout` seconds. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if the message queue remains empty.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
 	- _Returns:_
 		- `ACLMessage`: if there is at least one message in the messages queue.
 		- `None`: if there are no messages in the messages queue.
@@ -468,7 +469,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait.
 	- _Returns:_
 		- `None`
 
@@ -478,7 +479,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **has_messages()**: verifies if the messages queue of this behaviour has messages.
 	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
+		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
 
 ### WakeUpBehaviour
@@ -491,14 +492,14 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
 	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
+		- `block`: `bool` argument that set the mode of the method to wait a message arrives (blocking) or not (non blocking).
 	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
+		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the message queue. If `block` is `True`, this method always returns an `ACLMessage` object.
 		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
 
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
+- **read_timeout(timeout)**: tries to read the first message from the message queue. If there is no messages to read, the behaviour is blocked and will wait by `timeout` seconds. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if the message queue remains empty.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
 	- _Returns:_
 		- `ACLMessage`: if there is at least one message in the messages queue.
 		- `None`: if there are no messages in the messages queue.
@@ -523,7 +524,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait.
 	- _Returns:_
 		- `None`
 
@@ -533,7 +534,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **has_messages()**: verifies if the messages queue of this behaviour has messages.
 	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
+		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
 
 ### TickerBehaviour
@@ -546,14 +547,14 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
 	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
+		- `block`: `bool` argument that set the mode of the method to wait a message arrives (blocking) or not (non blocking).
 	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
+		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the message queue. If `block` is `True`, this method always returns an `ACLMessage` object.
 		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
 
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
+- **read_timeout(timeout)**: tries to read the first message from the message queue. If there is no messages to read, the behaviour is blocked and will wait by `timeout` seconds. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if the message queue remains empty.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
 	- _Returns:_
 		- `ACLMessage`: if there is at least one message in the messages queue.
 		- `None`: if there are no messages in the messages queue.
@@ -578,7 +579,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait.
 	- _Returns:_
 		- `None`
 
@@ -588,7 +589,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **has_messages()**: verifies if the messages queue of this behaviour has messages.
 	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
+		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
 
 
@@ -601,14 +602,14 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
 	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
+		- `block`: `bool` argument that set the mode of the method to wait a message arrives (blocking) or not (non blocking).
 	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
+		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the message queue. If `block` is `True`, this method always returns an `ACLMessage` object.
 		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
 
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
+- **read_timeout(timeout)**: tries to read the first message from the message queue. If there is no messages to read, the behaviour is blocked and will wait by `timeout` seconds. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if the message queue remains empty.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
 	- _Returns:_
 		- `ACLMessage`: if there is at least one message in the messages queue.
 		- `None`: if there are no messages in the messages queue.
@@ -629,7 +630,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
 	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
+		- `timeout`: a `float` parameter that indicates the time that the behaviour will wait.
 	- _Returns:_
 		- `None`
 
@@ -639,7 +640,7 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 - **has_messages()**: verifies if the messages queue of this behaviour has messages.
 	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
+		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
 
 ## Contact us
@@ -654,7 +655,17 @@ Instituto de Ciências Exatas e Naturais
 Faculdade de Computação  
 Belém-PA, Brasil
 
+[Universidade Federal do Ceará](http://www.ufc.br/)
+[Grupo de Redes Elétricas Inteligentes](https://github.com/grei-ufc)
+Fortaleza-CE, Brasil
+
 [comment]: # ([Federal University of Pará]\(https://portal.ufpa.br\))
 [comment]: # (Exact and Natural Sciences Institute)
 [comment]: # (Computation Faculty)
 [comment]: # (Belém-PA, Brazil)
+
+[comment]: # ([Federal University of Ceará]\(http://www.ufc.br/\))
+[comment]: # ([Smart Grids Group](https://github.com/grei-ufc\))
+[comment]: # ()
+[comment]: # ()
+[comment]: # (Fortaleza-CE, Brazil)

@@ -1,6 +1,6 @@
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
-from pade.behaviours.types import CyclicBehaviour, SimpleBehaviour
+from pade.behaviours.types import CyclicBehaviour, OneShotBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display_message, start_loop
 
@@ -8,44 +8,30 @@ from pade.misc.utility import display_message, start_loop
 # ==== Ping Agent ====
 
 class PingAgent(Agent):
-	def __init__(self, aid,):
-		super().__init__(aid)
-		# Attribute that indicates the start of the 'game'
-		self.started = False
-
 	def setup(self):
 		# Adding behaviours to this agent
 		self.add_behaviour(StartGame(self))
 		self.add_behaviour(PingTurn(self))
 
-class StartGame(SimpleBehaviour):
+class StartGame(OneShotBehaviour):
 	def action(self):
 		# Preparing a message to 'pong'
 		message = ACLMessage(ACLMessage.INFORM)
 		message.add_receiver(AID('pong'))
 		message.set_content('PING')
-		# Wait 1 second to save CPU
-		self.wait(1)
 		# Sending the message
 		self.agent.send(message)
 
-	# Defines when the behaviour ends
-	def done(self):
-		return self.agent.started
-
 class PingTurn(CyclicBehaviour):
 	def action(self):
-		# Awaits for a message from self.receiver. The execution
-		# of this behaviour will stops until some message arrives
-		# at this agent. If you want to read a message without 
-		# blocking the behaviour, use self.read(block = False) or
+		# Awaits for a message from 'pong'. The execution of this
+		# behaviour will stops until some message arrives at this
+		# agent. If you want to read a message without blocking the
+		# behaviour, use self.read(block = False) or 
 		# self.read_timeout(timeout). These methods returns None 
 		# if don't have messages to agent. See docs to more details.
 		message = self.read()
 		if message.sender.getLocalName() == 'pong':
-			# If it is the first reply
-			if not self.agent.started:
-				self.agent.started = True
 			# Preparing a reply to self.receiver
 			reply = message.create_reply()
 			reply.set_content('PING')
@@ -65,14 +51,13 @@ class PongAgent(Agent):
 
 class PongTurn(CyclicBehaviour):
 	def action(self):
-		# Awaits for a message from self.sender
 		message = self.read()
 		if message.sender.getLocalName() == 'ping':
-			# Preparing a reply to self.sender
+			# Preparing a reply to 'ping'
 			reply = message.create_reply()
 			reply.set_content('PONG')
 			display_message(self.agent, 'Turn: %s' % message.content)
-			#self.wait(0.5)
+			self.wait(0.5)
 			# Sending the reply
 			self.agent.send(reply)
 

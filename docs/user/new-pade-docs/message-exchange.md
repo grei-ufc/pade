@@ -1,4 +1,4 @@
-# Doc 2: Message Exchange
+﻿# Doc 2: Message Exchange
 ##### PADE Update (LAAI | UFPA), released at 4-22-2019
 
 
@@ -19,7 +19,7 @@ This doc explains the message exchange between agents in PADE, taking into accou
 
 ## The _read\()_ methods
 
-This is the main method to be used when you are reading messages within behaviours. The method takes and returns only the **first message** of behaviour messages queue. A simple implementation of receiving messages can be seen bellow.
+This is the main set of methods to be used when you are reading messages within behaviours. These methods lie in _Behaviour_ classes and their main function is take and return the **first message** from behaviour messages queue. As a first step, let's to see a simple implementation of receiving messages using de default `read()` method.
 
 ``` python
 from pade.behaviours.types import CyclicBehaviour
@@ -42,7 +42,48 @@ if __name__ == '__main__':
 	start_loop([ReceiverAgent('agent')])
 ```
 
-The `read()` method will return an `ACLMessage` object that may be handled within the behaviour. Cool.
+The `read()` method will return an `ACLMessage` object that may be handled within the behaviour. Cool! However, let's to create an agent to send something to our `ReceiverAgent`. Add some code to above code and watch the magic happen.
+
+``` python
+from pade.acl.aid import AID
+from pade.acl.messages import ACLMessage
+from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
+from pade.core.agent import Agent
+from pade.misc.utility import display, start_loop
+
+
+# Sender Agent
+class SenderAgent(Agent):
+	def setup(self):
+		self.add_behaviour(SendMessage(self))
+
+class SendMessage(OneShotBehaviour):
+	def action(self):
+		message = ACLMessage(ACLMessage.INFORM)
+		message.add_receiver(AID('receiver'))
+		message.set_content('Hello! :)')
+		self.agent.send(message)
+		display(self.agent, 'I sent a message to receiver.')
+
+
+# Receiver Agent
+class ReceiverAgent(Agent):
+	def setup(self):
+		self.add_behaviour(ReceiveMessage(self))
+
+class ReceiveMessage(CyclicBehaviour):
+	def action(self):
+		message = self.read()
+		display(self.agent, 'I received a message with the content: %s.' % message.content)
+
+
+if __name__ == '__main__':
+	agents = list()
+	agents.append(ReceiverAgent('receiver'))
+	agents.append(SenderAgent('sender'))
+	start_loop(agents)
+```
+The `read()` method read the message queue on behaviour and return the first message, if it exists. If not, the `read()` will wait for a message arrival to, then, return it. The read() method, so, blocks the behaviour.
 
 An important spot to highlight is that the `read()` method has three variants, which differ in the form how the agent waits for a message (is blocked). These three variants are described bellow.
 
@@ -126,562 +167,246 @@ if __name__ == '__main__':
 Note that the attendant doesn't waits indefinitely, but, using the `read_timeout(timeout)` method, waits for a time interval. In other hand, the customers wait indefinitely for a response of attendants, using the `read()` method. The `read(block = False)` method works similarly to `read_timeout(timeout)`, but, waits for no time, immediately returning an `ACLMessage` or a `None` object.
 
 
-## Agent Behaviours on PADE
-In this session we will approach quickly the new way to program behaviours in PADE. The used paradigm is based in JADE programming, so, if you want to know more about this agent-based programing style, see some examples with behaviours in JADE.
+## Filtering messages
+Message filtering is so useful to agent programming, once the agents receive messages during all of its life cycle. In PADE, the filtering can be made within behaviours, choosing the better treating for each message type received.
 
-The first one thing to keep in mind while developing behaviours is that behaviours have two important methods to be implemented. They are: `action()` and `done()` methods.
-
-The `action()` method is the most important to be implemented, because is it that will perform the actions of the behaviour (consequently, of the agent). All "hard code" of behaviour must be put on `action()` method.
-
-Next, the `done()` method must implements the end of the behaviour, in other words, it must to tells the PADE when a behaviour finishes its actions. This method must returns a `boolean`, which indicates if a behaviour ended by returning `True`, otherwise, returning `False`. There are cases where you don't need to implement this method, because it is predefined, as we will see later.
-
-To better understand how PADE executes behaviours actions, the diagram bellow synthesis the behaviours cycle within PADE scheduler.
-
-![Behaviours life cycle diagram on PADE](images/behaviours_lifecycle.png)
-
-At each execution, a behaviour will perform its `action()` method, executing soon after its `done()` method. If the `done()` method returns `True`, the behaviour will be executed again; if the `done()` method returns `False`, the behaviour will execute its `on_end()` method and, so, will ends. The `on_end()` method can be overridden to execute post-execution actions. It is useful for signalizes when a behaviour ended of for clearing control structures used in the behaviour execution.
-
-Basically, behaviours may be of two types: finite behaviours or infinite behaviours. They do exactly what their names mean, that is, finite behaviors end at a definite time (its `done()` method will returns `True` in a determined time) and infinite behaviors never end (its `done()` method never will returns `True`). The classes, in PADE, that implement the finite behaviours are `OneShotBehaviour` and `WakeUpBehaviour`. In its turn, the classes that implement the infinite behaviours are `CyclicBehaviour` and`TickerBehaviour`. The `SimpleBehaviour` class is a general model, while `SequentialBehaviour` class models a special type of behaviour that will be discussed later.
-
-To further explain the features of the behaviours classes in PADE, we will see each one of them separately in the next sub-sessions.
-
-### OneShotBehaviour class
-The `OneShotBehaviour` class is a class that models finite behaviours. Its main feature is that its `done()` method always returns `True`, always ending after its first execution. Let's look at an example by writing a `OneShotBehaviour` that makes an agent say "hello world".
+The filtering is implemented by the `pade.acl.filter.Filter` class and uses an object to 'model' the type of message that you want to receive. To clarify, the code below shows a implementation of a customer that request a product list from a supermarket, filtering through sessions.
 
 ```python
-# Needed imports
-from pade.behaviours.types import OneShotBehaviour
-from pade.core.agent import Agent
-from pade.misc.utility import display_message, start_loop
-
-# Defining the HelloWorldAgent (inherits from Agent class)
-class HelloWorldAgent(Agent):
-
-	# This method will execute at agent startup
-	def setup(self):
-		# It adds the 'SayHello' behaviour in the agent
-		self.add_behaviour(SayHello(self))
-
-
-# Defining the SayHello behaviour
-class SayHello(OneShotBehaviour):
-
-	# This method executes the main actions of SayHello behaviour
-	def action(self):
-		# It shows a message, with date/hour information, in console
-		display_message(self.agent, 'Hello world!')
-
-
-# It starts the agent HelloWorldAgent with PADE
-if __name__ == '__main__':
-	# Defining a HelloWorldAgent object
-	helloagent = HelloWorldAgent('hello')
-	# Creating a list with agents that will be executed
-	agents_list = [helloagent]
-	# Passing the agent list to main loop of PADE
-	start_loop(agents_list)
-```
-First, we defined the `HelloWorldAgent`, adding on it the behaviours that it will execute on its startup. We did it using two methods of `Agent` class:  with `Agent.setup()` method, we are able to put any code that configure the agent in its startup, including its initial behaviours; in its turn, the `Agent.add_behaviour(BaseBehaviour)` method is used to attach a behaviour to be executed by an agent.
-
-> The `BaseBehaviour` class is the basic class from which all other behaviours inherit from, that is, all behavior classes general type is `BaseBehaviour`.
-
-After writing the agent, we defined the `SayHello` behaviour. The only one method needed to be implemented is the `SayHello.action()` method. This method defines the action that the agent will takes when performs this behaviour. To `OneShotBehaviour` no other method is needed to be implemented.
-
-The last lines deal with the initiation of the agents within PADE's loop. While instantiating new agents, we need to give to they unique names. This names are passed to Agent constructor method under string form or by using an `AID` object. The `start_loop(list)` function receives a list of agents that will be executed on PADE. To start the agents, execute `pade start-runtime file_name.py` on a terminal and enjoy it!
-
-### WakeUpBehaviour class
-The `WakeUpBehaviour` too implements a finite behaviour, with the important difference that this behaviour will wait for a time to, then, perform its actions. Another important spot to focus is that this class implements its actions on `on_wake()` method, rather `action()` method. We can see an example bellow that models an agent that wait 5 seconds to do an ask.
-
-``` python
-# Needed imports
-from pade.behaviours.types import WakeUpBehaviour
-from pade.core.agent import Agent
-from pade.misc.utility import display_message, start_loop
-
-# Defining the LaterAgent (inherits from Agent class)
-class LateAgent(Agent):
-
-	# This method will execute at agent startup
-	def setup(self):
-		# The behaviour is created with two args, where
-		# the second is a time (in seconds) to behaviour
-		# waits.
-		behaviour = AmILate(self, 5)
-		# It adds a behaviour in the agent
-		self.add_behaviour(behaviour)
-
-# Defining the AmILate behaviour
-class AmILate(WakeUpBehaviour):
-
-	# This method executes the main actions of behaviour
-	def on_wake(self):
-		display_message(self.agent, 'Am I late?')
-
-# It starts the agents with PADE
-if __name__ == '__main__':
-	# Defining a LateAgent object
-	lateagent = LateAgent('late')
-	# Creating a list with agents that will be executed
-	agents_list = [lateagent]
-	# Passing the agent list to main loop of PADE
-	start_loop(agents_list)
-```
-Now, executing the `pade start-runtime file_name.py` command in a terminal, we will see the agent waiting 5 seconds before prints the ask "Am I late?" in the screen. However, this task is done only once, because it is a finite behaviour.
-
-### SimpleBehaviour class
-The `SimpleBehaviour` class is the simplest pre-implemented behaviour model in PADE (oh, really?). "Simple" means that you must program the `action()` and `done()` methods. The advantage of this behaviour model is that you can customize its end. Bellow there is an example where an agent counts and shows in console a counting from 1 to 10.
-
-``` python
-from pade.behaviours.types import SimpleBehaviour
+from pade.acl.aid import AID
+from pade.acl.messages import ACLMessage
+from pade.acl.filters import Filter
+from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop
 
-class CounterAgent(Agent):
+
+# Customer Agent
+class Customer(Agent):
+	def __init__(self, aid, session):
+		super().__init__(aid)
+		self.session = session.lower()
+
 	def setup(self):
-		self.add_behaviour(Count(self))
+		self.add_behaviour(RequestList(self))
+		self.add_behaviour(PrintList(self))
 
-class Count(SimpleBehaviour):
-	# Defining initial parameters to behaviour
-	def __init__(self, agent):
-		# This call to superclass is needed, passing the agent
-		super().__init__(agent)
-		# Defining counting variable
-		self.counter = 1
-
+class RequestList(OneShotBehaviour):
 	def action(self):
-		display(self.agent, 'Counting #%d' % self.counter)
-		self.counter += 1
+		message = ACLMessage(ACLMessage.REQUEST)
+		message.add_receiver(AID('supermarket'))
+		message.set_ontology(self.agent.session) # Defines the tipe of list required
+		message.set_content('Please, give me this list')
+		self.agent.send(message)
+		display(self.agent, 'I requested for %s products.' % self.agent.session)
 
-	# This method indicates when the behaviour finishes.
-	def done(self):
-		if self.counter > 10:
-			# The behaviour will dies when True is returned
-			return True
-		return False
-
-	# This method is executed when the behaviour dies x_x
-	def on_end(self):
-		display(self.agent, 'Counting finished.')
-
-if __name__ == '__main__':
-	start_loop([CounterAgent('counter')])
-```
-This code will create an agent to count from 1 to 10. When the `CounterAgent.counter` variable reach the value 10, the `done()` method will return `True`, finishing the behaviour. We used too the `on_end()` method to signalizes when the counting is ended. 
-
-### CyclicBehaviour class
-This is a class that implements a infinite behaviours. The main difference between this class and those that implement finite behaviours (specially `OneShotBehavior`) is that the `done()` method of this class always returns `False`, never ending. The cyclic classes have a close relation with behaviours blocking and messages receiving , but it will be explained in the next docs.
-
-Now, we will see an example of an agent that models a clock and shows a message every 1 second.
-
-``` python
-from pade.behaviours.types import CyclicBehaviour
-from pade.core.agent import Agent
-from pade.misc.utility import display_message, start_loop
-
-class TicTacAgent(Agent):
-	def setup(self):
-		self.add_behaviour(NoiseBehaviour(self))
-
-class NoiseBehaviour(CyclicBehaviour):
+class PrintList(OneShotBehaviour):
 	def action(self):
-		display_message(self.agent, 'Tic-tac!')
-		self.wait(1) # The behaviour will sleep by 1 second
+		# Setting a filter
+		f = Filter()
+		f.set_performative(ACLMessage.INFORM) # Accept only INFORM messages
+		message = self.read()
+		if f.filter(message): # Filtering the message
+			display(self.agent, 'I received this list: \n%s' % message.content)
 
-if __name__ == '__main__':
-	tic = TicTacAgent('tictac')
-	start_loop([tic])
-```
-There is not much difference between this code and the codes shown above, except that the `CyclicBehaviour` will execute indefinitely. Moreover, is common to use **blocking** and **waiting** methods with cyclic behaviours, like the `BaseBehaviour.wait(float)` method. This method will stop the behaviour until the `timeout` argument passed to it ends. It is useful, in our example, to make `TicTacAgent` shows messages within a limit of time (one second, like a clock).
 
-### TickerBehaviour class
-This is the another class that implements infinite behaviours. Like `WakeUpBehaviour`, objects from this class will wait a timeout to, then, execute its actions. The difference between the classes is that the `TickerBehaviour` will execute indefinitely. It is important to highlight that the method that implements actions on this class is the `on_tick()` method, rather `action()`.
-
-We will remake the clock example, now using the `TickerBehaviour` class. The code follows bellow.
-
-``` python
-from pade.behaviours.types import TickerBehaviour
-from pade.core.agent import Agent
-from pade.misc.utility import display_message, start_loop
-
-class TicTacAgent(Agent):
+# Supermarket Agent
+class Supermarket(Agent):
 	def setup(self):
-		self.add_behaviour(NoiseBehaviour(self, 1))
+		self.add_behaviour(FruitList(self))
+		self.add_behaviour(FoodList(self))
+		self.add_behaviour(OfficeList(self))
+		self.add_behaviour(UnknownList(self))
 
-class NoiseBehaviour(TickerBehaviour):
-	def on_tick(self):
-		display_message(self.agent, 'Tic-tac!')
+# Behaviour that deal with fruit requisitions
+class FruitList(CyclicBehaviour):
+	def action(self):
+		# Setting a filter
+		f = Filter()
+		f.set_performative(ACLMessage.REQUEST) # Accept only REQUEST messages
+		f.set_ontology('fruits')
+
+		# Reveiving a message and filtering it
+		message = self.read()
+		if f.filter(message): # If the message satisfies the filter
+			reply = message.create_reply()
+			reply.set_content('apple\nbanana\ncocoa\ncoconuts\ngrape\norange\nstrawberry')
+			reply.set_performative(ACLMessage.INFORM)
+			self.agent.send(reply)
+			display(self.agent, 'Fruit list sent to %s.' % message.sender.getLocalName())
+
+# Behaviour that deal with food requisitions
+class FoodList(CyclicBehaviour):
+	def action(self):
+		f = Filter()
+		f.set_performative(ACLMessage.REQUEST)
+		f.set_ontology('foods')
+		message = self.read()
+		if f.filter(message): # If the message satisfies the filter
+			reply = message.create_reply()
+			reply.set_content('meat\nchicken\ncookies\nice cream\nbread')
+			reply.set_performative(ACLMessage.INFORM)
+			self.agent.send(reply)
+			display(self.agent, 'Food list sent to %s.' % message.sender.getLocalName())
+
+# Behaviour that deal with office requisitions
+class OfficeList(CyclicBehaviour):
+	def action(self):
+		f = Filter()
+		f.set_performative(ACLMessage.REQUEST)
+		f.set_ontology('office')
+		message = self.read()
+		if f.filter(message):
+			reply = message.create_reply()
+			reply.set_content('pen\nclips\nscissors\npaper\npencil')
+			reply.set_performative(ACLMessage.INFORM)
+			self.agent.send(reply)
+			display(self.agent, 'Office material list sent to %s.' % message.sender.getLocalName())
+
+# Behaviour that deal with any requisitions
+class UnknownList(CyclicBehaviour):
+	def action(self):
+		message = self.read()
+		if not message.ontology in ['fruits', 'foods', 'office']:
+			reply = message.create_reply()
+			reply.set_content('Unknown list')
+			reply.set_performative(ACLMessage.INFORM)
+			self.agent.send(reply)
+			display(self.agent, 'Unknown requisition')
+
 
 if __name__ == '__main__':
-	start_loop([TicTacAgent('tictac')])
+	agents = list()
+	# Instantiating customers
+	agents.append(Customer('customer-1', 'office'))
+	agents.append(Customer('customer-2', 'house'))
+	agents.append(Customer('customer-3', 'fruits'))
+	agents.append(Customer('customer-4', 'foods'))
+	# Instantiating the supermarket
+	agents.append(Supermarket('supermarket'))
+	start_loop(agents)
 ```
 
-### SequentialBehaviour class
-This is the most different class implementing behaviours in PADE. All behaviours in PADE are scheduled parallel, however, some times is necessary perform behaviours in a sequential mode. The `SequentialBehaviour` class implements sequential behaviours, by adding its sub-behaviours. The sub-behaviours are added one by one, following an order, which defines the order that the behaviours will be executed. 
+Note that in each behaviour that handles the customer request, there is a specific filter. The `ACLMessage` fields used to filter the message were two: `performative` and `ontology` (if you want, see FIPA ACL fields specifications for a more detailed explanation about these fields). More fields can be used to filter messages in PADE; we listed them below:
 
-Unlike others behaviours, a `SequentialBehaviour` does not require implementation of any of its action methods, simply adding this behaviour to an agent to run its sub-behaviours. The example bellow shows a simple implementation of this class.
+- `sender`: An AID object that describes the message sender;
+- `performative`: A constant that describes the communicative act (see FIPA specifications);
+- `protocol`: A string used to specify the message protocol;
+- `ontology`: A string used to specify the ontology;
+- `sender_local_name`: A string used to specify  the local name of an agent. This field has less priority than `sender` field, i. e., if there is a value to `sender`, this field will not be used.
+
+## Passing objects into messages
+Messages in PADE are transported under string form. Then, we can't simply pass complex objects to other agents within messages. To do this, we need of **serialization**, which consists of passing the object data in bytes form. We use, by default, the `pickle` library, that works well by serializing many types of data. Two methods are the most important: `pickle.dumps(data)`, which serializes the data, and; `pickle.loads(serialized_data)` that de-serializes data to normal object form.
+
+Knowing it, we are able to solve a lot of problems involving the data exchange in multiagent systems. To give you an example, we will model a contact book that answers the requests of users for contact data. These responses are passed under Python dictionaries. See the code below:
 
 ``` python
-from pade.behaviours.types import OneShotBehaviour, SequentialBehaviour
+from pade.acl.aid import AID
+from pade.acl.messages import ACLMessage
+from pade.acl.filters import Filter
+from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop
+# We use pickle ;)
+import pickle
 
-class SequentialAgent(Agent):
+
+# User Agent
+class User(Agent):
+	def __init__(self, aid, name):
+		super().__init__(aid)
+		self.name = name.lower()
+
 	def setup(self):
-		# Defining the sequential behaviour
-		sequential = SequentialBehaviour(self)
-		# Adding sub-behaviours into 'sequential'
-		sequential.add_subbehaviour(Count1_10(self))
-		sequential.add_subbehaviour(Count11_20(self))
-		sequential.add_subbehaviour(Count21_30(self))
-		# Adding 'sequential' into agent
-		self.add_behaviour(sequential)
+		self.add_behaviour(Search(self))
+		self.add_behaviour(ShowInfos(self))
 
-# Behaviour that counts from 1 to 10
-class Count1_10(OneShotBehaviour):
+class Search(OneShotBehaviour):
 	def action(self):
-		for num in range(1,11):
-			display(self.agent, num)
+		message = ACLMessage(ACLMessage.REQUEST)
+		message.add_receiver(AID('book'))
+		message.set_content(self.agent.name)
+		self.agent.send(message)
+		display(self.agent, "I requested for %s's contact." % self.agent.name)
 
-# Behaviour that counts from 11 to 20
-class Count11_20(OneShotBehaviour):
+class ShowInfos(OneShotBehaviour):
 	def action(self):
-		for num in range(11,21):
-			display(self.agent, num)
+		message = self.read()
+		# Deserializing the information
+		contact = pickle.loads(message.content)
+		# Filtering the message in a non-elegant way (use for one field only)
+		if message.performative == ACLMessage.INFORM:
+			form = "Contact info: \nName: {name}\nPhone: {phone}\nE-mail: {email}"
+			display(self.agent, form.format(
+				name=contact['name'],
+				phone=contact['phone'],
+				email=contact['email'])
+			)
+		elif message.performative == ACLMessage.FAILURE:
+			display(self.agent, '{id}: {desc}'.format(
+				id=contact['error'],
+				desc=contact['description'])
+			)
 
-# Behaviour that counts from 21 to 30
-class Count21_30(OneShotBehaviour):
+
+# Contact Book Agent
+class ContactBook(Agent):
+	def __init__(self, aid):
+		super().__init__(aid)
+		# Defining the contact list
+		self.contacts = [
+			{'name': 'ana', 'phone': '11 9999-5555', 'email': 'ana@example.com'},
+			{'name': 'beto', 'phone': '11 8888-4444', 'email': 'beto@example.com'},
+			{'name': 'charlot', 'phone': '11 7777-3333', 'email': ''},
+			{'name': 'diego', 'phone': '11 6666-2222', 'email': 'diego@example.com'},
+			{'name': 'sandra', 'phone': '11 5555-1111', 'email': 'sandra@example.com'},
+		]
+
+	def setup(self):
+		self.add_behaviour(SearchContact(self))
+
+# Behaviour that deal with contact requisitions
+class SearchContact(CyclicBehaviour):
 	def action(self):
-		for num in range(21,31):
-			display(self.agent, num)
+		f = Filter()
+		f.set_performative(ACLMessage.REQUEST)
+		message = self.read()
+		if f.filter(message):
+			reply = message.create_reply()
+			contact = self.search(message.content)
+			if contact != None: # If the searched contact exists
+				reply.set_performative(ACLMessage.INFORM)
+				# Here we will serialize the object to send
+				reply.set_content(pickle.dumps(contact))
+			else: # If the searched contact doesn't exist
+				reply.set_performative(ACLMessage.FAILURE)
+				reply.set_content(pickle.dumps({'error': 404, 'description': 'Contact not found.'}))
+			self.agent.send(reply)
 
-# Starting loop
+	def search(self, name):
+		for contact in self.agent.contacts:
+			if name == contact['name']:
+				return contact
+		return None
+
+
+
 if __name__ == '__main__':
-	start_loop([SequentialAgent('seq')])
+	agents = list()
+	agents.append(User('user-1', 'charlot'))
+	agents.append(User('user-2', 'diego'))
+	agents.append(User('user-3', 'italo'))
+	agents.append(User('user-4', 'sandra'))
+	agents.append(User('user-5', 'ana'))
+	agents.append(User('user-6', 'beto'))
+	agents.append(ContactBook('book'))
+	start_loop(agents)
 ```
-In the above example, we used three `OneShotBehaviour` implementations that do different counting. However, the instantiation of `SequentialBehaviour` object is which defines the execution order of these behaviours. We used the `add_subbehaviour(BaseBehavior)` method to add any `BaseBehaviour` subclass as sub-behaviour of `sequential` object. The adding order defines the execution order of `sequential` sub-behaviours. To test it, try to swap the order in which the behaviours are added in `sequential` and see what happens with your counting.
-
-Finally, we used the `Agent.add_behaviour(BaseBehaviour)` method to add the `sequential` object to the agent. At this moment, the `sequential` behaviour will execute its sub-behaviours.
-
-
-
-> Note: You can add any `BaseBehaviour` subclass to a `SequentialBehaviour` object, however, it is recommended to use only finite behaviours. In theory, you will create a `SequentialBehaviour` object to be finalized in some time, but it will never happen if one of its sub-behaviours is a cyclic behaviour. =P
-
-## Classes and methods
-Here you will find a summary about the classes and their methods. Use it to aid your development.
-
-### SimpleBehaviour
-- **\_\_init__(agent)**:  initiate the agent.
-	- _Arguments:_
-		- `agent`: object from `Agent` class. Indicates which agent hold it.
-	- _Returns:_
-		- `None`
-
-- **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
-	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
-	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
-		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
-
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
-	- _Returns:_
-		- `ACLMessage`: if there is at least one message in the messages queue.
-		- `None`: if there are no messages in the messages queue.
-
-- **receive(message)**: receive an message and put it on the behaviours messages queue. Is used to get a message to the system and pass it to behaviours.
-	- _Arguments:_
-		- `message`: an`ACLMessage` object..
-	- _Returns:_
-		- `None`
-
-- **action()**: executes the actions of this behaviour. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **done()**: indicates when the behaviour finished its actions. Must be overridden.
-	- _Returns:_
-		- `bool`: by returning `True`, the behaviour will end. By returning `False`, the behaviour will execute again.
-
-- **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
-	- _Returns:_
-		- `None`
-
-- **on_end()**: last one method to be executed by a behaviour. It is executed when the behaviour ends. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **has_messages()**: verifies if the messages queue of this behaviour has messages.
-	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
-
-
-### OneShotBehaviour
-- **\_\_init__(agent)**:  initiate the agent.
-	- _Arguments:_
-		- `agent`: object from `Agent` class. Indicates which agent hold it.
-	- _Returns:_
-		- `None`
-
-- **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
-	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
-	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
-		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
-
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
-	- _Returns:_
-		- `ACLMessage`: if there is at least one message in the messages queue.
-		- `None`: if there are no messages in the messages queue.
-
-- **receive(message)**: receive an message and put it on the behaviours messages queue. Is used to get a message to the system and pass it to behaviours.
-	- _Arguments:_
-		- `message`: an`ACLMessage` object..
-	- _Returns:_
-		- `None`
-
-- **action()**: executes the actions of this behaviour. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **done()**: indicates when the behaviour finished its actions. Always returns `True`. It should not be overridden.
-	- _Returns:_
-		- `True`
-
-- **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
-	- _Returns:_
-		- `None`
-
-- **on_end()**: last one method to be executed by a behaviour. It is executed when the behaviour ends. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **has_messages()**: verifies if the messages queue of this behaviour has messages.
-	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
-
-
-### CyclicBehaviour
-- **\_\_init__(agent)**:  initiate the agent.
-	- _Arguments:_
-		- `agent`: object from `Agent` class. Indicates which agent hold it.
-	- _Returns:_
-		- `None`
-
-- **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
-	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
-	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
-		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
-
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
-	- _Returns:_
-		- `ACLMessage`: if there is at least one message in the messages queue.
-		- `None`: if there are no messages in the messages queue.
-
-- **receive(message)**: receive an message and put it on the behaviours messages queue. Is used to get a message to the system and pass it to behaviours.
-	- _Arguments:_
-		- `message`: an`ACLMessage` object..
-	- _Returns:_
-		- `None`
-
-- **action()**: executes the actions of this behaviour. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **done()**: indicates when the behaviour finished its actions. Always returns `False`. It should not be overridden.
-	- _Returns:_
-		- `False`
-
-- **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
-	- _Returns:_
-		- `None`
-
-- **on_end()**: last one method to be executed by a behaviour. It is executed when the behaviour ends. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **has_messages()**: verifies if the messages queue of this behaviour has messages.
-	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
-
-
-### WakeUpBehaviour
-- **\_\_init__(agent, time)**:  initiate the agent.
-	- _Arguments:_
-		- `agent`: object from `Agent` class. Indicates which agent hold it.
-		- `time`: a float parameter that indicates the time that the behaviour will wait before performs its `on_wake()` method.
-	- _Returns:_
-		- `None`
-
-- **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
-	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
-	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
-		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
-
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
-	- _Returns:_
-		- `ACLMessage`: if there is at least one message in the messages queue.
-		- `None`: if there are no messages in the messages queue.
-
-- **receive(message)**: receive an message and put it on the behaviours messages queue. Is used to get a message to the system and pass it to behaviours.
-	- _Arguments:_
-		- `message`: an`ACLMessage` object..
-	- _Returns:_
-		- `None`
-
-- **action()**: executes the default actions of the system. It should not be overridden.
-	- _Returns:_
-		- `None`
-
-- **on_wake()**: executes the actions of this behaviour after timeout. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **done()**: indicates when the behaviour finished its actions. Always returns `True`. It should not be overridden.
-	- _Returns:_
-		- `True`
-
-- **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
-	- _Returns:_
-		- `None`
-
-- **on_end()**: last one method to be executed by a behaviour. It is executed when the behaviour ends. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **has_messages()**: verifies if the messages queue of this behaviour has messages.
-	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
-
-
-### TickerBehaviour
-- **\_\_init__(agent, time)**:  initiate the agent.
-	- _Arguments:_
-		- `agent`: object from `Agent` class. Indicates which agent hold it.
-		- `time`: a float parameter that indicates the time that the behaviour will wait before performs its `on_tick()` method.
-	- _Returns:_
-		- `None`
-
-- **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
-	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
-	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
-		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
-
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
-	- _Returns:_
-		- `ACLMessage`: if there is at least one message in the messages queue.
-		- `None`: if there are no messages in the messages queue.
-
-- **receive(message)**: receive an message and put it on the behaviours messages queue. Is used to get a message to the system and pass it to behaviours.
-	- _Arguments:_
-		- `message`: an`ACLMessage` object..
-	- _Returns:_
-		- `None`
-
-- **action()**: executes the default actions of the system. It should not be overridden.
-	- _Returns:_
-		- `None`
-
-- **on_tick()**: executes the actions of this behaviour after timeout. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **done()**: indicates when the behaviour finished its actions. Always returns `False`. It should not be overridden.
-	- _Returns:_
-		- `False`
-
-- **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
-	- _Returns:_
-		- `None`
-
-- **on_end()**: last one method to be executed by a behaviour. It is executed when the behaviour ends. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **has_messages()**: verifies if the messages queue of this behaviour has messages.
-	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
-
-
-
-### SequentialBehaviour
-- **\_\_init__(agent)**:  initiate the agent.
-	- _Arguments:_
-		- `agent`: object from `Agent` class. Indicates which agent hold it.
-	- _Returns:_
-		- `None`
-
-- **read(block = True)**:  reads the first message from the messages queue. If there is no messages to read and the `block` argument follows the standard (`True`), the method will block the behaviour until a message arrives. If the `block` argument is set to `False`, the method will try to read a message only once, and, then, can return an `ACLMessage` object or `None` object.
-	- _Arguments:_
-		- `block`: set the mode of the method to wait a message arrives (blocking) or not (non blocking).
-	- _Returns:_
-		- `ACLMessage`: if `block` argument is set to`False` and there is at least one message in the messages queue.
-		- `None`: if `block` argument is set to`False` and there are no messages in the messages queue.
-
-- **read_timeout(timeout)**: tries to read the first message from the messages queue. If there is no messages to read, the behaviour is blocked and will wait by the time passed to this method. When a timeout occurs, this method tries to read the messages queue again and can return an `ACLMessage` object, if there is at least one message in the messages queue, or `None` object, if there is no messages in the messages queue.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait in the cases where the messages queue is empty.
-	- _Returns:_
-		- `ACLMessage`: if there is at least one message in the messages queue.
-		- `None`: if there are no messages in the messages queue.
-
-- **receive(message)**: receive an message and put it on the sub-behaviours messages queue. Is used to get a message to the system and pass it to its sub-behaviours.
-	- _Arguments:_
-		- `message`: an`ACLMessage` object..
-	- _Returns:_
-		- `None`
-
-- **action()**: executes the default actions of the system. It should not be overridden.
-	- _Returns:_
-		- `None`
-
-- **done()**: indicates when the behaviour finished its actions. Always returns `True`. It should not be overridden.
-	- _Returns:_
-		- `True`
-
-- **wait(timeout)**: stops execution of the behaviour for `timeout` seconds.
-	- _Arguments:_
-		- `timeout`: a float parameter that indicates the time that the behaviour will wait.
-	- _Returns:_
-		- `None`
-
-- **on_end()**: last one method to be executed by a behaviour. It is executed when the behaviour ends. Can be overridden.
-	- _Returns:_
-		- `None`
-
-- **has_messages()**: verifies if the messages queue of this behaviour has messages.
-	- _Returns:_
-		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour don't has messages in its queue.
+The `SearchContact` behaviour receives requests and answers them by serializing the contact information and sending it to requester. The `ShowInfos` behaviour, in its turn, gets the serialized information and de-serializes it into a dictionary to, then, shows the correct contact information. Note that we used the `ACLMessage.performative` field to control when a contact is found or not. ;)
 
 
 ## Contact us
-If you find a bug or need any specific help, fell free to submit us an _issue_ on [GitHub](https://github.com/italocampos/pade) or [e-mail us](mailto:italo.ramon.campos@gmail.com). If you want, fork the [original PADE project](https://github.com/grei-ufc/pade) to propose improvements and help us to make PADE better. ;)
+That is all. We hope you enjoy PADE. If you find a bug or need any specific help, fell free to submit us an _issue_ on [GitHub](https://github.com/italocampos/pade) or [e-mail us](mailto:italo.ramon.campos@gmail.com). If you want, fork the [original PADE project](https://github.com/grei-ufc/pade) to propose improvements and help us to make PADE better. ;)
 
 [Laboratory of Applied Artificial Intelligence](http://www.laai.ufpa.br)
 + [Filipe Saraiva](mailto:saraiva@ufpa.br) (Project coordinator)
@@ -692,8 +417,17 @@ Instituto de Ciências Exatas e Naturais
 Faculdade de Computação  
 Belém-PA, Brasil
 
+[Universidade Federal do Ceará](http://www.ufc.br/)
+[Grupo de Redes Elétricas Inteligentes](https://github.com/grei-ufc)
+Fortaleza-CE, Brasil
+
 [comment]: # ([Federal University of Pará]\(https://portal.ufpa.br\))
 [comment]: # (Exact and Natural Sciences Institute)
 [comment]: # (Computation Faculty)
 [comment]: # (Belém-PA, Brazil)
 
+[comment]: # ([Federal University of Ceará]\(http://www.ufc.br/\))
+[comment]: # ([Smart Grids Group](https://github.com/grei-ufc\))
+[comment]: # ()
+[comment]: # ()
+[comment]: # (Fortaleza-CE, Brazil)
