@@ -6,7 +6,7 @@
 ## Content
 - [Introduction](#introduction)
 - [The read() methods](#the-read-methods)
-- [Filtering messages](#cyclic-behaviours-and-messages)
+- [Filtering messages](#filtering-messages)
 - [Passing objects into messages](#passing-objects-into-messages)
 - [Contact us](#contact-us)
 
