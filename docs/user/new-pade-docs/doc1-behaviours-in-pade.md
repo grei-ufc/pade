@@ -664,8 +664,8 @@ Fortaleza-CE, Brasil
 [comment]: # (Computation Faculty)
 [comment]: # (Belém-PA, Brazil)
 
-[comment]: # ([Federal University of Ceará]\(http://www.ufc.br/\))
-[comment]: # ([Smart Grids Group](https://github.com/grei-ufc\))
+[comment]: # ([Federal University of Ceará]\(http://www.ufc.br/\)\)
+[comment]: # ([Smart Grids Group]\(https://github.com/grei-ufc\)\)
 [comment]: # ()
 [comment]: # ()
 [comment]: # (Fortaleza-CE, Brazil)
