@@ -415,19 +415,19 @@ That is all. We hope you enjoy PADE. If you find a bug or need any specific help
 [Universidade Federal do Pará](https://portal.ufpa.br)  
 Instituto de Ciências Exatas e Naturais  
 Faculdade de Computação  
-Belém-PA, Brasil
+Belém-PA, Brasil  
 
-[Universidade Federal do Ceará](http://www.ufc.br/)
-[Grupo de Redes Elétricas Inteligentes](https://github.com/grei-ufc)
-Fortaleza-CE, Brasil
+[Universidade Federal do Ceará](http://www.ufc.br/)  
+[Grupo de Redes Elétricas Inteligentes](https://github.com/grei-ufc)  
+Fortaleza-CE, Brasil  
 
-[comment]: # ([Federal University of Pará]\(https://portal.ufpa.br\))
-[comment]: # (Exact and Natural Sciences Institute)
-[comment]: # (Computation Faculty)
-[comment]: # (Belém-PA, Brazil)
+[comment]: # ([Federal University of Pará]\(https://portal.ufpa.br\))  
+[comment]: # (Exact and Natural Sciences Institute)  
+[comment]: # (Computation Faculty)  
+[comment]: # (Belém-PA, Brazil)  
 
-[comment]: # ([Federal University of Ceará]\(http://www.ufc.br/\)\)
-[comment]: # ([Smart Grids Group]\(https://github.com/grei-ufc\)\)
-[comment]: # ()
-[comment]: # ()
-[comment]: # (Fortaleza-CE, Brazil)
+[comment]: # ([Federal University of Ceará]\(http://www.ufc.br/\)\)  
+[comment]: # ([Smart Grids Group]\(https://github.com/grei-ufc\)\)  
+[comment]: # ()  
+[comment]: # ()  
+[comment]: # (Fortaleza-CE, Brazil)  
