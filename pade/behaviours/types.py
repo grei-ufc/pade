@@ -146,6 +146,7 @@ class SequentialBehaviour(OneShotBehaviour):
 		for behaviour in self.subbehaviours:
 			behaviour.action()
 			while not behaviour.done():
+				behaviour.action()
 				self.wait(0.1)
 			behaviour.on_end()
 
