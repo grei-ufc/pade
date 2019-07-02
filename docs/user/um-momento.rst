@@ -27,7 +27,7 @@ No código a seguir o *call_later()* é utilizado na classe *HelloAgent()* no m�
             self.call_later(10.0, self.say_hello)
 
         def say_hello(self):
-            display_message(self.aid.localname, 'Hello, I\'m a agent!')
+            display_message(self.aid.localname, "Hello, I\'m an agent!")
 
 
     if __name__ == '__main__':
