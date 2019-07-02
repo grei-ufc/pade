@@ -147,8 +147,9 @@ class PublisherBehaviour(FipaSubscribeProtocol):
             # prepares and sends the update message to
             # all registered agents.
             if self.STATE == 0:
-                reactor.callLater(10.0, self.notify)
                 self.STATE = 1
+                # Try to notify the agents with the new changes in the moment they are produced
+                self.notify()
 
     @inlineCallbacks
     def register_agent_in_db(self, sql_act):
