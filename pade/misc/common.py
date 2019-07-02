@@ -216,7 +216,6 @@ class PadeSession(object):
             print(reactor)
             reactor.run()
 
-
     def __listen_agent(self, agent):
         reactor.callInThread(self._listen_agent, agent)
 
