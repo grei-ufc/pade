@@ -12,11 +12,11 @@
 
 PADE its a framework for developing, executing and mannaging multi-agent systems in distributed computing enviroments. PADE code is 100% Python and has its core in Twisted, a python package for implementing distributed applications.
 
-PADE is also free software and licenced in terms of MIT licence. First it was developed in Federal University of Ceará (Brazil) by Electric Smart Grids Group (GREI) in Electric Engineering Department (DEE). Now everyone that has interest in developing PADE is welcome to dowload, install, test, use and send us feedback.
+PADE is also free software and licenced in terms of MIT licence. First it was developed in Federal University of Ceará (Brazil) by Electric Smart Grids Group (GREI) in Electric Engineering Department (DEE). Now everyone that has interest in developing PADE is welcome to download, install, test, use and send us feedback.
 
 ## Documentation
 
-PADE is well documented. You can access the documentation hear: [PADE documentation](https://pade-docs-en.readthedocs.io/en/latest/) 
+PADE is well documented. You can access the documentation here: [PADE documentation](https://pade-docs-en.readthedocs.io/en/latest/) 
 
 ## Dependencies
 
@@ -101,22 +101,22 @@ The main and bigger change in Pade is in how you launch your agents. Now when yo
 As example, if you put the hello world example code in a file with the name hello-agent.py and you want to launch this agent just one time, you could type in your command line interface:
 
 ```shell
-$ pade start_runtime hello-agent.py 
+$ pade start-runtime hello-agent.py 
 ```
 
 If you want to launch this agent 3 times, than you type:
 
 ```shell
-$ pade start_runtime --num 3 hello-agent.py 
+$ pade start-runtime --num 3 hello-agent.py 
 ```
 
 If you wanto to launch the 3 agents in ports 20000, 20001 and 20002, than you just type:
 
 ```shell
-$ pade start_runtime --num 3 --port 20000 hello-agent.py 
+$ pade start-runtime --num 3 --port 20000 hello-agent.py 
 ```
 
-Hear we have to explain some points in how Pade executes the agents.
+Here we have to explain some points in how Pade executes the agents.
 
 When you type the commands `--num 3` and `--port 20000` you tell to Pade command line tool to execute the content of file hello-agent.py 3 times. Each time, the file content will be executed in a new process and the attribute port will be passed as argument in this process with a unit incremment in each time. For example, in the case `--num 3` and `--port 2000`, the arguments passed for agents are 2000, 2001 and 2002.
 
@@ -125,12 +125,12 @@ This arguments should  be accessed in the code with `sys.argv[1]`. So you can ex
 The command line will support mode than one agent file too, for example if you have the agents in mode than one file you could start then with a command like this:
 
 ```shell
-$ pade start_runtime --num 3 --port 20000 hello-agent_1.py hello-agent_2.py
+$ pade start-runtime --num 3 --port 20000 hello-agent_1.py hello-agent_2.py
 ```
 
 In this case the first agent receive in the `sys.argv[1]` the value 20000 and the second, the value 20001, and so on.
 
-There is another way to launch the Pade agents. Is with a config file in the json format. Hear it's a example of config file:
+There is another way to launch the Pade agents. Is with a config file in the json format. Here it's a example of config file:
 
 ```json
 { 
@@ -166,29 +166,29 @@ There is another way to launch the Pade agents. Is with a config file in the jso
 To launch then, just type the command line:
 
 ```shell
-pade start_runtime --config_file pade_config.json
+pade start-runtime --config_file pade_config.json
 ```
 
 If you need to execute simulations with a high number of agents that send and receive messages, something like 500 agents sending 5 messages per second, is recommended that you launch your pade session with a option `--no_pade_sniffer` because the register of this messages in database will overhead your pade execution. Than, the example could be:
 
 ```shell
-$ pade start_runtime --num 3 --port 20000  --no_pade_sniffer hello-agent_1.py hello-agent_2.py
+$ pade start-runtime --num 3 --port 20000  --no_pade_sniffer hello-agent_1.py hello-agent_2.py
 ```
 
 Another useful commands in Pade CLI are:
 
 ```shell
-$ pade create_pade_db
+$ pade create-pade-db
 ```
 
 ```shell
-$ pade drop_pade_db
+$ pade drop-pade-db
 ```
 
 ```shell
-$ pade start_web_interface
+$ pade start-web-interface
 ```
 
 To show a complete list of pade comands in the CLI, just type `pade` in terminal command line.
 
-To show teh agents in action, show the video in this link: [pade agents start example]()
+To show the agents in action, show the video in this link: [pade agents start example]()
