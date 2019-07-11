@@ -2,6 +2,7 @@
 
 
 [![Join the chat at https://gitter.im/lucassm/Pade](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lucassm/Pade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![](https://img.shields.io/badge/pypi-3.0-blue.svg)](https://pypi.python.org/pypi/pade/)
 
 <br>
@@ -16,7 +17,7 @@ PADE is also free software and licenced in terms of MIT licence. First it was de
 
 ## Documentation
 
-PADE is well documented. You can access the documentation here: [PADE documentation](https://pade-docs-en.readthedocs.io/en/latest/) 
+PADE is well documented. You can access the documentation here: [PADE documentation](https://pade.readthedocs.io/en/latest/)
 
 ## Dependencies
 
