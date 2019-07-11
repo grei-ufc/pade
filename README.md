@@ -2,8 +2,7 @@
 
 
 [![Join the chat at https://gitter.im/lucassm/Pade](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lucassm/Pade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-[![](https://img.shields.io/badge/pypi-3.0-blue.svg)](https://pypi.python.org/pypi/pade/)
+[![](https://img.shields.io/badge/pypi-3.7-blue.svg)](https://pypi.python.org/pypi/pade/)
 
 <br>
 
