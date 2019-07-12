@@ -1,8 +1,11 @@
 # Python Agent DEvelopment framework (PADE)
 
-
-[![Join the chat at https://gitter.im/lucassm/Pade](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/lucassm/Pade?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![](https://img.shields.io/badge/pypi-3.0-blue.svg)](https://pypi.python.org/pypi/pade/)
+[![](https://img.shields.io/pypi/v/pade.svg)](https://pypi.python.org/pypi/pade/)
+[![](https://img.shields.io/pypi/pyversions/pade.svg)](https://pypi.python.org/pypi/pade/)
+[![](https://img.shields.io/readthedocs/pade.svg)](https://pade.readthedocs.io/en/latest/)
+[![](https://img.shields.io/github/issues/grei-ufc/pade.svg)](https://github.com/grei-ufc/pade/issues)
+[![](https://img.shields.io/github/issues-pr/grei-ufc/pade.svg)](https://github.com/grei-ufc/pade/pulls)
+[![](https://img.shields.io/pypi/l/pade.svg)](https://opensource.org/licenses/MIT)
 
 <br>
 
@@ -16,7 +19,7 @@ PADE is also free software and licenced in terms of MIT licence. First it was de
 
 ## Documentation
 
-PADE is well documented. You can access the documentation here: [PADE documentation](https://pade-docs-en.readthedocs.io/en/latest/) 
+PADE is well documented. You can access the documentation here: [PADE documentation](https://pade.readthedocs.io/en/latest/)
 
 ## Dependencies
 
