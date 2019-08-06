@@ -526,17 +526,17 @@ msgstr ""
 
 #: ../../user/hello-world.rst:5
 msgid "Alô Mundo"
-msgstr ""
+msgstr "Hello World"
 
 #: ../../user/hello-world.rst:7
 msgid "PADE foi implementado com um objetivo central: simplicidade!"
-msgstr ""
+msgstr "PADE was implemented with one main objective: simplicity"
 
 #: ../../user/hello-world.rst:9
 msgid ""
 "Depois de ter o PADE instalado em seu computador fica bem simples começar"
 " a trabalhar."
-msgstr ""
+msgstr "After you have been installed PADE in your machine, it's easy start to use PADE"
 
 #: ../../user/hello-world.rst:11
 msgid ""
@@ -545,29 +545,29 @@ msgid ""
 "dele. Ou vá na pasta de exemplos do repositório pade no GitHub "
 "(`repositório pade <https://github.com/grei-ufc/pade>`)  e procure o "
 "arquivo agent_example_1.py que já contém o código listado abaixo:"
-msgstr ""
+msgstr "In a folder you will need to create a file named agent_example_1.py with your favorite text editor, then copy and paste the following source code inside the file. Or you can download the file from PADE GitHub repository in examples folder (`PADE repository <https://github.com/grei-ufc/pade>`). The file agent_example_1.py has the following code:"
 
 #: ../../user/hello-world.rst:45
 msgid "Na linha de comando do terminal digite:"
-msgstr ""
+msgstr "In the terminal command line, type:"
 
 #: ../../user/hello-world.rst:51
 msgid ""
 "Pronto! Se tudo der certo você deve estar vendo na tela do seu terminal a"
 " splash screen do pade, parecida com esta:"
-msgstr ""
+msgstr "Nice! If everything is ok, you must have seen the PADE splash screen, like this:"
 
 #: ../../user/hello-world.rst:58
 msgid ""
 "Este já é um agente, mas não tem muita utilidade, não é mesmo! Executa "
 "apenas uma vez :("
-msgstr ""
+msgstr "This already is an agent, but it does not have many utilities, it  just starts, prints hello in the screen and dies. :("
 
 #: ../../user/hello-world.rst:60
 msgid ""
 "Então como construir um agente que tenha seu comportamento executado de "
 "tempos em tempos?"
-msgstr ""
+msgstr "So, how can we build agents that have temporal or cyclic behaviours?"
 
 #: ../../user/instalacao.rst:5
 msgid "Instalação"
