@@ -221,8 +221,8 @@ class ACLMessage(ET.Element):
 
         """
         if isinstance(aid, AID):
-            self.reply_to.append[aid]
-            reply_to = self.find('reply_to')
+            self.reply_to.append(aid)
+            reply_to = self.find('reply-to')
             receiver = ET.Element('receiver')
             receiver.text = str(aid.name)
             reply_to.append(receiver)
