@@ -272,6 +272,18 @@ class ACLMessage(ET.Element):
     def get_message(self):
         return ET.tostring(self)
 
+    def get_conversation_id(self):
+        return self.conversationID
+
+    def get_language(self):
+        return self.language
+
+    def get_ontology(self):
+        return self.ontology
+
+    def get_performative(self):
+        return self.performative
+
     def as_xml(self):
         domElement = minidom.parseString(ET.tostring(self))
         return domElement.toprettyxml()
