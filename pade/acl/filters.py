@@ -49,7 +49,7 @@ class Filter():
     def set_performative(self, performative):
         self.performative = performative
     
-    def setConversationID(self, conversationID):
+    def set_conversation_id(self, conversationID):
         self.conversationID = conversationID
     
     def set_protocol(self, protocol):
