@@ -6,6 +6,7 @@ import shlex
 import time
 import json
 import datetime
+import sys
 
 
 class FlaskServerProcess(multiprocessing.Process):
@@ -112,7 +113,10 @@ def main(config):
                                                session['email'],
                                                session['password'],
                                                8000)
-        commands = shlex.split(commands)
+        if sys.platform == 'win32':
+            commands = shlex.split(commands, posix=False)
+        else:
+            commands = shlex.split(commands)
         p = subprocess.Popen(commands, stdin=subprocess.PIPE)
         processes.append(p)
     else:
@@ -122,7 +126,10 @@ def main(config):
                                                    session['email'],
                                                    session['password'],
                                                    pade_ams['port'])
-            commands = shlex.split(commands)
+            if sys.platform == 'win32':
+                commands = shlex.split(commands, posix=False)
+            else:
+                commands = shlex.split(commands)
             p = subprocess.Popen(commands, stdin=subprocess.PIPE)
             processes.append(p)
 
@@ -137,7 +144,10 @@ def main(config):
         time.sleep(2.0)
         commands = 'python {} {}'.format(sniffer.__file__,
                                          8001)
-        commands = shlex.split(commands)
+        if sys.platform == 'win32':
+            commands = shlex.split(commands, posix=False)
+        else:
+            commands = shlex.split(commands)
         p = subprocess.Popen(commands, stdin=subprocess.PIPE)
         processes.append(p)
     else:
@@ -145,7 +155,10 @@ def main(config):
             time.sleep(2.0)
             commands = 'python {} {}'.format(sniffer.__file__,
                                              pade_sniffer['port'])
-            commands = shlex.split(commands)
+            if sys.platform == 'win32':
+                commands = shlex.split(commands, posix=False)
+            else:
+                commands = shlex.split(commands)
             p = subprocess.Popen(commands, stdin=subprocess.PIPE)
             processes.append(p)   
         else:
@@ -159,7 +172,10 @@ def main(config):
     for agent_file in agent_files:
         for i in range(num):
             commands = 'python {} {}'.format(agent_file, port_)
-            commands = shlex.split(commands)
+            if sys.platform == 'win32':
+                commands = shlex.split(commands, posix=False)
+            else:
+                commands = shlex.split(commands)
             p = subprocess.Popen(commands, stdin=subprocess.PIPE)
             processes.append(p)
             time.sleep(0.5)
