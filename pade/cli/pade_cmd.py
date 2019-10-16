@@ -228,14 +228,13 @@ def start_runtime(num, agent_files, port, pade_ams, pade_web, pade_sniffer, user
     config['pade_web']['host'] = 'localhost'
     config['pade_web']['port'] = 5000
 
+    create_tables()
     main(config)
+
 
 @cmd.command()
 def create_pade_db():
-    click.echo(click.style('[...] Creating Pade tables in selected data base.', fg='red'))
-    from pade.web.flask_server import db
-    db.create_all()
-    click.echo(click.style('[ok_] Tables created in selected data base', fg='green'))
+    create_tables()
 
 
 @cmd.command()
@@ -248,6 +247,7 @@ def drop_pade_db():
 
 @cmd.command()
 def start_web_interface():
+    create_tables()
     click.echo(click.style('[...] Starting Flask web interface.', fg='red'))
     
     p = FlaskServerProcess()
@@ -263,3 +263,10 @@ def start_web_interface():
             break
 
     click.echo(click.style('[ok_] Flask web interface stopped', fg='green'))
+
+
+def create_tables():
+    click.echo(click.style('[...] Creating Pade tables in selected data base.', fg='red'))
+    from pade.web.flask_server import db
+    db.create_all()
+    click.echo(click.style('[ok_] Tables created in selected data base', fg='green'))
