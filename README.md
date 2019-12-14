@@ -99,7 +99,20 @@ if __name__ == '__main__':
 
 Some changes has been added in this new version, but don't worry about that if you are using pade in your simulations, it's very easy adjust this version in old versions.
 
-The main and bigger change in Pade is in how you launch your agents. Now when you install Pade via pip command or via setup.py install you install too a pade terminal command line (cli) that launch your pade applications.
+The main and bigger change in Pade is in how you launch your agents. Now when you install Pade via pip command or via setup.py install you install a pade terminal command line (cli) that launch your pade applications.
+
+Before we start an PADE example, it's important to create the initial database file in the temporary folder of your Operating System. As the temporary folder is cleared each time that you shutdown your OS you will need to run this command  in each reinitialization of your OS before executing PADE agents:
+
+```shell
+$ pade create-pade-db
+```
+
+If everything is well, than this message will apperar in your prompt:
+
+```
+[...] Creating Pade tables in selected data base.
+[ok_] Tables created in selected data base
+```
 
 As example, if you put the hello world example code in a file with the name hello-agent.py and you want to launch this agent just one time, you could type in your command line interface:
 
