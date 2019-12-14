@@ -1,30 +1,27 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Framework for Intelligent Agents Development - PADE
 
-# Framework para Desenvolvimento de Agentes Inteligentes PADE
+The MIT License (MIT)
 
-# The MIT License (MIT)
+Copyright (c) 2019 Lucas S Melo
 
-# Copyright (c) 2015 Lucas S Melo
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
-
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
 """
     FIPA-ACL message creation and handling module
     -----------------------------------------------------
@@ -119,8 +116,8 @@ class ACLMessage(ET.Element):
         else:
             self.performative = None
 
-        self.conversationID = str(uuid1())
-        self.find('conversationID').text = self.conversationID
+        self.conversation_id = str(uuid1())
+        self.find('conversationID').text = self.conversation_id
 
         self.messageID = str(uuid1())
         self.find('messageID').text = self.messageID
@@ -146,7 +143,7 @@ class ACLMessage(ET.Element):
         second.text = str(self.datetime.second)
         datetime_tag.append(second)
         microsecond = ET.Element('microsecond')
-        microsecond.text  = str(self.datetime.microsecond)
+        microsecond.text = str(self.datetime.microsecond)
         datetime_tag.append(microsecond)
 
         self.system_message = False
@@ -250,7 +247,7 @@ class ACLMessage(ET.Element):
         self.find('protocol').text = str(data)
 
     def set_conversation_id(self, data):
-        self.conversationID = data
+        self.conversation_id = data
         self.find('conversationID').text = str(data)
 
     def set_message_id(self):
@@ -285,8 +282,8 @@ class ACLMessage(ET.Element):
 
         p = p + str(self.performative) + '\n'
 
-        if self.conversationID:
-            p = p + ":conversationID " + self.conversationID + '\n'
+        if self.conversation_id:
+            p = p + ":conversationID " + self.conversation_id + '\n'
 
         if self.sender:
             p = p + ":sender " + str(self.sender) + "\n"
@@ -352,8 +349,8 @@ class ACLMessage(ET.Element):
             pass
 
         try:
-            self.conversationID = aclmsg.find('conversationID').text
-            self.find('conversationID').text = self.conversationID
+            self.conversation_id = aclmsg.find('conversationID').text
+            self.find('conversationID').text = self.conversation_id
         except:
             pass
 
@@ -487,8 +484,8 @@ class ACLMessage(ET.Element):
             message.set_ontology(self.ontology)
         if self.protocol:
             message.set_protocol(self.protocol)
-        if self.conversationID:
-            message.set_conversation_id(self.conversationID)
+        if self.conversation_id:
+            message.set_conversation_id(self.conversation_id)
 
         for i in self.reply_to:
             message.add_receiver(i)

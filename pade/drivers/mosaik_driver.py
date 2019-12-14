@@ -1,3 +1,28 @@
+"""Framework for Intelligent Agents Development - PADE
+
+The MIT License (MIT)
+
+Copyright (c) 2019 Lucas S Melo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
+
 import json
 from twisted.internet import defer
 import inspect
@@ -28,10 +53,14 @@ class MosaikCon(object):
         msg_id_respose = int(payload[1])
         content_ = payload[2]
 
+        if type_ == 2:
+            print(content_)
+            raise Exception('Mosaik error message!')
+
         # Verificação de possíveis respostas
         # à requisições assíncronas dos agentes
-        # à outros simuladores ou ao próprio Mosaik. 
-        if mosaik_msg_id == self.msg_id:       
+        # à outros simuladores ou ao próprio Mosaik.
+        if mosaik_msg_id == self.msg_id:
             if type(content_) is not list:
                 if self.async_requests != []:
                     async_request = self.async_requests.pop()
@@ -44,9 +73,13 @@ class MosaikCon(object):
             return mosaik_msg_id
 
         else:
-            function = content_[0]
-            func_args = content_[1]
-            func_kargs = content_[2]
+            try:
+                function = content_[0]
+                func_args = content_[1]
+                func_kargs = content_[2]    
+            except Exception as e:
+                raise 
+
             if function == 'init':
                 self.sim_id = func_args[0]
                 params = func_kargs
@@ -74,18 +107,17 @@ class MosaikCon(object):
                     2. step tem yield mas não o utiliza, por que ele pode estar 
                     dentro de uma estrutura if. Nesse caso deve ser verificado
                     o valor de retorno quando o next é chamado. Se o valor
-                    retornado for um inteiro, significa que não há chamda
+                    retornado for um inteiro, significa que não há chamada
                     assícrona neste step;
 
-                    3. step tem yield e o utiliza. Neste caso existe yield no
+                    3. step tem yield e o utiliza. Neste caso existe yield
                     dentro do método e ele é utilizado para fazer uma chamada
-                    assíncrona ao Mosaik. Neste caso, um valor None é retornado
+                    assíncrona ao Mosaik. Dessa forma, um valor None é retornado
                     e o gerador deve aguardar a resposta da chamada assíncrona
-                    para que possa continuar sua execução. Dessa forma este 
-                    método, _process_message, ele próprio devolve o valor do ID
-                    da mensagem atual para o método dataReceived do Pade, 
-                    pausando o seu comportamento e aguardando a chegada da
-                    resposta da chamda assíncrona.
+                    para que possa continuar sua execução. O método, _process_message,
+                    ele próprio devolve o valor do ID da mensagem atual para o
+                    método dataReceived do Pade, pausando o seu comportamento e 
+                    aguardando a chegada da resposta da chamda assíncrona.
                 '''
 
                 if inspect.isgenerator(r):

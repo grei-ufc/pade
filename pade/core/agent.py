@@ -1,8 +1,8 @@
-"""Framework para Desenvolvimento de Agentes Inteligentes PADE.
+"""Framework for Intelligent Agents Development - PADE
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Lucas S Melo
+Copyright (c) 2019 Lucas S Melo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
