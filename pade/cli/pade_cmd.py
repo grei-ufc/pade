@@ -91,9 +91,13 @@ def main(config):
         Python Agent DEvelopment framework   
         ''', fg='green'))
     click.echo(click.style('''
-        PADE is a free software under development by
-        Electric Smart Grid Group - GREI
+        PADE is a free software under development by:
+
+        - Electric Smart Grid Group - GREI
         Federal University of Ceara - UFC - Brazil
+        
+        - Laboratory of Applied Artificial Intelligence - LAAI
+        Federal University of Para - UFPA
 
         https://github.com/grei-ufc/pade''', fg='blue'))
 
