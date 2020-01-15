@@ -1,29 +1,27 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Framework for Intelligent Agents Development - PADE
 
-# Framework para Desenvolvimento de Agentes Inteligentes PADE
+The MIT License (MIT)
 
-# The MIT License (MIT)
+Copyright (c) 2019 Lucas S Melo
 
-# Copyright (c) 2015 Lucas S Melo
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
 
 
 """
@@ -149,6 +147,10 @@ class FipaRequestProtocol(Behaviour):
 
         self.filter_inform = Filter()
         self.filter_inform.set_performative(ACLMessage.INFORM)
+
+        if self.message is not None:
+            self.filter_conversation_id = Filter()
+            self.filter_conversation_id.set_conversation_id(self.message.conversation_id)
 
     def on_start(self):
         """
@@ -291,6 +293,10 @@ class FipaContractNetProtocol(Behaviour):
         self.filter_inform = Filter()
         self.filter_inform.set_performative(ACLMessage.INFORM)
 
+        if self.message is not None:
+            self.filter_conversation_id = Filter()
+            self.filter_conversation_id.set_conversation_id(self.message.conversation_id)
+
     def on_start(self):
         """This method overrides the on_start method from Behaviour class
             and implements aditional settings to the initialize method
@@ -303,6 +309,8 @@ class FipaContractNetProtocol(Behaviour):
             if self.message.performative == ACLMessage.CFP:
 
                 self.cfp_qty = len(self.message.receivers)
+                self.received_qty = 0
+                self.proposes = []
                 self.agent.send(self.message)
 
                 self.timed_behaviour()
@@ -325,9 +333,10 @@ class FipaContractNetProtocol(Behaviour):
         """
         self.received_qty += 1
         if self.received_qty == self.cfp_qty:
-            delayed_calls = reactor.getDelayedCalls()
-            for call in delayed_calls:
-                call.cancel()
+            pass
+            # delayed_calls = reactor.getDelayedCalls()
+            # for call in delayed_calls:
+            #     call.cancel()
 
     def handle_refuse(self, message):
         """This method should be overridden when implementing a protocol.
@@ -338,9 +347,10 @@ class FipaContractNetProtocol(Behaviour):
         """
         self.received_qty += 1
         if self.received_qty == self.cfp_qty:
-            delayed_calls = reactor.getDelayedCalls()
-            for call in delayed_calls:
-                call.cancel()
+            pass
+            # delayed_calls = reactor.getDelayedCalls()
+            # for call in delayed_calls:
+            #     call.cancel()
 
     def handle_all_proposes(self, proposes):
         """This method should be overridden when implementing a protocol.
@@ -389,7 +399,7 @@ class FipaContractNetProtocol(Behaviour):
         """
         super(FipaContractNetProtocol, self).timed_behaviour()
 
-        reactor.callLater(self.timeout, self.execute_on_timeout)
+        #reactor.callLater(self.timeout, self.execute_on_timeout)
 
     def execute_on_timeout(self):
         """This method executes the handle_all_proposes method if any 
@@ -489,6 +499,10 @@ class FipaSubscribeProtocol(Behaviour):
 
         self.filter_failure = Filter()
         self.filter_failure.set_performative(ACLMessage.FAILURE)
+
+        if self.message is not None:
+            self.filter_conversation_id = Filter()
+            self.filter_conversation_id.set_conversation_id(self.message.conversation_id)
 
     def on_start(self):
         """his method overrides the on_start method from Behaviour class

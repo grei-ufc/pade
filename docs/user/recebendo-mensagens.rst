@@ -1,7 +1,7 @@
 Recebendo Mensagens
 ===================
 
-No PADE para que um agente possa receber mensagens, basta que o método react() seja implementado, dentro da classe que herda da classe `Agent()`.
+No Pade para que um agente possa receber mensagens, basta que o método react() seja implementado, dentro da classe que herda da classe `Agent()`.
 
 Recebendo mensagens FIPA-ACL com PADE
 -------------------------------------
@@ -10,11 +10,11 @@ No exemplo a seguir são implementados dois agentes distintos, o primeiro é o a
 
 ::
 
-    from pade.misc.utility import display_message
-    from pade.misc.common import set_ams, start_loop
+    from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
-    from pade.acl.aid import AID
     from pade.acl.messages import ACLMessage
+    from pade.acl.aid import AID
+    from sys import argv
 
 
     class Remetente(Agent):
@@ -42,32 +42,26 @@ No exemplo a seguir são implementados dois agentes distintos, o primeiro é o a
 
     if __name__ == '__main__':
 
-        set_ams('localhost', 8000, debug=False)
+        destinatario_agent = Destinatario(AID(name='destinatario'))
+        agents.append(destinatario_agent)
 
-        agentes = list()
+        remetente_agent = Remetente(AID(name='remetente'))
+        agents.append(remetente_agent)
 
-        destinatario = Destinatario(AID(name='destinatario'))
-        destinatario.ams = {'name': 'localhost', 'port': 8000}
-        agentes.append(destinatario)
-
-        remetente = Remetente(AID(name='remetente'))
-        remetente.ams = {'name': 'localhost', 'port': 8000}
-        agentes.append(remetente)
-
-        start_loop(agentes, gui=True)
+        start_loop(agents)
 
 
-Visualização via Interface Gráfica
-----------------------------------
+.. Visualização via Interface Gráfica
+.. ----------------------------------
 
-A seguir é possível observar a interface gráfica do PADE que mostra os agentes cadastrados no AMS.
+.. A seguir é possível observar a interface gráfica do PADE que mostra os agentes cadastrados no AMS.
 
-.. figure:: ../img/janela_agentes.png
-    :align: center
-    :width: 4.5in
+.. .. figure:: ../img/janela_agentes.png
+..     :align: center
+..     :width: 4.5in
 
-Ao clicar na mensagem recebida pelo agente `destinatario` é possível observar todos os dados contidos na mensagem:
+.. Ao clicar na mensagem recebida pelo agente `destinatario` é possível observar todos os dados contidos na mensagem:
 
-.. figure:: ../img/janela_mensagem.png
-    :align: center
-    :width: 3.0in
+.. .. figure:: ../img/janela_mensagem.png
+..     :align: center
+..     :width: 3.0in

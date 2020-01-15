@@ -1,26 +1,23 @@
 Agentes Temporais
 =================
 
-Em aplicações reais é comum que o comportamento do agente seja executado de tempos em tempos e não apenas uma vez, mas como fazer isso no PADE? :(
+Em aplicações reais é comum que o comportamento do agente seja executado de tempos em tempos e não apenas uma vez, mas como fazer isso no Pade? :(
 
 Execução de um agente temporal
 ------------------------------
 
-Este é um exemplo de um agente que executa indefinidamente um comportamento a cada 1,0 segundos:
+Este é um exemplo de um agente que executa indefinidamente um comportamento a cada 1,0 segundos. O código fonte deste agente de comportamento temporal pode ser encontrado no diretório de exemplos no repositório do PADE no GitHub, no arquivo agent_example_2.py.
 
 ::
 
     #!coding=utf-8
-    # Hello world temporal in PADE!
-    #
-    # Criado por Lucas S Melo em 21 de julho de 2015 - Fortaleza, Ceará - Brasil
+    # Hello world temporal in Pade!
 
-    from pade.behaviours.protocols import TimedBehaviour
-    from pade.misc.utility import display_message
-    from pade.misc.common import set_ams, start_loop
+    from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
     from pade.acl.aid import AID
-
+    from pade.behaviours.protocols import TimedBehaviour
+    from sys import argv
 
     class ComportTemporal(TimedBehaviour):
         def __init__(self, agent, time):
@@ -41,39 +38,14 @@ Este é um exemplo de um agente que executa indefinidamente um comportamento a c
 
 
     if __name__ == '__main__':
-
-        set_ams('localhost', 8000, debug=False)
-
+        agents_per_process = 2
+        c = 0
         agents = list()
-
-        agente_1 = AgenteHelloWorld(AID(name='agente_1'))
-        agente_1.ams = {'name': 'localhost', 'port': 8000}
-
-        agents.append(agente_1)
-
-        start_loop(agents, gui=True)
-
-Execução de dois agentes temporais
-----------------------------------
-
-Mas e se eu quiser dois agentes com o mesmo comportamento!? Não tem problema, basta instanciar um outro agente com a mesma classe!
-
-::
-
-    if __name__ == '__main__':
-
-        set_ams('localhost', 8000, debug=False)
-
-        agents = list()
-
-        agente_1 = AgenteHelloWorld(AID(name='agente_1'))
-        agente_1.ams = {'name': 'localhost', 'port': 8000}
-
-        agente_2 = AgenteHelloWorld(AID(name='agente_2'))
-        agente_2.ams = {'name': 'localhost', 'port': 8000}
-
-        agents.append(agente_1)
-        agents.append(agente_2)
-
-        start_loop(agents, gui=True)
-
+        for i in range(agents_per_process):
+            port = int(argv[1]) + c
+            agent_name = 'agent_hello_{}@localhost:{}'.format(port, port)
+            agente_hello = AgenteHelloWorld(AID(name=agent_name))
+            agents.append(agente_hello)
+            c += 1000
+        
+        start_loop(agents)

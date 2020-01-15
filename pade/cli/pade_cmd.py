@@ -1,3 +1,28 @@
+"""Framework for Intelligent Agents Development - PADE
+
+The MIT License (MIT)
+
+Copyright (c) 2019 Lucas S Melo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
+
 import click
 import signal
 import subprocess
@@ -6,9 +31,7 @@ import shlex
 import time
 import json
 import datetime
-
-from pade.core import new_ams
-from pade.core import sniffer
+import sys
 
 
 class FlaskServerProcess(multiprocessing.Process):
@@ -113,38 +136,61 @@ def main(config):
     # -------------------------------------------------------------
     session = config.get('session')
     pade_ams = config.get('pade_ams')
+
+    from pade.core import new_ams
+
     if pade_ams is None:
-        commands = 'python {} {} {} {}'.format(new_ams.__file__,
+        commands = 'python {} {} {} {} {}'.format(new_ams.__file__,
                                                session['username'],
                                                session['email'],
-                                               session['password'])
-        commands = shlex.split(commands)
+                                               session['password'],
+                                               8000)
+        if sys.platform == 'win32':
+            commands = shlex.split(commands, posix=False)
+        else:
+            commands = shlex.split(commands)
         p = subprocess.Popen(commands, stdin=subprocess.PIPE)
         processes.append(p)
     else:
-        commands = 'python {} {} {} {}'.format(new_ams.__file__,
-                                               session['username'],
-                                               session['email'],
-                                               session['password'])
-        commands = shlex.split(commands)
-        p = subprocess.Popen(commands, stdin=subprocess.PIPE)
-        processes.append(p)
+        if pade_ams['launch']:
+            commands = 'python {} {} {} {} {}'.format(new_ams.__file__,
+                                                   session['username'],
+                                                   session['email'],
+                                                   session['password'],
+                                                   pade_ams['port'])
+            if sys.platform == 'win32':
+                commands = shlex.split(commands, posix=False)
+            else:
+                commands = shlex.split(commands)
+            p = subprocess.Popen(commands, stdin=subprocess.PIPE)
+            processes.append(p)
 
     # -------------------------------------------------------------
     # inicializa o agente Sniffer
     # -------------------------------------------------------------
     pade_sniffer = config.get('pade_sniffer')
+
+    from pade.core import sniffer
+
     if pade_sniffer is None:
         time.sleep(2.0)
-        commands = 'python {}'.format(sniffer.__file__)
-        commands = shlex.split(commands)
+        commands = 'python {} {}'.format(sniffer.__file__,
+                                         8001)
+        if sys.platform == 'win32':
+            commands = shlex.split(commands, posix=False)
+        else:
+            commands = shlex.split(commands)
         p = subprocess.Popen(commands, stdin=subprocess.PIPE)
         processes.append(p)
     else:
         if pade_sniffer['active']:
             time.sleep(2.0)
-            commands = 'python {}'.format(sniffer.__file__)
-            commands = shlex.split(commands)
+            commands = 'python {} {}'.format(sniffer.__file__,
+                                             pade_sniffer['port'])
+            if sys.platform == 'win32':
+                commands = shlex.split(commands, posix=False)
+            else:
+                commands = shlex.split(commands)
             p = subprocess.Popen(commands, stdin=subprocess.PIPE)
             processes.append(p)   
         else:
@@ -158,7 +204,10 @@ def main(config):
     for agent_file in agent_files:
         for i in range(num):
             commands = 'python {} {}'.format(agent_file, port_)
-            commands = shlex.split(commands)
+            if sys.platform == 'win32':
+                commands = shlex.split(commands, posix=False)
+            else:
+                commands = shlex.split(commands)
             p = subprocess.Popen(commands, stdin=subprocess.PIPE)
             processes.append(p)
             time.sleep(0.5)
@@ -173,8 +222,11 @@ def main(config):
                 p.kill()
             break
 
+@click.group()
+def cmd():
+    pass
 
-@click.command()
+@cmd.command()
 @click.argument('agent_files', nargs=-1)
 @click.option('--num', default=1)
 @click.option('--port', default=2000)
@@ -185,8 +237,7 @@ def main(config):
 @click.option('--username', prompt='please enter a username', default='pade_user')
 @click.option('--password', prompt=True, hide_input=True, default='12345')
 @click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
-def cmd(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, username, password):
-
+def start_runtime(num, agent_files, port, pade_ams, pade_web, pade_sniffer, username, password):
     config = dict()
     config['agent_files'] = agent_files
     config['num'] = num
@@ -197,6 +248,7 @@ def cmd(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, userna
     config['session']['email'] = 'pade_user@pade.com'
     config['session']['password'] = password
     config['pade_ams'] = dict()
+    config['pade_ams']['launch'] = True
     config['pade_ams']['host'] = 'localhost'
     config['pade_ams']['port'] = 8000
     config['pade_sniffer'] = dict()
@@ -208,4 +260,45 @@ def cmd(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, userna
     config['pade_web']['host'] = 'localhost'
     config['pade_web']['port'] = 5000
 
+    create_tables()
     main(config)
+
+
+@cmd.command()
+def create_pade_db():
+    create_tables()
+
+
+@cmd.command()
+def drop_pade_db():
+    click.echo(click.style('[...] Droping Pade tables in selected data base.', fg='red'))
+    from pade.web.flask_server import db    
+    db.drop_all()
+    click.echo(click.style('[ok_] Tables droped in selected data base', fg='green'))
+
+
+@cmd.command()
+def start_web_interface():
+    create_tables()
+    click.echo(click.style('[...] Starting Flask web interface.', fg='red'))
+    
+    p = FlaskServerProcess()
+    p.daemon = True
+    p.start()
+
+    while True:
+        time.sleep(2.0)
+        
+        if interrupted:
+            click.echo(click.style('\nStoping PADE...', fg='red'))
+            p.kill()
+            break
+
+    click.echo(click.style('[ok_] Flask web interface stopped', fg='green'))
+
+
+def create_tables():
+    click.echo(click.style('[...] Creating Pade tables in selected data base.', fg='red'))
+    from pade.web.flask_server import db
+    db.create_all()
+    click.echo(click.style('[ok_] Tables created in selected data base', fg='green'))

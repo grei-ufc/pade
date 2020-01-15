@@ -1,7 +1,5 @@
 #!coding=utf-8
-# Hello world temporal in PADE!
-#
-# Criado por Lucas S Melo em 21 de julho de 2015 - Fortaleza, Ceará - Brasil
+# Hello world temporal in Pade
 
 from pade.misc.utility import display_message, start_loop
 from pade.core.agent import Agent

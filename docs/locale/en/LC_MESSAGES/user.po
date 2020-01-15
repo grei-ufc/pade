@@ -1,0 +1,961 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, GREI-UFC
+# This file is distributed under the same license as the Pade package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Pade 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-07 22:55-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../user/agentes-temporais.rst:2
+msgid "Agentes Temporais"
+msgstr "Timed Agents"
+
+#: ../../user/agentes-temporais.rst:4
+msgid ""
+"Em aplicações reais é comum que o comportamento do agente seja executado "
+"de tempos em tempos e não apenas uma vez, mas como fazer isso no Pade? :("
+msgstr "In real world applications it's common that the agent's behaviours are executed in periodic intervals and not only one time, but how can we do this in PADE applications? :("
+
+#: ../../user/agentes-temporais.rst:7
+msgid "Execução de um agente temporal"
+msgstr "Running Timed agents in PADE"
+
+#: ../../user/agentes-temporais.rst:9
+msgid ""
+"Este é um exemplo de um agente que executa indefinidamente um "
+"comportamento a cada 1,0 segundos. O código fonte deste agente de "
+"comportamento temporal pode ser encontrado no diretório de exemplos no "
+"repositório do PADE no GitHub, no arquivo agent_example_2.py."
+msgstr "This is an example which an agent runs actions indefinitely for every 1,0 second."
+
+#: ../../user/desenvolvedores.rst:2
+msgid "Estrutura construtiva do PADE"
+msgstr "PADE design aspects"
+
+#: ../../user/desenvolvedores.rst:4
+msgid ""
+"Este guia está sendo desenvolvido com o objetivo de auxiliar o "
+"desenvolvimento do PADE, fornecendo compreenssão a respeito da estrutura "
+"construtiva do PADE."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:6
+msgid ""
+"PADE passará por alterações profundas entre suas versões 1.0 e 2.0. Como "
+"a versão 1.0 já está em sua versão estável tendo sido utilizada em "
+"diversas aplicações com exito, e não sendo mais objeto de "
+"desenvolvimento, essa documentação irá focar nas nova estrutura do PADE "
+"que, como mencionado, passou por profundas alterações internas."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:9
+msgid "Características do PADE 1.0"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:11
+msgid ""
+"Apesar de muitas alterações estarem sendo implementadas para a versão "
+"2.0, é necessário verificar e revisar alguns aspectos da versão 1.0 que "
+"fornecem a base do desenvolvimento do PADE e não deverão ser alterados."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:13
+msgid ""
+"Primeiramente é necessário mencionar que o PADE é desenvolvido utilizando"
+" o framework twisted, que segundo descrição encontrada no site do "
+"twisted:"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:15
+msgid ""
+"Twisted is an event-driven networking engine written in Python and "
+"licensed under the open source"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:17
+msgid ""
+"Twisted é um framework para implementação de aplicações distribuídas que "
+"utilizem protocolos padrões, como http, ftp, ssh, ou protocolos "
+"personalizados. PADE faz uso do twisted por meio da segunda opção, "
+"implementando protocolos personalizados, tanto para troca de mensagens de"
+" controle interno, quanto para fornecer uma interface aos protocolos "
+"descritos pelo padão FIPA."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:20
+msgid "Pacote core"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:22
+msgid ""
+"A essencia do desenvolvimento do Twisted está contida no pacote *core*. O"
+" pacote core, por sua vez possui quatro módulos:"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:24
+msgid "__init__.py: torna uma pasta um pacote;"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:26
+msgid ""
+"agent.py: contém as classes que implementam as funcionalidades "
+"necessárias para a definição dos agentes e para possibilitar registro no "
+"AMS, verificação de conexão e troca de mensagens;"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:28
+msgid "new_ams.py: implementa o agente AMS e seus comportamentos;"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:30
+msgid ""
+"peer.py: implementa comportamentos básicos do protocolo twisted para "
+"troca de mensagens."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:32
+msgid ""
+"Sendo assim, como PADE é desenvolvido com Twisted, precisa obdecer sua "
+"estrutura de classes. No Twisted, duas classes são essenciais:"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:34
+msgid ""
+"Uma classe para implementar o protocolo propriamente dito, que trata as "
+"mensagens recebidas por um ponto comunicante e envia as mensagens para "
+"outro ponto comunicante."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:36
+msgid ""
+"Uma classe para implementar o protocolo definido na primeira classe, essa"
+" classe é chamada de classe Factory."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:38
+msgid ""
+"Na versão 1.0 do pade, a definição dessas classes estavam presentes no "
+"módulo agent.py, mas por uma questão de organização do código, a classe "
+"que implementa o protocolo foi transferida para o módulo peer.py e "
+"chamasse agora **PeerProtocol** extendendo a classe do twisted "
+"**LineReceiver**."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:41
+msgid "Módulo agente.py"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:43
+msgid "No módulo agent.py estão presentes as seguintes classes:"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:45
+msgid ""
+"**AgentProtocol**: Essa classe herda a classe PeerProtocol que é "
+"importada do módulo peer.py e extende alguns de seus métodos, tais como "
+"connectionMade, connectionLost, send_message e lineReceived."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:47
+msgid ""
+"**AgentFactory**: Essa classe herda a classe ClientFactory do módulo "
+"protocol importado do Twisted, implementando o método buildProtocol, "
+"clientConnectionFailed e clientConnectionLost, muito importantes para "
+"funcionamento do sistema multiagente. Nessa classe temos importantes "
+"atributos, tais como messages, react, ams_aid, on_start e table."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:49
+msgid ""
+"**Agent\\_**: Essa classe estabelece as funcionalidades essenciais de um "
+"agente como: conexão com o AMS; configurações iniciais; envio de "
+"mensagens e adição de comportamentos. Os atributos presentes nesta classe"
+" são: aid, debug, ams, agentInstance, behaviours, system_behaviours."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:50
+msgid ""
+"Os metodos presentes nesta classe são: send: utilizado para o envio de "
+"mensagens entre agentes call_later: utilizado para executar metodos apos "
+"periodo especificado; send_to_all: envia mensagem a todos os agentes "
+"registrados na tabela do agente; add_all: adiciona todos os agentes "
+"presentes na tabela dos agentes; on_start: a ser utilizado na "
+"implementação dos comportamentos iniciais; react: a ser utlizado na "
+"implementação dos comportamentos dos agentes quando recebem uma mensagem."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:58
+msgid ""
+"Para a descrição das demais classes cabe aqui uma breve explicação. Na "
+"versão 1.0 as mensagens de controle internas do PADE eram enviadas sem "
+"nenhuma padronização, aproveitando somente a infraestrutura que o twisted"
+" monta para executar suas aplicações distribuídas. Isso deixava o código "
+"sujo, commuitos ifs e elses, dificultando seu entendimento e "
+"manutenabilidade."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:60
+msgid ""
+"Uma das alterações mais profundas na versão 2.0 é que toda essa estrutura"
+" de troca de mensagens internas agora faz uso e obedece as classes que "
+"implementam os protocolos de comunicação FIPA. Isso deixou o código mais "
+"organizado e criou a oportunidade de implementar algumas melhorias na "
+"lógica de execução. Sendo assim, o comportamento de atualização das "
+"tabelas que cada agente tem com os endereços dos agentes presentes na "
+"plataforma foi implementado com um protocolo FIPASubscribe que realiza o "
+"paradigma de comunicação editor-assinante, em que o agente AMS é o agente"
+" editor e todos os outros agentes da plataforma são os assinantes. Também"
+" o comportamento de verificação se o agente está ativo ou não foi "
+"modelado como um protocolo FIPA request, em que o AMS solicita a cada um "
+"dos agentes sua resposta, caso a resposta não venha, significa que o "
+"agente não está mais ativo."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:62
+msgid ""
+"**SubscribeBehaviour**: Classe que implementa o lado subscriber do "
+"protocolo Publisher/Subscriber para atualização das tabelas de agentes."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:64
+msgid ""
+"**CompConnection**: Classe que implementa o comportamento de verificação "
+"de atividade dos agentes."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:66
+msgid ""
+"**Agent**: Pode ser considerada a classe mais importante do módulo "
+"agent.py pois é extendendo esta classe que um agente é definido no PADE. "
+"Dois métodos são definidos nesta classe: o primeiro é o método de "
+"inicialização padão de classes em Python, onde são instanciadas as "
+"classes dos protocolos padrões do PADE que irão realizar a identificação "
+"do agente junto ao AMS e também inscrever este agente como assinante do "
+"AMS em seu comportamento de verificação de atividade dos agente (se o "
+"agente está ou não em funcionamento). O segundo método, não menos "
+"importante, envia todas as mensagens que recebe ao AMS, para que sejam "
+"armazenas em um banco de dados e estejam disponíveis para consulta pelo "
+"administrador do sistema multiagente por meio da interface web ou do "
+"acesso direto ao banco de dados."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:69
+msgid "Módulo new_ams.py"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:71
+msgid ""
+"Este módulo é uma adição do PADE 2.0. Na versão 1.0 o comportamento do "
+"AMS estava contido dentro do módulo ams.py que implementava um protocolo "
+"com as classes do Twisted exclusivamente para o agente AMS e também para "
+"o agente Sniffer que deixou de existir na versão 2.0, pois o "
+"comportamento de envio de mensagens para armazenamento já está embutido "
+"no comportamento do próprio agente que não precisa mais ser solicitado "
+"por mensagens, uma vez que assim que uma mensagem é recebida pelo agente "
+"ela é enviada automaticamente para o AMS, que armazena a mensagem em um "
+"banco de dados especificado."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:73
+msgid "No módulo new_ams as seguintes classes são implementadas:"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:75
+msgid ""
+"**ComportSendConnMessages**: Conportamento temporal que envia mensagens a"
+" cada 4,0 segundos para verificar se o agente está conectado."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:77
+msgid ""
+"**ComportVerifyConnTimed**: Comportamento temporal que a cada 10,0 "
+"segundos verifica o intervalo de tempo de respostas do comportamento "
+"ComportSendConnMessages. Se o intervalo de tempo da ultima resposta for "
+"maior que 10,0 segundos o agente AMS considera que o agente não está mais"
+" ativo e retira o agente da tabela de agentes vigente."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:79
+msgid ""
+"**CompConnectionVerify**: Protocolo Request que recebe as mensagens de "
+"resposta dos agentes que têm sua conexão verificada."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:81
+msgid ""
+"**PublisherBehaviour**: Protocolo Publisher-Subscribe em que o AMS é o "
+"publisher e publica uma nova tabela de agentes sempre que um novo agente "
+"ingressa na plataforma, ou que algum agente existente tem sua desconexão "
+"detectada."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:83
+msgid ""
+"**AMS**: Classe que declara todos os comportamentos relacionados ao "
+"agente AMS, como verificação de conexão e publicação das tabelas de "
+"agentes, além de receber e armazenar as mensagens recebidas por todos os "
+"agentes presentes na plataforma."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:86
+msgid "Pacote misc"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:88
+msgid ""
+"O pacote misc armazena módulos com diferentes propósitos gerais. Até o "
+"presente desenvolvimento, o pacote misc tem dois módulos principais, são "
+"eles: - common.py - utility.py"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:92
+msgid ""
+"Começando pelo mais simples, o módulo utility.py tem como propópito "
+"oferecer métodos com facilidades para o desenvolvimento, o único método "
+"disponível é o método display_message() que imprime uma mensagem  na "
+"tela, passada como parâmetro para o método, com data, horário e nome do "
+"agente."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:94
+msgid ""
+"O segundo módulo do pacote misc é o módulo common.py que fornece ao "
+"usuário do PADE métodos e objetos de propósito geral que têm relação com "
+"a inicialização de uma sessão multiagente PADE. Neste módulo estão "
+"presentes as classes FlaskServerProcess que inicializa o serviço web "
+"desenvolvido com o framework Flask. A outra classe do módulo é a classe "
+"PadeSession, que define as sessões a serem lançadas no ambiente de "
+"execução PADE. Essa classe tem uma das mais importantes funções no PADE "
+"que é a de inicializar o loop de execução do PADE. Ou seja, quando se "
+"pretende lançar agentes no ambiente de execução do PADE, o procedimento é"
+" o seguinte:"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:137
+msgid ""
+"Como pode ser observado por meio deste exemplo, é no método "
+"config_agents() que os agentes são instanciados, assim como o objeto "
+"PadeSession(), que logo em seguida tem seu método add_all_agents() "
+"chamado e recebe como parâmetro uma lista com as instancias dos agentes. "
+"Em seguida é chamado o método register_user() para registrar um usuario. "
+"O objeto PadeSession é retornado pelo método config_agents(), que é "
+"chamado no corpo principal desse script e atribuído a variável s, que "
+"logo em seguida, chama o método start_loop() do objeto PadeSession "
+"retornado."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:139
+msgid ""
+"Nesse simples exemplo é possível observar a importancia da classe "
+"PadeSession, que recebe as instancias dos agentes a serem lançados, "
+"registra usuarios da sessão e inicializa o loop de execussão do PADE."
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:141
+msgid ""
+"Aqui cabe um questionamento essencial para o ambiente de execução de "
+"agentes PADE. E se quisermos lançar agentes em uma sessão PADE já "
+"iniciada, como faremos?"
+msgstr ""
+
+#: ../../user/desenvolvedores.rst:143
+msgid ""
+"A primeira coisa a ser definida aqui é que após iniciada a sessão, não "
+"será possível registrar usuários e os agentes lançados, só poderão entrar"
+" na plataforma se forem utilizadas credenciais de usuários já "
+"registrados."
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:2
+msgid "Enviando Mensagens"
+msgstr "Sending messages"
+
+#: ../../user/enviando-mensagens.rst:4
+msgid ""
+"Para enviar uma mensagem com o PADE é muito simples! As mensagens "
+"enviadas pelos agentes desenvolvidos com PADE seguem o padrão FIPA-ACL e "
+"têm os seguintes campos:"
+msgstr "To send messages in PADE is very simple! The messages sended by PADE agents are in FIPA-ACL pattern and have the followinf fields:"
+
+#: ../../user/enviando-mensagens.rst:6
+msgid "*conversation-id:* identidade única de uma conversa;"
+msgstr "*conversation-id:* unique id of a conversation;"
+
+#: ../../user/enviando-mensagens.rst:7
+msgid "*performative:* rótulo da mensagem;"
+msgstr "*performative:* label of a message;"
+
+#: ../../user/enviando-mensagens.rst:8
+msgid "*sender:* remetente da mensagem;"
+msgstr "*sender:* sender of a message;"
+
+#: ../../user/enviando-mensagens.rst:9
+msgid "*receivers:* destinatários da mensagem;"
+msgstr "*receivers:* receivers of a message;"
+
+#: ../../user/enviando-mensagens.rst:10
+msgid "*content:* conteúdo da mensagem;"
+msgstr "*content:* message content;"
+
+#: ../../user/enviando-mensagens.rst:11
+msgid "*protocol:* protocolo da mensagem;"
+msgstr "*protocol:* FIPA message protocol;"
+
+#: ../../user/enviando-mensagens.rst:12
+msgid "*language:* linguagem utilizada;"
+msgstr "*language:* language used in the message content;"
+
+#: ../../user/enviando-mensagens.rst:13
+msgid "*encoding:* codificação da mensagem;"
+msgstr "*enconding:* message codification;"
+
+#: ../../user/enviando-mensagens.rst:14
+msgid "*ontology:* ontologia utilizada;"
+msgstr "*ontology:* ontology of the message;"
+
+#: ../../user/enviando-mensagens.rst:15
+msgid ""
+"*reply-with:* Expressão utilizada pelo agente de resposta a identificar a"
+" mensagem;"
+msgstr "*reply-with:* "
+
+#: ../../user/enviando-mensagens.rst:16
+msgid ""
+"*reply-by:* A referência a uma ação anterior em que a mensagem é uma "
+"resposta;"
+msgstr "*reply-by*"
+
+#: ../../user/enviando-mensagens.rst:17
+msgid "*in-reply-to:* Data/hora indicando quando uma resposta deve ser recebida.."
+msgstr "*in-reply-to:*"
+
+#: ../../user/enviando-mensagens.rst:20
+msgid "Mensagens FIPA-ACL no PADE"
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:22
+msgid "Uma mensagem FIPA-ACL pode ser montada no pade da seguinte forma:"
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:34
+msgid "Enviando uma mensagem com PADE"
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:36
+msgid ""
+"Uma vez que se está dentro de uma instância da classe `Agent()` a "
+"mensagem pode ser enviada, simplesmente utilizando o comando:"
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:44
+msgid "Mensagem no padrão FIPA-ACL"
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:46
+msgid ""
+"Realizando o comando `print message` a mensagem no padão FIPA ACL será "
+"impressa na tela:"
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:69
+msgid "Mensagem no padrão XML"
+msgstr ""
+
+#: ../../user/enviando-mensagens.rst:71
+msgid ""
+"Mas também é possível obter a mensagem no formato XML por meio do comando"
+" `print message.as_xml()`"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:2
+msgid "Enviando Objetos"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:4
+msgid ""
+"Nem sempre o que é preciso enviar para outros agentes pode ser "
+"representado por texto simpes não é mesmo!"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:6
+msgid ""
+"Para enviar objetos encapsulados no content de mensagens FIPA-ACL com "
+"PADE basta utilizar o módulo nativo do Python *pickle*."
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:9
+msgid "Enviando objetos serializados com pickle"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:11
+msgid "Para enviar um objeto serializado com piclke basta seguir os passos:"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:17
+msgid ""
+"*pickle* é uma biblioteca para serialização de objetos, assim, para "
+"serializar um objeto qualquer, utilize `pickle.dumps()`, veja:"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:25
+msgid "Pronto! O objeto já pode ser enviado no conteúdo da mensagem."
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:28
+msgid "Recebendo objetos serializados com pickle"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:30
+msgid "Agora para receber o objeto, basta carregá-lo utilizando o comando:"
+msgstr ""
+
+#: ../../user/enviando-objetos.rst:37
+msgid "Simples assim ;)"
+msgstr ""
+
+#: ../../user/hello-world.rst:5
+msgid "Alô Mundo"
+msgstr "Hello World"
+
+#: ../../user/hello-world.rst:7
+msgid "PADE foi implementado com um objetivo central: simplicidade!"
+msgstr "PADE was implemented with one main objective: simplicity"
+
+#: ../../user/hello-world.rst:9
+msgid ""
+"Depois de ter o PADE instalado em seu computador fica bem simples começar"
+" a trabalhar."
+msgstr "After you have been installed PADE in your machine, it's easy start to use PADE"
+
+#: ../../user/hello-world.rst:11
+msgid ""
+"Em uma pasta crie um arquivo chamado agent_example_1.py com o seu editor "
+"de texto preferido, e copie e cole o seguinte trecho de código dentro "
+"dele. Ou vá na pasta de exemplos do repositório pade no GitHub "
+"(`repositório pade <https://github.com/grei-ufc/pade>`)  e procure o "
+"arquivo agent_example_1.py que já contém o código listado abaixo:"
+msgstr "In a folder you will need to create a file named agent_example_1.py with your favorite text editor, then copy and paste the following source code inside the file. Or you can download the file from PADE GitHub repository in examples folder (`PADE repository <https://github.com/grei-ufc/pade>`). The file agent_example_1.py has the following code:"
+
+#: ../../user/hello-world.rst:45
+msgid "Na linha de comando do terminal digite:"
+msgstr "In the terminal command line, type:"
+
+#: ../../user/hello-world.rst:51
+msgid ""
+"Pronto! Se tudo der certo você deve estar vendo na tela do seu terminal a"
+" splash screen do pade, parecida com esta:"
+msgstr "Nice! If everything is ok, you must have seen the PADE splash screen, like this:"
+
+#: ../../user/hello-world.rst:58
+msgid ""
+"Este já é um agente, mas não tem muita utilidade, não é mesmo! Executa "
+"apenas uma vez :("
+msgstr "This already is an agent, but it does not have many utilities, it  just starts, prints hello in the screen and dies. :("
+
+#: ../../user/hello-world.rst:60
+msgid ""
+"Então como construir um agente que tenha seu comportamento executado de "
+"tempos em tempos?"
+msgstr "So, how can we build agents that have temporal or cyclic behaviours?"
+
+#: ../../user/instalacao.rst:5
+msgid "Instalação"
+msgstr "Installation Process"
+
+#: ../../user/instalacao.rst:7
+msgid ""
+"Instalar o PADE em seu computador, ou dispositivo embarcado é bem "
+"simples, basta que ele esteja conectado à internet!"
+msgstr "It's very simple to install PADE in your computer or embedded device, although an internet connection it's necessary."
+
+#: ../../user/instalacao.rst:10
+msgid "Instalação via PIP"
+msgstr "Installing PADE using PIP"
+
+#: ../../user/instalacao.rst:12
+msgid "Para instalar o PADE via PIP basta digitar em um terminal:"
+msgstr "To install PADE framework using pip, you should type this command in a Unix like terminal:"
+
+#: ../../user/instalacao.rst:19
+msgid "Pronto! O Pade está instalado!"
+msgstr "Ready! PADE has been installed!"
+
+#: ../../user/instalacao.rst:22
+msgid "Instalação via GitHub"
+msgstr "Installing PADE using Github"
+
+#: ../../user/instalacao.rst:24
+msgid ""
+"Se você quiser ter acesso ao fonte do PADE e instala-lo a partir do "
+"repositório oficial, basta digitar os seguintes comandos no terminal:"
+msgstr "If you want to take a look in the PADE source code, you will need to clone the official PADE GitHub repository, typing the following commands in the terminal:"
+
+#: ../../user/instalacao.rst:32
+msgid ""
+"Pronto o PADE está pronto para ser utilizado, faça um teste entrando na "
+"pasta de exemplos e digitando na linha de comandos:"
+msgstr "Ready! PADE is istalled now. You can make a test and try to execute a example in the examples folder from the PADE source code. Type this commands:"
+
+#: ../../user/instalacao.rst:39
+msgid "Instalando o PADE em um ambiente virtual"
+msgstr "PADE in a Python Virtual Environment"
+
+#: ../../user/instalacao.rst:41
+msgid ""
+"Quando se trabalha com módulos Python é importante saber criar e "
+"manipular ambientes virtuais para gerenciar as dependências do projeto de"
+" uma maneira mais organizada. Aqui iremos mostrar como criar um ambiente "
+"virtual python, ativá-lo e utilizar o pip para instalar o PADE. Para uma "
+"visão mais detalhada sobre ambientes virtuais Python, acesse: `Python "
+"Guide <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_."
+msgstr "When you work with Python modules is important to know how create and manipulate virtual environments for managing project dependencies in a more ordenated way. Here we will show how you could create a Python virtual environment, activate it and use the pip commandto install PADE framework. For a more specific view about Python virtual environments take a look at: `Python "
+"Guide <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_."
+
+#: ../../user/instalacao.rst:43
+msgid ""
+"Primeiro você irá precisar ter o pacote virtualenv instalado em seu PC, "
+"instale-o digitando o comando:"
+msgstr "First, you will need the virtualenv installed in your PC. Install it typing:"
+
+#: ../../user/instalacao.rst:49
+msgid ""
+"Após instalado o virtualenv é hora de criar um ambiente virtual, por meio"
+" do seguinte comando:"
+msgstr "After installing virtualenv it's time to create an virtual environment, using the following command:"
+
+#: ../../user/instalacao.rst:56
+msgid "Para ativar o ambiente virtual criado, digite o comando:"
+msgstr "To activate the virtual environment, type:"
+
+#: ../../user/instalacao.rst:62
+msgid "Agora basta instalar o pade, por meio do pip:"
+msgstr "Now, you can install PADE from pip or GitHub repository:"
+
+#: ../../user/instalacao.rst:68
+msgid ""
+"Você pode utilizar também a excelente distribuição python para computação"
+" científica Anaconda. Veja como aqui: `AnacondaInc "
+"<https://www.anaconda.com/distribution/>`_."
+msgstr "You can use the excellent Python distribution for numeric and scientific computation Anaconda. See how to do this here: `AnacondaInc <https://www.anaconda.com/distribution/>`_."
+
+#: ../../user/interface-grafica.rst:2
+msgid "Interface Gráfica"
+msgstr "Graphic Interface - GUI"
+
+#: ../../user/interface-grafica.rst:4
+msgid ""
+"A interface web do Pade é desenvolvida utilizando o framework para "
+"desenvolvimento de aplicações web `Flask <http://flask.pocoo.org/>`_."
+msgstr "The PADE web interface is developed using the `Flask <http://flask.pocoo.org/>`_ framework. "
+
+#: ../../user/interface-grafica.rst:6
+msgid ""
+"A interface web do Pade está em processo de evolução com a adição de "
+"novas funcionalidades. Atualmente estão disponíveis as seguintes "
+"funcionalidades:"
+msgstr "Now you can use the following functionalities in PADE web interface:"
+
+#: ../../user/interface-grafica.rst:8
+msgid "Em construção"
+msgstr "Building this part..."
+
+#: ../../user/pade-cli.rst:5
+msgid "Linha de comando do Pade"
+msgstr "PADE Command Line Interface - CLI"
+
+#: ../../user/pade-cli.rst:7
+msgid ""
+"Para facilitar algumas funções essenciais de gerenciamento de agentes, o "
+"framework Pade conta com uma interface de linha de comando (CLI). A "
+"estrutura dessa CLI é bem simples:"
+msgstr "PADE is now launched as a command line interface (CLI) and has functionalities like start PADE platform, mannage agents and creating PADE DB. The PADE CLI architecture is very simple."
+
+#: ../../user/pade-cli.rst:13
+msgid "Os comandos disponíveis são:"
+msgstr "The commands are:"
+
+#: ../../user/pade-cli.rst:15
+msgid "start-runtime"
+msgstr "start-runtime"
+
+#: ../../user/pade-cli.rst:16
+msgid "start-web-interface"
+msgstr "start-web-interface"
+
+#: ../../user/pade-cli.rst:17
+msgid "create-pade-db"
+msgstr "create-pade-db"
+
+#: ../../user/pade-cli.rst:18
+msgid "drop-pade-db"
+msgstr "drop-pade-db"
+
+#: ../../user/protocolos.rst:2
+msgid "Protocolos"
+msgstr "Protocols"
+
+#: ../../user/protocolos.rst:4
+msgid ""
+"O PADE tem suporte aos protocolos mais utilizados estabelecidos pela "
+"FIPA, são eles:"
+msgstr PADE has support to more popular FIPA standard protocols:""
+
+#: ../../user/protocolos.rst:6
+msgid ":ref:`FIPA-Request`"
+msgstr ":ref:`FIPA-Request`"
+
+#: ../../user/protocolos.rst:7
+msgid ":ref:`FIPA-Contract-Net`"
+msgstr ":ref:`FIPA-Contract-Net`"
+
+#: ../../user/protocolos.rst:8
+msgid ":ref:`FIPA-Subscribe`"
+msgstr ":ref:`FIPA-Subscribe`"
+
+#: ../../user/protocolos.rst:10
+msgid ""
+"No PADE qualquer protocolo deve ser implementado como uma classe que "
+"extende a classe do protocolo desejado, por exemplo para implementar o "
+"protocolo FIPA-Request, deve ser implementada uma classe que implementa a"
+" herança da classe FipaRequestProtocol:"
+msgstr "Any protocol should be impplemented as a class that extends a protocol super class. For example, for impplement FIPA-Request, one class should be impplemented as a subclass from FipaRequestProtocol:"
+
+#: ../../user/protocolos.rst:25
+msgid "FIPA-Request"
+msgstr "FIPA-Request"
+
+#: ../../user/protocolos.rst:27
+msgid ""
+"O protocolo FIPA-Request é o mais simples de se utilizar e constitui uma "
+"padronização do ato de requisitar alguma tarefa ou informação de um "
+"agente iniciador para um agente participante."
+msgstr "The FIPA-Request protocol is used when you need to make a request of something to other agents."
+
+#: ../../user/protocolos.rst:29
+msgid ""
+"O diagrama de comunicação do protocolo FIPA-Request está mostrado na "
+"Figura abaixo:"
+msgstr "The sequence diagram of FIPA-Request protocols is showed in the figure bellow:"
+
+#: ../../user/protocolos.rst:35
+msgid ""
+"Para exemplificar o protocolo FIPA-Request, iremos utilizar como exemplo "
+"a interação entre dois agentes, um agente relogio, que a cada um segundo "
+"exibe na tela a data e o horário atuais, mas com um problema, o agente "
+"relogio não sabe calcular nem a data, e muito menos o horário atual. "
+"Assim, ele precisa requisitar estas informações do agente horario que "
+"consegue calcular estas informações."
+msgstr ""
+
+#: ../../user/protocolos.rst:37
+msgid ""
+"Dessa forma, será utilizado o protocolo FIPA-Request, para que estas "
+"informações sejam trocadas entre os dois agentes, sendo o agente relógio "
+"o iniciante, no processo de requisição e o agente horário, o "
+"participante, segue o código do exemplo, que corresponde ao arquivo "
+"exemplo agent_example_3.py:"
+msgstr ""
+
+#: ../../user/protocolos.rst:141
+msgid ""
+"Na primeira parte do código são importadas todos módulos e classes "
+"necessários à construção dos agentes, logo em seguida as classes que "
+"implementam o protocolo são definidas, as classes ComptRequest e "
+"ComptRequest2 que serão associadas aos comportamentos dos agentes horario"
+" e relogio, respectivamente. Como o agente relogio precisa, a cada "
+"segundo enviar requisição ao agente horario, então também deve ser "
+"associado a este agente um comportamento temporal, definido na classe "
+"ComportTemporal que envia uma solicitação ao agente horario, a cada "
+"segundo."
+msgstr ""
+
+#: ../../user/protocolos.rst:143
+msgid ""
+"Em seguida, os agente propriamente ditos, são definidos nas classes "
+"AgenteHoraio e AgenteRelogio que estendem a classe Agent, nessas classes "
+"é que os comportamentos e protocolos são associados a cada agente."
+msgstr ""
+
+#: ../../user/protocolos.rst:145
+msgid ""
+"Na ultima parte do código, é definida uma função main que indica a "
+"localização do agente ams, instancia os agentes e dá inicio ao loop de "
+"execução."
+msgstr ""
+
+#: ../../user/protocolos.rst:150
+msgid "FIPA-Contract-Net"
+msgstr ""
+
+#: ../../user/protocolos.rst:152
+msgid ""
+"O protocolo FIPA-Contract-Net é utilizado para situações onde é "
+"necessário realizar algum tipo de negociação entre agentes. Da mesma "
+"forma que no protocolo FIPA-Request, no protocolo FIPA-ContractNet "
+"existem dois tipos de agentes, um agente que inicia a negociação, ou "
+"agente iniciante, fazendo solicitação de propostas e um ou mais agentes "
+"que participam da negociação, ou agentes pasticipantes, que repondem às "
+"solicitações de propostas do agente iniciante. Veja:"
+msgstr ""
+
+#: ../../user/protocolos.rst:159
+msgid ""
+"Um exemplo de utilização do protocolo FIPA-ContractNet na negociação é "
+"mostrado abaixo, com a solicitação de um agente iniciante por potência "
+"elétrica a outros dois agentes participantes. Este código corresponde ao "
+"arquivo exemplo agent_example_4.py:"
+msgstr ""
+
+#: ../../user/protocolos.rst:373
+msgid ""
+"O código que implementa os agentes que se comunicam utilizando o "
+"protocolo FIPA-ContractNet, definine as duas classes do protocolo, a "
+"primeira implementa o comportamento do agente Iniciante (CompContNet1) e "
+"a segunda implementa o comportamento do agente participante "
+"(CompContNet2). Note que para a classe iniciante é necessário que uma "
+"mensagem do tipo CFP (call for proposes) seja montada e o método "
+"on_start() seja chamado, isso é feito dentro da classe que implementa os "
+"agente iniciante, AgenteIniciante(), já a classe AgenteParticipante(), "
+"implementa os agentes que participarão da negociação como propositores."
+msgstr ""
+
+#: ../../user/protocolos.rst:375
+msgid ""
+"É possível observar as mensagens da negociação na intergace gráfica do "
+"PADE, veja:"
+msgstr ""
+
+#: ../../user/protocolos.rst:384
+msgid "FIPA-Subscribe"
+msgstr ""
+
+#: ../../user/protocolos.rst:386
+msgid ""
+"O protocolo FIPA-Subscribe, implementa o comportamento de editor-"
+"assinante, que conssiste na presença de um agente editor que pode aceitar"
+" a associação de outros agentes interessados, agentes assinantes, em "
+"algum tipo de informação que este agente possua, assinando a informação e"
+" recebendo mensagem sempre que esta informação for disponibilizada pelo "
+"agente editor. Veja:"
+msgstr ""
+
+#: ../../user/protocolos.rst:392
+msgid ""
+"Para assinar a informação o agente precisa enviar uma mensagem SUSBCRIBE "
+"para o agente editor. Que por sua vez pode aceitar ou recusar a "
+"assinatura (AGREE/REFUSE). Quando uma informação é atualizada, então o "
+"editor publica esta informação para todos os seus assinantes, enviando-os"
+" mensagens INFORM."
+msgstr ""
+
+#: ../../user/protocolos.rst:394
+msgid ""
+"O código que implementa um agente editor e dois agentes assinantes "
+"utilizando PADE pode ser visualizado abaixo e corresponde ao arquivo "
+"exemplo agent_example_5.py:"
+msgstr ""
+
+#: ../../user/recebendo-mensagens.rst:2
+msgid "Recebendo Mensagens"
+msgstr "Receiving Messages"
+
+#: ../../user/recebendo-mensagens.rst:4
+msgid ""
+"No Pade para que um agente possa receber mensagens, basta que o método "
+"react() seja implementado, dentro da classe que herda da classe "
+"`Agent()`."
+msgstr "For receive a message in PADE agents you will need to implement the react() method in your Agent subclass."
+
+#: ../../user/recebendo-mensagens.rst:7
+msgid "Recebendo mensagens FIPA-ACL com PADE"
+msgstr "Receinving FIPA-ACL messages with PADE framework"
+
+#: ../../user/recebendo-mensagens.rst:9
+msgid ""
+"No exemplo a seguir são implementados dois agentes distintos, o primeiro "
+"é o agente ```remetente``` modelado pela classe `Remetente()`, que tem o "
+"papel de enviar uma mensagem ao agente `destinatario` modelado pela "
+"classe `Destinatario`, que irá receber a mensagem enviada pelo agente "
+"`remetente` e por isso tem o método `react()` implementado."
+msgstr "In the following example two agents are implemmented. The first is a sender agent in Remetente() class. The role of the sender agent is send one message to receiver agent implemented in Destinatario() class. Note that the react() method is implemented in the receiver agent. "
+
+#: ../../user/selecao-de-mensagens.rst:2
+msgid "Seleção de Mensagens"
+msgstr "Selecting Messages"
+
+#: ../../user/selecao-de-mensagens.rst:4
+msgid ""
+"Com PADE é possível implementar filtros de mensagens de maneira simples e"
+" direta, por meio da classe Filtro:"
+msgstr "With PADE is possible to implement message filters in a simple way using the Filter class."
+
+#: ../../user/selecao-de-mensagens.rst:11
+msgid "Filtrando mensagens com o módulo filters"
+msgstr "How to filter messages usinf filters module."
+
+#: ../../user/selecao-de-mensagens.rst:13
+msgid "Por exemplo para a seguinte mensagem:"
+msgstr "For example, in the following message:"
+
+#: ../../user/selecao-de-mensagens.rst:26
+msgid "Podemos criar o seguinte filtro:"
+msgstr "We can make this filter:"
+
+#: ../../user/selecao-de-mensagens.rst:35
+msgid ""
+"Em uma sessão do interpretador Python é possível observar o efeito da "
+"aplicação do filtro sobre a mensagem:"
+msgstr "In a Ipython session it's possible to see the filter action:"
+
+#: ../../user/selecao-de-mensagens.rst:43
+msgid "Ajustando agora o filtro para outra condição:"
+msgstr "We can fit the filter to another condition:"
+
+#: ../../user/selecao-de-mensagens.rst:49
+msgid ""
+"E aplicando o filtro novamente sobre a mensagem, obtemos um novo "
+"resultado:"
+msgstr "Placing again the filter in the message: "
+
+#: ../../user/um-momento.rst:2
+msgid "Um momento Por Favor!"
+msgstr "One moment, please!"
+
+#: ../../user/um-momento.rst:4
+msgid ""
+"Com PADE é possível adiar a execução de um determinado trecho de código "
+"de forma bem simples! É só utilizar o método *call_later()* disponível na"
+" classe *Agent()*."
+msgstr ""
+
+#: ../../user/um-momento.rst:7
+msgid "Como utilizar o método call_later()"
+msgstr "How to use the method call_later()"
+
+#: ../../user/um-momento.rst:9
+msgid ""
+"Para utilizar *call_later()*, os seguintes parâmetros devem ser "
+"especificados: tempo de atraso, metodo que deve ser chamado após este "
+"tempo e argumento do metodo utilizado, *call_later(tempo, metodo, "
+"*args)*."
+msgstr "To use the *call_later()*, the following parameters should be given: time delay, callback method and its args. "
+
+#: ../../user/um-momento.rst:11
+msgid ""
+"No código a seguir utiliza *call_later()* é utilizado na classe "
+"*Remetente()* no método *on_start()* para assegurar que todos os agentes "
+"já foram lançados na plataforma, chamando o método *send_message()* 4,0 "
+"segundos após a inicialização dos agentes:"
+msgstr "In the following code, the call_later() method is utilized in the *Rementente()* class inside the *on_start()* method to ensure that all agents are launched, calling the *send_message()* method after 4,0 seconds."
+

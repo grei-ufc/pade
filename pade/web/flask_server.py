@@ -3,9 +3,7 @@ import datetime
 import requests
 import json
 import pagan
-
 from requests.exceptions import Timeout
-
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for, jsonify
 from flask_bootstrap import Bootstrap
@@ -22,6 +20,7 @@ from wtforms.validators import Required, Email, Length
 from werkzeug.security import generate_password_hash, check_password_hash
 
 basedir = os.path.abspath(os.path.dirname(__file__))
+
 
 app = Flask(__name__)
 
@@ -560,7 +559,6 @@ def generate_agent_avatars():
             # then one is created
             img = pagan.Avatar(name, pagan.SHA512)
             img.save(path, name)
-
 
 @app.route('/post',  methods=['POST', 'GET'])
 def my_post():

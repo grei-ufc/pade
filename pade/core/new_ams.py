@@ -1,3 +1,27 @@
+"""Framework for Intelligent Agents Development - PADE
+
+The MIT License (MIT)
+
+Copyright (c) 2019 Lucas S Melo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+"""
 from pade.core.agent import Agent_
 from pade.acl.messages import ACLMessage
 from pade.acl.aid import AID
@@ -5,7 +29,7 @@ from pade.behaviours.protocols import TimedBehaviour, FipaRequestProtocol, FipaS
 from pade.misc.utility import display_message
 
 from pade.web import flask_server
-from pade.web.flask_server import db, Session, User
+from pade.web.flask_server import db, Session, User, basedir
 
 from pickle import dumps, loads
 from datetime import datetime
@@ -21,17 +45,6 @@ from twisted.internet import reactor
 import random
 import os
 import sys
-
-basedir = os.path.abspath(os.path.dirname(flask_server.__file__))
-
-ENGINE = create_engine('sqlite:///{}/data.sqlite'.format(basedir))
-TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
-TWISTED_ENGINE.run_callable = ENGINE.run_callable
-
-METADATA = MetaData()
-METADATA.bind = ENGINE
-AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
-
 
 # Behaviour that sends the connection verification messages.
 
@@ -62,9 +75,10 @@ class ComportVerifyConnTimed(TimedBehaviour):
             now = datetime.now()
             delta = now - date
             table.append([agent_name, str(delta.total_seconds())])
-            if delta.total_seconds() > 30.0:
+            if delta.total_seconds() > 20.0:
                 desconnect_agents.append(agent_name)
                 self.agent.agentInstance.table.pop(agent_name)
+                display_message(self.agent.aid.name, 'Agent {} disconnected.'.format(agent_name))    
 
         for agent_name in desconnect_agents:
             self.agent.agents_conn_time.pop(agent_name)
@@ -322,7 +336,20 @@ class AMS(Agent_):
             self._verify_user_in_session(self.session)
 
 if __name__ == '__main__':
-    ams = AMS()
+
+    display_message('AMS', 'creating tables in database...')
+    db.create_all()
+    display_message('AMS', 'tables created in database.')
+
+    ENGINE = create_engine('sqlite:///' + os.path.join(basedir, 'data.sqlite'))
+    TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
+    TWISTED_ENGINE.run_callable = ENGINE.run_callable
+
+    METADATA = MetaData()
+    METADATA.bind = ENGINE
+    AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
+    
+    ams = AMS(port=int(sys.argv[4]))
     # instantiates AMS agent and calls listenTCP method
     # from Twisted to launch the agent
     ams_agent = AMS() # TODO: precisa implementar a passagem de parametros

@@ -6,8 +6,7 @@ Aqui estão todos os módulos que são de interesse para utilização do PADE, t
 .. automodule:: pade.core.agent
     :members:
 
-
-.. automodule:: pade.core.ams
+.. automodule:: pade.core.new_ams
     :members:
 
 

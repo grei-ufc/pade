@@ -72,7 +72,7 @@ class ClockAgent(Agent):
         message.set_content('time')
 
         self.comport_request = CompRequest2(self, message)
-        self.comport_temp = ComportTemporal(self, 2.0, message)
+        self.comport_temp = ComportTemporal(self, 8.0, message)
 
         self.behaviours.append(self.comport_request)
         self.behaviours.append(self.comport_temp)
@@ -80,7 +80,7 @@ class ClockAgent(Agent):
 
 if __name__ == '__main__':
 
-    agents_per_process = 10
+    agents_per_process = 1
     c = 0
     agents = list()
     for i in range(agents_per_process):
