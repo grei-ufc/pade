@@ -10,22 +10,45 @@
         <link href="/static/signin.css" rel="stylesheet">
     {% endblock %}
 
-    {% block title %} Python Aagent DEvelopment framework {% endblock %}
+    {% block title %} Python Agent DEvelopment framework {% endblock %}
 
     {% block content %}
     <div class="container">
 
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible" role="alert" style="width:800px; margin:0 auto;">
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <!-- <strong>Title</strong> --> {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+        {% endwith %}
+
         <form class="form-signin" method="POST">
-            {% for message in get_flashed_messages() %}
-                <div class="alert alert-danger">
-                    <button type="button" class="close" data-dismiss="alert">&times;</button>
-                    {{ message }}
-                </div>
-            {% endfor %}
-            <h2 class="form-signin-heading">Sign in PADE Web Interface</h2>
+
+            <p align="center">
+                <img src="{{url_for('static', filename='pade_logo.png')}}" alt="PADE LOGO" height="180" width="180">
+            </p>
+
             {{ wtf.quick_form(form) }}
+
+
+            {% if countUsers == 0 %}
+
+                <br>
+                <br>
+                <br>
+                <p align="center">
+                    <a href="{{ url_for('register') }}"><button class="btn btn-success btn-lg">New User</button></a>
+                </p>
+
+            {% endif %}
+
         </form>
 
-    </div> <!-- /container -->
+    </div>
     {% endblock %}
 </html>

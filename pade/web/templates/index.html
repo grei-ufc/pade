@@ -3,6 +3,21 @@
 <body>
 
     {% block content %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <div class="container">
         <div class="page-header">
             <h1>Hello, PADE!</h1>
@@ -11,8 +26,8 @@
 
     <div class="container">
         <div class="row">
-            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
-                <h2>Sessions</h2>
+            <div class="col-sm-4">
+                <h2>Local Sessions</h2>
                 <div class="list-group">
                     {% for session in sessions %}
                         <a href="/session/{{ session.id }}" class="list-group-item">
@@ -26,28 +41,48 @@
                         </a>
                     {% endfor %}
                 </div>
+
+                {% if rsessions %}
+                    <h2>Remote Sessions</h2>
+                    <div class="list-group">
+                        {% for rsession in rsessions %}
+                            <a href="/rsession/{{ rsession.id }}" class="list-group-item">
+                                <h4>ID: {{ rsession.id }}</h4>
+                                <p>Host: {{ rsession.ip }}</p>
+                                <p>Last Updated: {{ rsession.last_updated.hour }}:{{ rsession.last_updated.minute }}:{{ rsession.last_updated.second }} - {{ rsession.last_updated.day }}/{{ rsession.last_updated.month }}/{{ rsession.last_updated.year }}</p>
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <a href="/sessions">
+                    <button type="button" class="btn btn-primary">Add Remote PADE Session</button>
+                </a>
             </div>
+
+            <div class="col-sm-8" id="messagesTable" style="overflow: auto">
+                <!-- Table will be rendered via AJAX -->
+            </div>
+
         </div>
+        <!-- TODO - Implement function to create a new agent -->
+        <!--<div class="nav navbar-nav navbar-left">
+            <a href="#"><button class="btn btn-default">Create new agent</button></a>
+        </div>-->
     </div>
+
     {% endblock %}
 
-    <script>
-        function loadData() {
-            var xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function() {
-                if (xhttp.readyState == 4 && xhttp.status == 200) {
-                    var response = $($.parseHTML(xhttp.responseText));
-                    $(".list-group").html(response.find(".list-group").html());
-                }
-            };
-            xhttp.open("GET", "http://localhost:5000", true);
-            xhttp.send();
-            setTimeout(loadData, 2000);
-        };
-        $(document).ready(function() {
-            // run the first time; all subsequent calls will take care of themselves
-            setTimeout(loadData, 2000);
+    <script type="text/javascript">
+        $(document).ready(function(){
+          refreshTable();
         });
+
+        function refreshTable(){
+            $('#messagesTable').load('/messagesTable', function(){
+               setTimeout(refreshTable, 1000);
+            });
+        }
     </script>
 </body>
 

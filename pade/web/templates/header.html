@@ -2,17 +2,41 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    </script>
     <title>Python Agent DEvelopment framework</title>
+    <link rel="icon" href="{{url_for('static', filename='pade_logo_favicon.png')}}">
 </head>
+
+<style>
+
+    .navbar-header {
+        float: right;
+        display: block;
+        width: 50px;
+    }
+
+    .navbar .nav > li {
+        display: inline;
+        color: red;
+        font-family: Garamond;
+        font-size: 1.5em;
+        vertical-align: center;
+    }
+
+</style>
 
 {% extends "bootstrap/base.html" %}
 
 {% block title %} PADE {% endblock %}
 
 {% block navbar %}
+
 <div class="navbar navbar-inverse" role="navigation">
     <div class="container">
+
+        <a href="#" class="navbar-left">
+            <img src="{{url_for('static', filename='pade_logo_header.png')}}" height="58" width="58">
+        </a>
+
         <div class="navbar-header">
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="sr-only">Toggle navigation</span>
@@ -20,22 +44,29 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="/">PADE</a>
         </div>
+
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
                 <li><a href="/">Home</a></li>
-                <li><a href="/diagrams">Diagrams</a></li>
-                <li><a href="/">Manage Agents</a></li>
+                <li><a href="/messages">Messages</a></li>
+                <!--
+                <li><a href="/session">Manage Agents</a></li>
+                -->
+                {% if current_user.is_authenticated %}
+                <li><a href="/manage_users">Manage Users</a></li>
+                {% endif %}
             </ul>
+
             <ul class="nav navbar-nav navbar-right">
-            {% if current_user.is_authenticated %}
+                {% if current_user.is_authenticated %}
                 <li><a href="{{ url_for('logout') }}">Sign Out</a></li>
-            {% else %}
+                {% else %}
                 <li><a href="{{ url_for('login') }}">Sign In</a></li>
-            {% endif %}
+                {% endif %}
             </ul>
         </div>
     </div>
 </div>
+
 {% endblock %}

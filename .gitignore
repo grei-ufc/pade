@@ -58,3 +58,6 @@ target/
 
 # Database files
 *.sqlite
+
+# PyCharm IDE
+\.idea/

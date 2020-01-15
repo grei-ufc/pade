@@ -39,22 +39,26 @@ class FlaskServerProcess(multiprocessing.Process):
         This class implements the thread that executes
         the web server with Flask application.
     """
-    def __init__(self):
+
+    secure = None
+
+    def __init__(self, secure):
+        self.secure = secure
         multiprocessing.Process.__init__(self)
 
     def run(self):
         from pade.web.flask_server import run_server
-        run_server()
+        run_server(self.secure)
 
 
 def signal_handler(signal, frame):
     global interrupted
     interrupted = True
 
+
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 interrupted = False
-
 
 
 def run_config_file(ctx, param, value):
@@ -70,6 +74,7 @@ def run_config_file(ctx, param, value):
 
     main(config)
     ctx.exit()
+
 
 def main(config):
     global interrupted
@@ -105,19 +110,21 @@ def main(config):
     if port is None:
         port = 2000
 
+    secure = config.get('secure')
+
     processes = list()
     # -------------------------------------------------------------
-    # inicializa o serviço web de gerenciamento de agentes do PADE
+    # inicializa o servico web de gerenciamento de agentes do PADE
     # -------------------------------------------------------------
     pade_web = config.get('pade_web')
     if pade_web is None:
-        p = FlaskServerProcess()
+        p = FlaskServerProcess(secure)
         p.daemon = True
         p.start()
         processes.append(p)
     else:
         if pade_web['active']:
-            p = FlaskServerProcess()
+            p = FlaskServerProcess(secure)
             p.daemon = True
             p.start()
             processes.append(p)
@@ -215,8 +222,6 @@ def main(config):
                 p.kill()
             break
 
-
-
 @click.group()
 def cmd():
     pass
@@ -225,6 +230,7 @@ def cmd():
 @click.argument('agent_files', nargs=-1)
 @click.option('--num', default=1)
 @click.option('--port', default=2000)
+@click.option('--secure', is_flag=True)
 @click.option('--pade_ams/--no_pade_ams', default=True)
 @click.option('--pade_web/--no_pade_web', default=True)
 @click.option('--pade_sniffer/--no_pade_sniffer', default=True)
@@ -236,6 +242,7 @@ def start_runtime(num, agent_files, port, pade_ams, pade_web, pade_sniffer, user
     config['agent_files'] = agent_files
     config['num'] = num
     config['port'] = port
+    config['secure'] = secure
     config['session'] = dict()
     config['session']['username'] = username
     config['session']['email'] = 'pade_user@pade.com'
