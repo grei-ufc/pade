@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  pade:
+    build:
+      context: .
+      dockerfile: ./docker/dev/Dockerfile
+    ports:
+      - "5000:5000"
+      - "8000:8000"
+      - "8001:8001"
+      - "3000:3000"

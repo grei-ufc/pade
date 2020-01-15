@@ -31,26 +31,35 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='pade',
-      version='2.0.4',
-      description='Framework para desenvolvimento de \
-      sistemas multiagentes em Python',
+      version='2.1.1',
+      description='Framework for multiagent systems development in Python',
       long_description=long_description,
       long_description_content_type="text/markdown",
       author='Lucas S Melo',
       author_email='lucassmelo@dee.ufc.br',
-      package_data={'': ['*.html', '*.js', '*.css', '*.sqlite']},
+      package_data={'': ['*.html', '*.js', '*.css', '*.sqlite', '*.png']},
       include_package_data=True,
       install_requires=['twisted',
+                        'requests',
+                        'pagan',
+                        'alchimia',
+                        'click',
                         'Flask-Bootstrap',
                         'Flask-Login',
                         'Flask-WTF',
                         'Flask-SQLAlchemy',
+                        'Flask-Migrate',
+                        'Flask-Script',
                         'Flask',
                         'terminaltables'],
       license='MIT',
       keywords='multiagent distributed systems',
       url='http://pade.readthedocs.org',
       packages=find_packages(),
+      entry_points='''
+            [console_scripts]
+            pade=pade.cli.pade_cmd:cmd
+      ''',
       classifiers=[  
               'Development Status :: 4 - Beta',
               'Intended Audience :: Developers',
@@ -61,4 +70,5 @@ setup(name='pade',
               'Programming Language :: Python :: 3.4',
               'Programming Language :: Python :: 3.5',
               'Programming Language :: Python :: 3.6',
+              'Programming Language :: Python :: 3.7',
       ],)

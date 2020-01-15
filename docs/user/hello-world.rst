@@ -9,12 +9,22 @@ Em uma pasta crie um arquivo chamado start_ams.py com o seu editor de texto pref
 
 ::
 
-    # este e o arquivo start_ams.py
-    from pade.misc.common import set_ams, start_loop
+    from pade.misc.common import PadeSession
+
+    def config_agents():
+
+        agents = list()
+
+        s = PadeSession()
+        s.add_all_agents(agents)
+        s.register_user(username='pade_user', email='user@pade.com', password='12345')
+
+        return s
 
     if __name__ == '__main__':
-        set_ams('localhost', 8000)
-        start_loop(list(), gui=True)
+
+        s = config_agents()
+        s.start_loop()
 
 A essa altura você já deve estar vendo a interface gráfica de monitoramento dos agentes em Python, assim como essa:
 
