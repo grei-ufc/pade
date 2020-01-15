@@ -15,7 +15,22 @@
 
 PADE its a framework for developing, executing and mannaging multi-agent systems in distributed computing enviroments. PADE code is 100% Python and has its core in Twisted, a python package for implementing distributed applications.
 
-PADE is also free software and licenced in terms of MIT licence. First it was developed in Federal University of Ceará (Brazil) by Electric Smart Grids Group (GREI) in Electric Engineering Department (DEE). Now everyone that has interest in developing PADE is welcome to download, install, test, use and send us feedback.
+PADE is also free software and licenced in terms of MIT licence. First it was developed in **Federal University of Ceará (Brazil) by Electric Smart Grids Group (GREI) in Electric Engineering Department (DEE)**.
+
+The researchers of **Laboratory of Applied Artificial Intelligence (LAAI) of Federal University of Para (UFPA)** have been contributed a lot with PADE project. We registre here our acknowledgments.
+
+Everyone that has interest in developing PADE is welcome to download, install, test, use and send us feedback.
+
+## Scientific Paper
+
+There is a scientific paper presenting PADE as a scientific tool for multiagent system simulation with focus in electric power systems simulation. If you have interest here is the link to access:
+
+[Python‐based multi‐agent platform for application on power grids](https://doi.org/10.1002/2050-7038.12012)
+
+If you use PADE in your research work, please cite PADE as:
+
+>Melo, LS, Sampaio, RF, Leão, RPS, Barroso, GC, Bezerra, JR. Python‐based multi‐agent platform for application on power grids. Int Trans Electr Energ Syst. 2019; 29:e12012. https://doi.org/10.1002/2050‐7038.12012 
+
 
 ## Documentation
 
@@ -60,8 +75,6 @@ Get inside container
 ```bash
 $ docker exec -it <CONTAINER_ID> bash
 ```
-
-
 
 
 ## Example

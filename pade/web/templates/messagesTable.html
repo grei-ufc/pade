@@ -1,0 +1,25 @@
+<h2>Messages</h2>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Sender</th>
+        <th scope="col">Receivers</th>
+        <th scope="col">Content</th>
+        <th scope="col">Date</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for message in messages %}
+            <tr>
+                <th scope="row">{{ message.id }}</th>
+                <td>{{ message.sender }}</td>
+                <td>{{ message.receivers }}</td>
+                <td>{{ message.content }}</td>
+                <td>{{ message.date }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
