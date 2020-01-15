@@ -37,6 +37,7 @@ THE SOFTWARE.
 from twisted.internet import reactor
 from pade.acl.messages import ACLMessage
 from pade.acl.filters import Filter
+from pade.misc.utility import print_progress_bar
 from time import time
 
 
@@ -332,6 +333,7 @@ class FipaContractNetProtocol(Behaviour):
             :param message: FIPA-ACL message
         """
         self.received_qty += 1
+        print_progress_bar(self.received_qty, self.cfp_qty, fill='#', length=50, prefix='CFP responses received')
         if self.received_qty == self.cfp_qty:
             pass
             # delayed_calls = reactor.getDelayedCalls()
@@ -346,6 +348,7 @@ class FipaContractNetProtocol(Behaviour):
             :param message: FIPA-ACL message
         """
         self.received_qty += 1
+        print_progress_bar(self.received_qty, self.cfp_qty, fill='#', length=50, prefix='CFP responses received')
         if self.received_qty == self.cfp_qty:
             pass
             # delayed_calls = reactor.getDelayedCalls()

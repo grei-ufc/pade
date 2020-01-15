@@ -45,9 +45,11 @@ def call_in_thread(method, *args):
 def call_later(time, method, *args):
     return reactor.callLater(time, method, *args)
 
+
 def defer_to_thread(block_method, result_method, *args):
     d = threads.deferToThread(block_method, *args)
     d.addCallback(result_method)
+
 
 def start_loop(agents):
     reactor.suggestThreadPoolSize(30)
@@ -57,3 +59,25 @@ def start_loop(agents):
         ILP = reactor.listenTCP(agent.aid.port, agent.agentInstance)
         agent.ILP = ILP
     reactor.run()
+
+
+def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd="\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('%s |%s| %s%% %s' % (prefix, bar, percent, suffix))
+    # Print New Line on Complete
+    # if iteration == total:
+    #     print()
