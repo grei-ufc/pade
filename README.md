@@ -29,7 +29,7 @@ There is a scientific paper presenting PADE as a scientific tool for multiagent 
 
 If you use PADE in your research work, please cite PADE as:
 
-    Melo, LS, Sampaio, RF, Leão, RPS, Barroso, GC, Bezerra, JR. Python‐based multi‐agent platform for application on power grids. Int Trans Electr Energ Syst. 2019; 29:e12012. https://doi.org/10.1002/2050‐7038.12012 
+>Melo, LS, Sampaio, RF, Leão, RPS, Barroso, GC, Bezerra, JR. Python‐based multi‐agent platform for application on power grids. Int Trans Electr Energ Syst. 2019; 29:e12012. https://doi.org/10.1002/2050‐7038.12012 
 
 
 ## Documentation
