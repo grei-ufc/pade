@@ -237,7 +237,7 @@ def cmd():
 @click.option('--username', prompt='please enter a username', default='pade_user')
 @click.option('--password', prompt=True, hide_input=True, default='12345')
 @click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
-def start_runtime(num, agent_files, port, pade_ams, pade_web, pade_sniffer, username, password):
+def start_runtime(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, username, password):
     config = dict()
     config['agent_files'] = agent_files
     config['num'] = num
