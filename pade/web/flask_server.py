@@ -467,21 +467,30 @@ def diagrams():
 
 @app.route('/messages_diagram', methods=['GET'])
 def messages_diagram():
-    data = Message.query.order_by(Message.date)
+    data = Message.query.order_by(Message.date).all()
     data_diagram = ''
+    msgs_id = list()
+
+    for msg in data:
+        if msg.message_id in msgs_id:
+            data.remove(msg)
+            continue
+        msgs_id.append(msg.message_id)
 
     for msg in data:
         content = msg.content
         sender = msg.sender.split("@")[0]
-        receivers = msg.receivers
-        performative = msg.performative
+        
+        for receiver in msg.receivers.split(';'):
+            receiver_ = str(receiver).split('@')[0]
+            performative = msg.performative
 
-        # Limiting the size of the message to be displayed
-        if len(content) > 50:
-            content = "Content is too big to be displayed :( \n\n Please adjust your message."
+            # Limiting the size of the message to be displayed
+            if len(content) > 50:
+                content = "Content is too big to be displayed :( \n\n Please adjust your message."
 
-        data_diagram += sender + '-->' + receivers + ': ' + performative + '\n'
-        data_diagram += sender + '->' + receivers + ': ' + content + '\n'
+            data_diagram += sender + '-->' + receiver_ + ': ' + performative + '\n'
+            data_diagram += sender + '->' + receiver_ + ': ' + content + '\n'
 
     return render_template('messagesDiagrams.html', messages=data_diagram)
 
