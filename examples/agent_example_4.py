@@ -182,7 +182,7 @@ class AgentParticipant(Agent):
         self.behaviours.append(comp)
 
 if __name__ == "__main__":
-    agents_per_process = 2
+    agents_per_process = 1
     c = 0
     agents = list()
     for i in range(agents_per_process):
