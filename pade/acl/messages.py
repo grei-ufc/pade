@@ -227,8 +227,12 @@ class ACLMessage(ET.Element):
             self.add_reply_to(AID(name=aid))
 
     def set_content(self, data):
-        self.content = data
-        self.find('content').text = str(data)
+        if isinstance(data, ET.Element):
+            self.content = data
+            self.find('content').append(data)
+        else:
+            self.content = data
+            self.find('content').text = self.content
 
     def set_language(self, data):
         self.language = data
