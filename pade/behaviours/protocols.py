@@ -157,7 +157,7 @@ class FipaProtocol(Behaviour):
 
         self.message = message
 
-        if self.filter_not_undestood(self.message):
+        if self.filter_not_undestood.filter(self.message):
             self.handle_not_understood(message)
 
 class FipaRequestProtocol(FipaProtocol):
