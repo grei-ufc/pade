@@ -578,10 +578,11 @@ def my_post():
 
 
 def run_server(secure):
-    if secure:
-        login_manager._login_disabled = False
-    else:
-        login_manager._login_disabled = True
+    with app.app_context():
+        if secure:
+            login_manager._login_disabled = False
+        else:
+            login_manager._login_disabled = True
 
     app.run(host='0.0.0.0', port=5000, debug=None)
 
