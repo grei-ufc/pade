@@ -9,7 +9,7 @@ from wtforms.validators import Required, Email, Length
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from werkzeug import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
