@@ -30,7 +30,8 @@ class PublisherProtocol(FipaSubscribeProtocol):
 
     def handle_subscribe(self, message):
         self.register(message.sender)
-        display_message(self.agent.aid.name, message.content)
+        display_message(self.agent.aid.name, '{} from {}'.format(message.content,
+                                                                 message.sender.name))
         resposta = message.create_reply()
         resposta.set_performative(ACLMessage.AGREE)
         resposta.set_content('Subscribe message accepted')
@@ -62,13 +63,18 @@ class Time(TimedBehaviour):
 
 class AgentSubscriber(Agent):
 
-    def __init__(self, aid, message):
+    def __init__(self, aid):
         super(AgentSubscriber, self).__init__(aid)
 
-        self.call_later(8.0, self.launch_subscriber_protocol, message)
+        self.call_later(8.0, self.launch_subscriber_protocol)
 
-    def launch_subscriber_protocol(self, message):
-        self.protocol = SubscriberProtocol(self, message)
+    def launch_subscriber_protocol(self):
+        msg = ACLMessage(ACLMessage.SUBSCRIBE)
+        msg.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
+        msg.set_content('Subscription request')
+        msg.add_receiver(agent_pub_1.aid)
+
+        self.protocol = SubscriberProtocol(self, msg)
         self.behaviours.append(self.protocol)
         self.protocol.on_start()
 
@@ -86,7 +92,7 @@ class AgentPublisher(Agent):
 
 if __name__ == '__main__':
 
-    agents_per_process = 2
+    agents_per_process = 1
     c = 0
     agents = list()
     for i in range(agents_per_process):
@@ -99,18 +105,13 @@ if __name__ == '__main__':
         agent_pub_1 = AgentPublisher(AID(name=agent_name))
         agents.append(agent_pub_1)
 
-        msg = ACLMessage(ACLMessage.SUBSCRIBE)
-        msg.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
-        msg.set_content('Subscription request')
-        msg.add_receiver(agent_pub_1.aid)
-
         agent_name = 'agent_subscriber_{}@localhost:{}'.format(port + k, port + k)
         participants.append(agent_name)
-        agent_sub_1 = AgentSubscriber(AID(name=agent_name), msg)
+        agent_sub_1 = AgentSubscriber(AID(name=agent_name))
         agents.append(agent_sub_1)
 
         agent_name = 'agent_subscriber_{}@localhost:{}'.format(port - k, port - k)
-        agent_sub_2 = AgentSubscriber(AID(name=agent_name), msg)
+        agent_sub_2 = AgentSubscriber(AID(name=agent_name))
         agents.append(agent_sub_2)
 
         c += 1000

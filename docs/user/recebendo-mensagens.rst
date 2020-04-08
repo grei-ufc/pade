@@ -10,7 +10,7 @@ No exemplo a seguir são implementados dois agentes distintos, o primeiro é o a
 
 ::
 
-    from pade.misc.utility import display_message, start_loop
+    from pade.misc.utility import display_message, start_loop, call_later
     from pade.core.agent import Agent
     from pade.acl.messages import ACLMessage
     from pade.acl.aid import AID
@@ -22,14 +22,19 @@ No exemplo a seguir são implementados dois agentes distintos, o primeiro é o a
             super(Remetente, self).__init__(aid=aid, debug=False)
 
         def on_start(self):
-            display_message(self.aid.localname, 'Enviando Mensagem')
+            super(Remetente, self).on_start()
+            display_message(self.aid.localname, 'Enviando Mensagem...')
+            call_later(8.0, self.sending_message)
+
+        def sending_message(self):
             message = ACLMessage(ACLMessage.INFORM)
             message.add_receiver(AID('destinatario'))
             message.set_content('Ola')
             self.send(message)
 
         def react(self, message):
-            pass
+            super(Remetente, self).react(message)
+            display_message(self.aid.localname, 'Mensagem recebida from {}'.format(message.sender.name))
 
 
     class Destinatario(Agent):
@@ -37,15 +42,19 @@ No exemplo a seguir são implementados dois agentes distintos, o primeiro é o a
             super(Destinatario, self).__init__(aid=aid, debug=False)
 
         def react(self, message):
-            display_message(self.aid.localname, 'Mensagem recebida')
+            super(Destinatario, self).react(message)
+            display_message(self.aid.localname, 'Mensagem recebida from {}'.format(message.sender.name))
 
 
     if __name__ == '__main__':
 
-        destinatario_agent = Destinatario(AID(name='destinatario'))
+        agents = list()
+        port = int(argv[1])
+        destinatario_agent = Destinatario(AID(name='destinatario@localhost:{}'.format(port)))
         agents.append(destinatario_agent)
 
-        remetente_agent = Remetente(AID(name='remetente'))
+        port += 1
+        remetente_agent = Remetente(AID(name='remetente@localhost:{}'.format(port)))
         agents.append(remetente_agent)
 
         start_loop(agents)
