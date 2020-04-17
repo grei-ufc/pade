@@ -15,7 +15,7 @@ class SendMessage(OneShotBehaviour):
 		message = ACLMessage(ACLMessage.INFORM)
 		message.add_receiver(AID('receiver'))
 		message.set_content('Hello! :)')
-		self.agent.send(message)
+		self.send(message)
 		display(self.agent, 'I sent a message to receiver.')
 
 

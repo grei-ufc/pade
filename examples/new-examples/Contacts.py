@@ -23,7 +23,7 @@ class Search(OneShotBehaviour):
 		message = ACLMessage(ACLMessage.REQUEST)
 		message.add_receiver(AID('book'))
 		message.set_content(self.agent.name)
-		self.agent.send(message)
+		self.send(message)
 		display(self.agent, "I requested for %s's contact." % self.agent.name)
 
 class ShowInfos(OneShotBehaviour):
@@ -78,7 +78,7 @@ class SearchContact(CyclicBehaviour):
 			else: # If the searched contact doesn't exist
 				reply.set_performative(ACLMessage.FAILURE)
 				reply.set_content(pickle.dumps({'error': 404, 'description': 'Contact not found.'}))
-			self.agent.send(reply)
+			self.send(reply)
 
 	def search(self, name):
 		for contact in self.agent.contacts:

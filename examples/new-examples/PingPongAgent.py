@@ -20,7 +20,7 @@ class StartGame(OneShotBehaviour):
 		message.add_receiver(AID('pong'))
 		message.set_content('PING')
 		# Sending the message
-		self.agent.send(message)
+		self.send(message)
 
 class PingTurn(CyclicBehaviour):
 	def action(self):
@@ -40,7 +40,7 @@ class PingTurn(CyclicBehaviour):
 			#(Do you want to see the results, do not you?)
 			self.wait(0.5)
 			# Sending the message
-			self.agent.send(reply)
+			self.send(reply)
 
 
 # ==== Pong Agent ====
@@ -59,7 +59,7 @@ class PongTurn(CyclicBehaviour):
 			display_message(self.agent, 'Turn: %s' % message.content)
 			self.wait(0.5)
 			# Sending the reply
-			self.agent.send(reply)
+			self.send(reply)
 
 
 # ==== Starting main loop of PADE ====

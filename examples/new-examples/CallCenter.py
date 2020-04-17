@@ -18,7 +18,7 @@ class CheckQueue(CyclicBehaviour):
 		if call != None: # You must handle None objects when using read_timeout()
 			reply = call.create_reply() # Create a reply
 			reply.set_content('Here is your help.')
-			self.agent.send(reply) # Sending the reply
+			self.send(reply) # Sending the reply
 			display_message(self.agent, 'Help sent to %s.' % call.sender.getLocalName())
 		else:
 			# Goes drink water
@@ -43,7 +43,7 @@ class Call(WakeUpBehaviour):
 		call = ACLMessage(ACLMessage.REQUEST)
 		call.set_content('I need help!')
 		call.add_receiver('attendant')
-		self.agent.send(call) # Sending a message
+		self.send(call) # Sending a message
 		display_message(self.agent, 'I am making a call.')
 
 

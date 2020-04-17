@@ -22,7 +22,7 @@ class RequestList(OneShotBehaviour):
 		message.add_receiver(AID('supermarket'))
 		message.set_ontology(self.agent.session) # Defines the tipe of list required
 		message.set_content('Please, give me this list')
-		self.agent.send(message)
+		self.send(message)
 		display(self.agent, 'I requested for %s products.' % self.agent.session)
 
 class PrintList(OneShotBehaviour):
@@ -57,7 +57,7 @@ class FruitList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('apple\nbanana\ncocoa\ncoconuts\ngrape\norange\nstrawberry')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Fruit list sent to %s.' % message.sender.getLocalName())
 
 # Behaviour that deal with food requisitions
@@ -71,7 +71,7 @@ class FoodList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('meat\nchicken\ncookies\nice cream\nbread')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Food list sent to %s.' % message.sender.getLocalName())
 
 # Behaviour that deal with office requisitions
@@ -85,7 +85,7 @@ class OfficeList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('pen\nclips\nscissors\npaper\npencil')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Office material list sent to %s.' % message.sender.getLocalName())
 
 # Behaviour that deal with any requisitions
@@ -96,7 +96,7 @@ class UnknownList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('Unknown list')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Unknown requisition')
 
 

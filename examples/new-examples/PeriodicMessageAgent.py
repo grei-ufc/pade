@@ -18,7 +18,7 @@ class SendMessage(TickerBehaviour):
 		message = ACLMessage(ACLMessage.INFORM)
 		message.add_receiver(AID('receiver'))
 		message.set_content('Message #%d' % self.counter)
-		self.agent.send(message)
+		self.send(message)
 		self.counter += 1
 		display_message(self.agent, 'Message sent to receiver.')
 

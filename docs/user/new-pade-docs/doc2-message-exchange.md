@@ -62,7 +62,7 @@ class SendMessage(OneShotBehaviour):
 		message = ACLMessage(ACLMessage.INFORM)
 		message.add_receiver(AID('receiver'))
 		message.set_content('Hello! :)')
-		self.agent.send(message)
+		self.send(message)
 		display(self.agent, 'I sent a message to receiver.')
 
 
@@ -118,7 +118,7 @@ class CheckQueue(CyclicBehaviour):
 		if call != None: # You must handle None objects when using read_timeout()
 			reply = call.create_reply() # Create a reply
 			reply.set_content('Here is your help.')
-			self.agent.send(reply) # Sending the reply
+			self.send(reply) # Sending the reply
 			display_message(self.agent, 'Help sent to %s.' % call.sender.getLocalName())
 		else:
 			# Goes drink water
@@ -143,7 +143,7 @@ class Call(WakeUpBehaviour):
 		call = ACLMessage(ACLMessage.REQUEST)
 		call.set_content('I need help!')
 		call.add_receiver('attendant')
-		self.agent.send(call) # Sending a message
+		self.send(call) # Sending a message
 		display_message(self.agent, 'I am making a call.')
 
 
@@ -165,6 +165,7 @@ if __name__ == '__main__':
 	start_loop(agents)
 ```
 Note that the attendant doesn't waits indefinitely, but, using the `read_timeout(timeout)` method, waits for a time interval. In other hand, the customers wait indefinitely for a response of attendants, using the `read()` method. The `read(block = False)` method works similarly to `read_timeout(timeout)`, but, waits for no time, immediately returning an `ACLMessage` or a `None` object.
+
 
 
 ## Filtering messages
@@ -197,7 +198,7 @@ class RequestList(OneShotBehaviour):
 		message.add_receiver(AID('supermarket'))
 		message.set_ontology(self.agent.session) # Defines the tipe of list required
 		message.set_content('Please, give me this list')
-		self.agent.send(message)
+		self.send(message)
 		display(self.agent, 'I requested for %s products.' % self.agent.session)
 
 class PrintList(OneShotBehaviour):
@@ -232,7 +233,7 @@ class FruitList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('apple\nbanana\ncocoa\ncoconuts\ngrape\norange\nstrawberry')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Fruit list sent to %s.' % message.sender.getLocalName())
 
 # Behaviour that deal with food requisitions
@@ -246,7 +247,7 @@ class FoodList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('meat\nchicken\ncookies\nice cream\nbread')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Food list sent to %s.' % message.sender.getLocalName())
 
 # Behaviour that deal with office requisitions
@@ -260,7 +261,7 @@ class OfficeList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('pen\nclips\nscissors\npaper\npencil')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Office material list sent to %s.' % message.sender.getLocalName())
 
 # Behaviour that deal with any requisitions
@@ -271,7 +272,7 @@ class UnknownList(CyclicBehaviour):
 			reply = message.create_reply()
 			reply.set_content('Unknown list')
 			reply.set_performative(ACLMessage.INFORM)
-			self.agent.send(reply)
+			self.send(reply)
 			display(self.agent, 'Unknown requisition')
 
 
@@ -326,7 +327,7 @@ class Search(OneShotBehaviour):
 		message = ACLMessage(ACLMessage.REQUEST)
 		message.add_receiver(AID('book'))
 		message.set_content(self.agent.name)
-		self.agent.send(message)
+		self.send(message)
 		display(self.agent, "I requested for %s's contact." % self.agent.name)
 
 class ShowInfos(OneShotBehaviour):
@@ -381,7 +382,7 @@ class SearchContact(CyclicBehaviour):
 			else: # If the searched contact doesn't exist
 				reply.set_performative(ACLMessage.FAILURE)
 				reply.set_content(pickle.dumps({'error': 404, 'description': 'Contact not found.'}))
-			self.agent.send(reply)
+			self.send(reply)
 
 	def search(self, name):
 		for contact in self.agent.contacts:

@@ -23,6 +23,7 @@ class BaseBehaviour(Behaviour):
 		# Queue of received messages by the agent and unread by this behaviour
 		self.messages = Queue()
 
+
 	def read(self, block = True):
 		''' It gets the first message in the local message queue.
 		'''
@@ -33,6 +34,15 @@ class BaseBehaviour(Behaviour):
 				return self.messages.get_nowait()
 			except queue.Empty:
 				return None
+
+
+	def send(self, message):
+		''' This method gets a message and passes it to self.agent.send() method.
+		It was coded just to complement the pair read/send in the BaseBehaviour class.
+		The method self.agent.send() can still be used directly in the code.
+		'''
+		self.agent.send(message)
+
 
 	def read_timeout(self, timeout):
 		''' It tries to read a message twice until the end of timeout.
@@ -45,6 +55,7 @@ class BaseBehaviour(Behaviour):
 			sleep(timeout)
 			return self.read(block = False)
 
+
 	def receive(self, message):
 		''' It sets a new message on local messages queue.
 		'''
@@ -54,11 +65,13 @@ class BaseBehaviour(Behaviour):
 			raise ValueError('message object type must be ACLMessage!')
 
 
+
 	def action(self):
 		''' This is an abstract method that must be overridden in the
 		child classes, writing the main actions of this behaviour.
 		'''
 		pass
+
 
 	def done(self):
 		''' This is an abstract method that must be overridden in the
@@ -66,11 +79,13 @@ class BaseBehaviour(Behaviour):
 		'''
 		pass
 
+
 	def wait(self, timeout):
 		''' This method sleeps a behaviour until occurs a timeout. The
 		behaviour will execute normally afterwards.
 		'''
 		sleep(timeout)
+
 
 	def on_end(self):
 		''' The scheduler will calls this method after the self.done()
@@ -78,6 +93,7 @@ class BaseBehaviour(Behaviour):
 		the last action of a behaviour.
 		'''
 		pass
+
 
 	def has_messages(self):
 		''' A method to returns if this behaviour has messages in its
