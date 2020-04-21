@@ -170,15 +170,7 @@ class AgentFactory(protocol.ClientFactory):
         self.debug = agent_ref.debug
         self.aid = agent_ref.aid  # stores the agent's identity.
         self.ams = agent_ref.ams  # stores the  ams agent's identity.
-<<<<<<< HEAD
-
-        self.messages = []  # stores the messages to be sent.
-
-        # method that executes the agent's behaviour defined
-        # both by the user and by the System-PADE.
-=======
         self.messages = []
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
         self.react = agent_ref.react
         self.on_start = agent_ref.on_start
         self.ams_aid = AID('ams@' + self.ams['name'] + ':' + str(self.ams['port']))
@@ -201,11 +193,7 @@ class AgentFactory(protocol.ClientFactory):
         return protocol
 
     def clientConnectionFailed(self, connector, reason):
-<<<<<<< HEAD
-        """This method is clled upon a failure
-=======
         """This method is called upon a failure 
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
         in the connection between client and server.
         
         Parameters
@@ -265,9 +253,6 @@ class Agent_(object):
         List of PADE system's behaviours
     """
 
-<<<<<<< HEAD
-    def __init__(self, aid, debug = False):
-=======
     def __init__(self, aid, debug=False):
         """Initialization
         
@@ -278,7 +263,6 @@ class Agent_(object):
         debug : bool, optional
             Description
         """
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
         self.mosaik_connection = None
         self.aid = aid
         self.debug = debug
@@ -620,10 +604,6 @@ class Agent_(object):
         """
         self.ams = ams
         self.agentInstance = AgentFactory(agent_ref=self)
-<<<<<<< HEAD
-
-=======
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
 
 # ===========================================================
 # This are the PADE System behaviours
@@ -631,13 +611,8 @@ class Agent_(object):
 
 class SubscribeBehaviour(FipaSubscribeProtocol):
     """
-<<<<<<< HEAD
-        This class implements the behaviour of the
-        agent that identifies it to the AMS.
-=======
     This class implements the behaviour of the 
     agent that identifies it to the AMS.
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
     """
     def __init__(self, agent, message):
         """Summary
@@ -688,15 +663,9 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
 
 class CompConnection(FipaRequestProtocol):
     """
-<<<<<<< HEAD
-        This class implements the agent's behaviour
-        that answers the solicitations the AMS
-        makes to detect if the agent is connected or not.
-=======
     This class implements the agent's behaviour
     that answers the solicitations the AMS
     makes to detect if the agent is connected or not. 
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
     """
     def __init__(self, agent):
         """Summary
@@ -730,9 +699,6 @@ class CompConnection(FipaRequestProtocol):
 # Main Agent Class
 
 class Agent(Agent_):
-<<<<<<< HEAD
-    def __init__(self, aid, debug=False, ignore_ams = True, wait_time = 300):
-=======
 
     """Summary
     
@@ -754,21 +720,11 @@ class Agent(Agent_):
         debug : bool, optional
             Description
         """
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
         super(Agent, self).__init__(aid=aid, debug=debug)
 
         self.comport_connection = CompConnection(self)
         self.system_behaviours.append(self.comport_connection)
 
-<<<<<<< HEAD
-        # Extra attributes
-        self.scheduler = Scheduler(self) # Scheduler object to manage the behaviours of this agent
-        self.ignore_ams = ignore_ams # It indicates if the ams messages will be filtered
-        self.active = True # It indicates whether this agent is active or not
-        self.deliverer = DeliverPostponedMessage(self, wait_time)
-
-    def update_ams(self, ams):
-=======
     def update_ams(self, ams):
         """Summary
         
@@ -777,7 +733,6 @@ class Agent(Agent_):
         ams : TYPE
             Description
         """
->>>>>>> 11cb0c8b4a33928704470326d71a509273ed5192
         super(Agent,self).update_ams(ams)
         message = ACLMessage(ACLMessage.SUBSCRIBE)
         message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
