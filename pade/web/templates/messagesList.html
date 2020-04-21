@@ -1,0 +1,22 @@
+
+<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+    <div class="list-group">
+        {% for message in messages %}
+        <div class="list-group-item">
+            <h5>ID: {{ message.id }}</h5>
+            <p>Performative: {{ message.performative }}</p>
+            <p>Content: {{ message.content }}</p>
+            <p>Protocol: {{ message.protocol }}</p>
+            <p>Date: {{ message.date.hour }}:{{ message.date.minute }}:{{ message.date.second }} - {{
+                message.date.day }}/{{ message.date.month }}/{{ message.date.year }}</p>
+            <p>Sender: {{ message.sender }}</p>
+            <p>Receivers: {{ message.receivers }}</p>
+            <p id="name" type="hidden" value="{{ message.performative }} - {{ message.protocol }}"></p>
+            <p id="id" type="hidden" value="{{ message.id }}"></p>
+            <p id="sender" type="hidden" value="{{ message.sender }}"></p>
+            <p id="date" type="hidden"
+               value="{{ message.date.hour }}:{{ message.date.minute }}:{{ message.date.second }} - {{ message.date.day }}/{{ message.date.month }}/{{ message.date.year }}"></p>
+        </div>
+        {% endfor %}
+    </div>
+</div>

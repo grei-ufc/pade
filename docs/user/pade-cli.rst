@@ -12,9 +12,9 @@ Para facilitar algumas funções essenciais de gerenciamento de agentes, o frame
 
 Os comandos disponíveis são:
 
-- start_runtime
-- start_web_interface
-- create_pade_db
-- drop_pade_db
+- start-runtime
+- start-web-interface
+- create-pade-db
+- drop-pade-db
 
   

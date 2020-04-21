@@ -1,54 +1,50 @@
 {% include 'header.html' %}
 
+<head>
+    <style>
+        .btn-primary {
+            display: inline-block;
+            float: right;
+            margin: 10px;
+        }
+    </style>
+</head>
+
 <body>
 
-    {% block content %}
+{% block content %}
 
-    <div class="container">
-        <div class="page-header">
-            <h1>Agents Diagram!</h1>
-        </div>
+<div class="container">
+
+    <form action="/messages" method="post" style="margin-bottom: 10px">
+        <button type="submit" class="btn btn-primary">Messages View</button>
+    </form>
+
+    <div class="row">
+        <h2>Messages Diagram</h2>
     </div>
 
-    <div class="container">
-        <div class="diagram">{{ messages }}</div>
+
+    <div class="row" id="diagram">
+        <!-- The diagram will be rendered via AJAX -->
     </div>
 
-    {% endblock %}
+</div>
+
+{% endblock %}
 
 </body>
 
-<script>
-
-    function loadData() {
-        var position = $(".diagram").scrollTop;
-        console.log(position);
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-            if (xhttp.readyState == 4 && xhttp.status == 200) {
-                var response = $($.parseHTML(xhttp.responseText));
-
-                var text = $('.diagram').html;
-                console.log(text);
-
-                $(".diagram").html(response.find(".diagram").html());
-                $(".diagram").sequenceDiagram({theme: "simple"});
-                $(".diagram").scrollTop = position;
-            }
-        };
-        xhttp.open("GET", "http://localhost:5000/diagrams", true);
-        xhttp.send();
-        setTimeout(loadData, 2000);
-    }
-
-    $(document).ready(function() {
-        // run the first time; all subsequent calls will take care of themselves
-        setTimeout(loadData, 2000);
+<script type="text/javascript">
+    $(document).ready(function () {
+        refreshTable();
     });
-</script>
 
-<script src="/static/underscore-min.js"></script>
-<script src="/static/raphael-min.js"></script>
-<script src="/static/sequence-diagram-min.js"></script>
+    function refreshTable() {
+        $('#diagram').load('/messages_diagram', function () {
+            setTimeout(refreshTable, 5000);
+        });
+    }
+</script>
 
 {% include 'footer.html' %}

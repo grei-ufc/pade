@@ -67,7 +67,7 @@ Para instalar o PADE basta executar o seguinte comando em um terminal linux:
 ::
 
     $ pip install pade
-    $ pade start_runtime --port 20000 agent_example_1.py
+    $ pade start-runtime --port 20000 agent_example_1.py
 
 Veja mais aqui: :ref:`installation-page`.
 

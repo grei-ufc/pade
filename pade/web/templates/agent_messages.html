@@ -1,0 +1,51 @@
+{% include 'header.html' %}
+
+<body>
+
+    {% block content %}
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12 col-sm-6 col-md-6 col-lg-6">
+                <h2>Messages</h2>
+                <div class="list-group">
+                    {% for message in messages %}
+                        <a href="/session/agent/message/{{ message.id }}" class="list-group-item">
+                            <h4>Message: {{ message.performative }}</h4>
+                            <p>Protocol: {{ message.protocol }}</p>
+                            <p>Date: {{ message.date.hour }}:{{ message.date.minute }}:{{ message.date.second }} - {{ message.date.day }}/{{ message.date.month }}/{{ message.date.year }}</p>
+                            <p>Sender: {{ message.sender }}</p>
+                            <p id="name" type="hidden" value="{{ message.performative }} - {{ message.protocol }}"></p>
+                            <p id="id" type="hidden" value="{{ message.id }}"></p>
+                            <p id="sender" type="hidden" value="{{ message.sender }}"></p>
+                            <p id="date" type="hidden" value="{{ message.date.hour }}:{{ message.date.minute }}:{{ message.date.second }} - {{ message.date.day }}/{{ message.date.month }}/{{ message.date.year }}"></p>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+    <script>
+        function loadData() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (xhttp.readyState == 4 && xhttp.status == 200) {
+                    var response = $($.parseHTML(xhttp.responseText));
+                    $(".list-group").html(response.find(".list-group").html());
+                }
+            };
+            xhttp.open("GET", "http://localhost:5000/session/agent/{{ agent.id }}", true);
+            xhttp.send();
+            setTimeout(loadData, 2000);
+        };
+        $(document).ready(function() {
+            // run the first time; all subsequent calls will take care of themselves
+            setTimeout(loadData, 2000);
+        });
+    </script>
+</body>
+
+{% include 'footer.html' %}
