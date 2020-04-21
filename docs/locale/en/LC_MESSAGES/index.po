@@ -1,0 +1,197 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, GREI-UFC
+# This file is distributed under the same license as the Pade package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Pade 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-07 22:55-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../index.rst:7
+msgid "Python Agent DEvelopment framework"
+msgstr ""
+
+#: ../../index.rst:10
+msgid "Sistemas Multiagentes para Python!"
+msgstr "Multi-agent Systems for Python Language!"
+
+#: ../../index.rst:12
+msgid ""
+"PADE é um framework para desenvolvimento, execução e gerenciamento de "
+"sistemas multiagentes em ambientes de computação distribuída."
+msgstr "PADE is a framework for development, execution and management of multi-agent systems environments of distributed computation."
+
+#: ../../index.rst:14
+#, python-format
+msgid ""
+"PADE é escrito 100% em Python e utiliza as bibliotecas do projeto "
+"`Twisted <http://twistedmatrix.com/>`_ para implementar a comunicação "
+"entre os nós da rede."
+msgstr "PADE is 100% written in Python language and uses the `Twisted <http://twistedmatrix.com/>`_ libraries for implementing the communication between the network nodes."
+
+#: ../../index.rst:16
+msgid ""
+"PADE é software livre, licenciado sob os termos da licença MIT, "
+"desenvolvido pelo Grupo de Redes Elétricas Inteligentes (GREI) do "
+"Departamento de Engenharia Elétrica da Universidade Federal do Ceará."
+msgstr "PADE is open-source under MIT licence terms and is developed by Smart Grids Group (GREI) in Department of Electrical Engineering by Federal University of Ceará, Brazil."
+
+#: ../../index.rst:18
+msgid ""
+"Qualquer um que queira contribuir com o projeto é convidado a baixar, "
+"executar, testar e enviar feedback a respeito das impressões tiradas da "
+"plataforma."
+msgstr "Any one who want to contribute with PADE project is welcome to do so. You can download, execute, test and send us feedback about PADE functionalities."
+
+#: ../../index.rst:21
+msgid "PADE é simples!"
+msgstr "PADE is simple!"
+
+#: ../../index.rst:52
+msgid ""
+"Neste arquivo exemplo (que está na pasta de exemplos no repositório PADE)"
+" é possível visualizar três sessões bem definidas."
+msgstr "In this example file (wich is in PADE github repository in the example folder) is possible to visualize three well defined sessions."
+
+#: ../../index.rst:54
+msgid ""
+"A primeira contém as importações necessárias de classes que se encontram "
+"nos módulos do pade."
+msgstr "The first session has the necessary PADE classes imports "
+
+#: ../../index.rst:56
+msgid ""
+"Na segunda uma classe que herda da classe pade Agent é definida com as "
+"pricipais atribuições do agente."
+msgstr "In the second session is a class who uses the super PADE class Agent, where the main agent attributions are defined."
+
+#: ../../index.rst:58
+msgid ""
+"Na terceira parte que está encapsulada em uma estrutura if são realizados"
+" os procedimentos para lançar os agentes."
+msgstr "In the third session the procedures to launch agents in PADE run time are defined."
+
+#: ../../index.rst:60
+msgid ""
+"Se você quiser saber mais basta seguir a documentação aqui: :ref:`hello-"
+"world-page`."
+msgstr "If you want to know more about PADE framework, you can follow the steps described hear: :ref:`hello-"
+"world-page`."
+
+#: ../../index.rst:63
+msgid "E fácil de instalar!"
+msgstr "It's easy to install"
+
+#: ../../index.rst:65
+msgid ""
+"Para instalar o PADE basta executar o seguinte comando em um terminal "
+"linux:"
+msgstr "For install PADE just execute the following command in a unix-based terminal window:"
+
+#: ../../index.rst:72
+msgid "Veja mais aqui: :ref:`installation-page`."
+msgstr "You can see more about installing PADE hear: :ref:`installation-page`."
+
+#: ../../index.rst:75
+msgid "Funcionalidades"
+msgstr "Functionalities"
+
+#: ../../index.rst:77
+msgid ""
+"O PADE foi desenvolvido tendo em vista os requisitos para sistema de "
+"automação. PADE oferece os seguintes recursos em sua biblioteca para "
+"desenvolvimento de sistemas multiagentes:"
+msgstr "The PADE framework was developed with automation systems in mind. So, PADE has the following functionalities in its library fo multi-agent systems development:"
+
+#: ../../index.rst:81
+msgid "**Orientação a Objetos**"
+msgstr "**Object Orientation**"
+
+#: ../../index.rst:81
+msgid ""
+"Abstração para construção de agentes e seus comportamentos utilizando "
+"conceitos de orientação a objetos;"
+msgstr "Abstraction for build agents and its behaviours using object orientation concepts."
+
+#: ../../index.rst:84
+msgid "**Ambiente de execução**"
+msgstr "**Run time execution**"
+
+#: ../../index.rst:84
+msgid ""
+"Módulo para inicialização do ambiente de execução de agentes, "
+"inteiramente em código Python;"
+msgstr "It's a module to initialize the agents execution enviroment written 100% in Python language."
+
+#: ../../index.rst:87
+msgid "**Mensagens no padrão FIPA-ACL**"
+msgstr "**FIPA-ACL messages**"
+
+#: ../../index.rst:87
+msgid "Módulo para construção e tratamento de mensagens no padrão FIPA-ACL;"
+msgstr "It's a module to build and handle messages in FIPA-ACL standard."
+
+#: ../../index.rst:90
+msgid "**Filtragem de Mensagens**"
+msgstr "**Filtering Messages**"
+
+#: ../../index.rst:90
+msgid "Módulo para filtragem de mensagens;"
+msgstr "Filter functionalities to multiagent messages."
+
+#: ../../index.rst:93
+msgid "**Protocolos FIPA**"
+msgstr "**FIPA protocols**"
+
+#: ../../index.rst:93
+msgid "Módulo para a implementação dos protocolos definidos pela FIPA;"
+msgstr "It's a module for implement FIPA standard protocols, like ContractNet, Request and Subscribe."
+
+#: ../../index.rst:96
+msgid "**Comportamentos Cíclicos e Temporais**"
+msgstr "**Cyclic and Timed Behaviours**"
+
+#: ../../index.rst:96
+msgid "Módulo para implementação de comportamentos cíclicos e temporais;"
+msgstr "Module for cyclic and timed behaviours."
+
+#: ../../index.rst:99
+msgid "**Banco de Dados**"
+msgstr "**Data Base**"
+
+#: ../../index.rst:99
+msgid "Módulo para interação com banco de dados;"
+msgstr "Module for Data Base interaction."
+
+#: ../../index.rst:103
+msgid "**Envio de Objetos Serializados**"
+msgstr "**Serialized objects exchange**"
+
+#: ../../index.rst:102
+msgid ""
+"Possibilidade de envio de objetos serializados como conteúdo das "
+"mensagens FIPA-ACL."
+msgstr "It's possible to send serialized objects in the FIPA-ACL messages content."
+
+#: ../../index.rst:105
+msgid ""
+"Além dessas funcionalidades, o PADE é de fácil instalação e configuração,"
+" multiplataforma, podendo ser instalado e utilizado em hardwares "
+"embarcados que executam sistema operacional Linux, como Raspberry Pi e "
+"BeagleBone Black, bem como sistema operacional Windows."
+msgstr "In addition to these features, PADE is easy to install and configure, multiplatform, and can be installed and used on embedded hardware that runs Linux operating system such as Raspberry Pi and BeagleBone Black as well as Windows operating system.
+
+#: ../../index.rst:110
+msgid "Guia do Usuário"
+msgstr "User Guide"
+

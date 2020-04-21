@@ -1,0 +1,527 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, GREI-UFC
+# This file is distributed under the same license as the Pade package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Pade 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-05-07 22:55-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../api.rst:2
+msgid "API PADE"
+msgstr ""
+
+#: ../../api.rst:4
+msgid ""
+"Aqui estão todos os módulos que são de interesse para utilização do PADE,"
+" tais como o módulo que contém a classe Agent, módulo de construção de "
+"mensagens e de construção de comportamentos."
+msgstr ""
+
+#: of pade.core.agent:2
+msgid "Agent Implementing Module"
+msgstr ""
+
+#: of pade.core.agent:4
+msgid ""
+"This Python module is part of the communication and management "
+"infrastructure of agents, which forms the framework to create intelligent"
+" agents. This framework is based on the Python Twisted library to "
+"implement distributed systems."
+msgstr ""
+
+#: of pade.core.agent:9
+msgid "@author: Lucas S Melo"
+msgstr ""
+
+#: of pade.core.agent.Agent.react:1 pade.core.agent.Agent_.react:1
+#: pade.core.new_ams.AMS.react:1 pade.core.sniffer.Sniffer.react:1
+msgid ""
+"This method should be overriden and will be executed all the times the "
+"agent receives any type of data."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.add_receiver
+#: pade.acl.messages.ACLMessage.add_reply_to
+#: pade.acl.messages.ACLMessage.set_performative
+#: pade.acl.messages.ACLMessage.set_sender
+#: pade.behaviours.protocols.FipaContractNetProtocol.execute
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_accept_propose
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_all_proposes
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_cfp
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_inform
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_propose
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_refuse
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_reject_propose
+#: pade.behaviours.protocols.FipaRequestProtocol.execute
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_agree
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_failure
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_refuse
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_request
+#: pade.behaviours.protocols.FipaSubscribeProtocol.execute
+#: pade.core.agent.Agent.react pade.core.agent.AgentProtocol.connectionLost
+#: pade.core.agent.AgentProtocol.dataReceived pade.core.agent.Agent_.react
+#: pade.core.agent.Agent_.send_to_all
+#: pade.core.agent.CompConnection.handle_request pade.core.new_ams.AMS.react
+#: pade.core.new_ams.CompConnectionVerify.handle_inform
+#: pade.core.new_ams.CompVerifyRegister.handle_request
+#: pade.core.sniffer.Sniffer.react
+msgid "Parâmetros"
+msgstr ""
+
+#: of pade.core.agent.Agent.react:5 pade.core.agent.Agent_.react:5
+#: pade.core.new_ams.AMS.react:5 pade.core.sniffer.Sniffer.react:5
+msgid "ACLMessage received message"
+msgstr ""
+
+#: of pade.core.agent.Agent.update_ams:1 pade.core.agent.Agent_.update_ams:1
+msgid "This method instantiates the ams agent"
+msgstr ""
+
+#: of pade.core.agent.AgentFactory:1
+msgid ""
+"This class implements the actions and attributes of the Agent protocol. "
+"Its main function is to store important information to the agent "
+"communication protocol."
+msgstr ""
+
+#: of pade.core.agent.AgentFactory.buildProtocol:1
+msgid "This method initializes the Agent protocol"
+msgstr ""
+
+#: of pade.core.agent.AgentFactory.clientConnectionFailed:1
+msgid ""
+"This method is clled upon a failure  in the connection between client and"
+" server."
+msgstr ""
+
+#: of pade.core.agent.AgentFactory.clientConnectionLost:1
+msgid ""
+"This method is called when the connection between a client and server is "
+"lost."
+msgstr ""
+
+#: of pade.core.agent.AgentProtocol:1
+msgid ""
+"This class implements the protocol to be followed by the agents during "
+"the communication process. The communication between agent and AMS agent,"
+" angent and Sniffer, and between agents is modeled in this class."
+msgstr ""
+
+#: of pade.core.agent.AgentProtocol:6
+msgid ""
+"This class does not stores persistent information, it is kept in the "
+"AgentFactory class."
+msgstr ""
+
+#: of pade.core.agent.AgentProtocol.connectionLost:1
+msgid "This method executes anything when a connnection is lost."
+msgstr ""
+
+#: of pade.core.agent.AgentProtocol.connectionLost:3
+msgid "Identifies the problem in the lost connection."
+msgstr ""
+
+#: of pade.core.agent.AgentProtocol.connectionMade:1
+msgid ""
+"This method is always executed when a conection is established between an"
+" agent in client mode and an agent in server mode."
+msgstr ""
+
+#: of pade.core.agent.AgentProtocol.dataReceived:1
+msgid ""
+"This method is always executed when a new message is received by the "
+"agent, whether the agent is in client or server mode."
+msgstr ""
+
+#: of pade.core.agent.AgentProtocol.dataReceived:5
+msgid "message received by the agent."
+msgstr ""
+
+#: of pade.core.agent.Agent_:1
+msgid ""
+"The Agent class establishes the essential functionalities of an agent, "
+"such as: 1. Connection with AMS 2. Initial configurations 3. Message "
+"sending 4. Behaviour adding 5. abstract method to be used when "
+"implementing the initial behaviours 6. abstract method to be used when "
+"implementing the agents' behaviour when they receive a message"
+msgstr ""
+
+#: of pade.core.agent.Agent_.on_start:1
+msgid "This method defines the initial behaviours  of an agent."
+msgstr ""
+
+#: of pade.core.agent.Agent_.pause_agent:1
+msgid "This method makes the agent stops listeing to its port"
+msgstr ""
+
+#: of pade.core.agent.Agent_.resume_agent:1
+msgid "This method resumes the agent after it has been pause. Still not working"
+msgstr ""
+
+#: of pade.core.agent.Agent_.send:1
+msgid ""
+"This method sends an ACL message to the agents specified in the receivers"
+" parameter of the ACL message."
+msgstr ""
+
+#: of pade.core.agent.Agent_.send_to_all:1
+msgid ""
+"This method sends a broadcast message, in other words, it sends a message"
+" to all agents registered on the table of agents"
+msgstr ""
+
+#: of pade.core.agent.Agent_.send_to_all:4
+msgid "message to be sent to all agents registeres"
+msgstr ""
+
+#: of pade.core.agent.Agent_.send_to_all:5
+msgid "on the table of agents."
+msgstr ""
+
+#: of pade.core.agent.CompConnection:1
+msgid ""
+"This class implements the agent's behaviour that answers the "
+"solicitations the AMS makes to detect if the agent is connected or not."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.handle_request:1
+#: pade.core.agent.CompConnection.handle_request:1
+#: pade.core.new_ams.CompVerifyRegister.handle_request:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_REQUEST type "
+"message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.execute:5
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_accept_propose:5
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_cfp:5
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_inform:5
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_propose:5
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_refuse:5
+#: pade.behaviours.protocols.FipaContractNetProtocol.handle_reject_propose:5
+#: pade.behaviours.protocols.FipaRequestProtocol.execute:5
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_agree:5
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_failure:5
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_inform:5
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_refuse:5
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_request:5
+#: pade.behaviours.protocols.FipaSubscribeProtocol.execute:5
+#: pade.core.agent.CompConnection.handle_request:5
+#: pade.core.new_ams.CompConnectionVerify.handle_inform:5
+#: pade.core.new_ams.CompVerifyRegister.handle_request:5
+msgid "FIPA-ACL message"
+msgstr ""
+
+#: of pade.core.agent.SubscribeBehaviour:1
+msgid ""
+"This class implements the behaviour of the  agent that identifies it to "
+"the AMS."
+msgstr ""
+
+#: of pade.core.new_ams.AMS:1 pade.core.sniffer.Sniffer:1
+msgid "This is the class that implements the AMS agent."
+msgstr ""
+
+#: of pade.core.new_ams.CompConnectionVerify:1
+msgid "FIPA Request Behaviour of the Clock agent."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_inform:1
+#: pade.core.new_ams.CompConnectionVerify.handle_inform:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_IMFORM type "
+"message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.execute_on_timeout:1
+#: pade.behaviours.protocols.TimedBehaviour.on_time:1
+#: pade.core.new_ams.ComportSendConnMessages.on_time:1
+#: pade.core.new_ams.ComportVerifyConnTimed.on_time:1
+msgid ""
+"This method executes the handle_all_proposes method if any  FIPA_CFP "
+"message sent by the agent does not get an answer."
+msgstr ""
+
+#: of pade.core.new_ams.PublisherBehaviour:1
+msgid ""
+"FipaSubscribe behaviour of Publisher type that implements a publisher-"
+"subscriber communication, which has the AMS agent as the publisher and "
+"the agents of the plataform as subscribers. Two procedures are "
+"implemented in this behaviour:"
+msgstr ""
+
+#: of pade.core.new_ams.PublisherBehaviour:5
+msgid ""
+"The first one is the identification procedure, which verifies the "
+"availability in the database and stores it if positive."
+msgstr ""
+
+#: of pade.core.new_ams.PublisherBehaviour:8
+msgid ""
+"The second one is the updating procedure, which updates the distributed "
+"tables that contain the adresses of the agents  in the pleteform. It is "
+"updated every time that an agent  enters or leaves the network."
+msgstr ""
+
+#: of pade.acl.messages:2
+msgid "FIPA-ACL message creation and handling module"
+msgstr ""
+
+#: of pade.acl.messages:4
+msgid ""
+"This module contains a class which implements an ACLMessage type object. "
+"This object is the standard FIPA message used in the exchange of messages"
+" between agents."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage:1
+msgid "Class that implements a ACLMessage message type"
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.add_receiver:1
+msgid "Method used to add recipients for the message being created."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.add_receiver:3
+msgid "AID type object that identifies the agent that will receive the message."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.add_reply_to:1
+msgid ""
+"Method used to add the agents that should receive the answer of the "
+"message."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.add_reply_to:3
+msgid ""
+"AID type object that identifies the agent that will receive the answer of"
+" this message."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.create_reply:1
+msgid ""
+"Creates a reply for the message Duplicates all the message structures "
+"exchanges the 'from' AID with the 'to' AID"
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.set_performative:1
+msgid "Method to set the Performative parameter of the ACL message."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.set_performative:3
+msgid "performative type of the message."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.set_performative:4
+msgid "It can be any of the attributes of the ACLMessage class."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.set_sender:1
+msgid "Method to set the agent that will send the message."
+msgstr ""
+
+#: of pade.acl.messages.ACLMessage.set_sender:3
+msgid "AID type object that identifies the agent that will send the message."
+msgstr ""
+
+#: of pade.behaviours.protocols:2
+msgid "Protocols module"
+msgstr ""
+
+#: of pade.behaviours.protocols:4
+msgid ""
+"This module implements the FIPA standard protocols: 1. "
+"FipaRequestProtocol 2. FipaContractNetProtocol 3. FIPA_Subscribe_Protocol"
+msgstr ""
+
+#: of pade.behaviours.protocols.Behaviour:1
+msgid ""
+"Class that states essential methods of a behaviour. All behaviours should"
+" inherit from this class."
+msgstr ""
+
+#: of pade.behaviours.protocols.Behaviour.execute:1
+msgid ""
+"Executes the actual behaviour of the protocol for each type of messege "
+"received."
+msgstr ""
+
+#: of pade.behaviours.protocols.Behaviour.on_start:1
+msgid "Always executed when the protocol is initialized"
+msgstr ""
+
+#: of pade.behaviours.protocols.Behaviour.timed_behaviour:1
+msgid ""
+"Used when the implemented protocol has restrictions of time, for example,"
+" the use of timeout"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol:1
+msgid ""
+"This class implements the FipaContractNetProtocol protocol, inheriting "
+"from the Behaviour class and implementing its methods."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.execute:1
+#: pade.behaviours.protocols.FipaRequestProtocol.execute:1
+#: pade.behaviours.protocols.FipaSubscribeProtocol.execute:1
+msgid ""
+"This method overrides the execute method from Behaviour class. The "
+"selection of the method to be executed after the receival of a message is"
+" implemented here."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_accept_propose:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_ACCEPT_PROPOSE "
+"type message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_all_proposes:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is executed in two cases: *The quantity of answer received is "
+"equal to the quantity of requests received *The timeout is reached"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_all_proposes:7
+msgid "list containing the answers of the requests"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_all_proposes:8
+msgid "sent by the Initiator."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_cfp:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_CFP type "
+"message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_propose:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_PROPOSE type "
+"message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_refuse:1
+#: pade.behaviours.protocols.FipaRequestProtocol.handle_refuse:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_REFUSE type "
+"message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.handle_reject_propose:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_REJECT_PROPOSE "
+"type message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.on_start:1
+msgid ""
+"This method overrides the on_start method from Behaviour class and "
+"implements aditional settings to the initialize method of "
+"FipaContractNetProtocol protocol."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaContractNetProtocol.timed_behaviour:1
+msgid ""
+"This method is always used when the implemented protocol  needs timed "
+"restrictions, for instance, the FipaContractNetProtocol. In this case, it"
+" uses the twisted callLater method, which receives a method and time "
+"delay as parameters to be executed"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol:1
+msgid ""
+"This class implements the FipaRequestProtocol protocol, inheriting from "
+"the Behaviour class and implementing its methods."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.handle_agree:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_AGREE type "
+"message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.handle_failure:1
+msgid ""
+"This method should be overridden when implementing a protocol. This "
+"method is always executed when the agent receives a  FIPA_FAILURE type "
+"message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.handle_inform:4
+msgid "This method should be overridden when implementing a protocol."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.handle_inform:2
+msgid ""
+"This method is always executed when the agent receives a  FIPA_IMFORM "
+"type message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.handle_inform
+msgid "param message"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.on_start:2
+msgid "This method overrides the on_start method from Behaviour class"
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaRequestProtocol.on_start:2
+msgid ""
+"and implements aditional settings to the initialize method of "
+"FipaRequestProtocol protocol."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaSubscribeProtocol:1
+msgid ""
+"This class implements the FipaSubscribeProtocol protocol, inheriting from"
+" the Behaviour class and implementing its methods."
+msgstr ""
+
+#: of pade.behaviours.protocols.FipaSubscribeProtocol.on_start:1
+msgid ""
+"his method overrides the on_start method from Behaviour class and "
+"implements aditional settings to the initialize method of "
+"FipaSubscribeProtocol protocol."
+msgstr ""
+
+#: of pade.behaviours.protocols.TimedBehaviour:1
+msgid "Class that implements timed behaviours"
+msgstr ""
+
+#: of pade.behaviours.protocols.TimedBehaviour.on_start:1
+msgid ""
+"This method overrides the on_start method from Behaviour class and "
+"implements aditional settings to the initialize method of TimedBehaviour "
+"behaviour."
+msgstr ""
+
+#: of pade.behaviours.protocols.TimedBehaviour.timed_behaviour:1
+msgid ""
+"This method is always used when the implemented behaviour  needs timed "
+"restrictions. In this case, it uses the twisted callLater method, which "
+"receives a method and delay as parameters to be executed"
+msgstr ""
+

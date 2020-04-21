@@ -1,0 +1,19 @@
+<head>
+    <script src="../static/webfont.js"></script>
+    <script src="../static/snap.svg-min.js"></script>
+    <script src="../static/underscore-min.js"></script>
+    <script src="../static/sequence-diagram-min.js"></script>
+</head>
+
+<pre id="txt" class="hidden">
+    {{ messages }}
+</pre>
+
+<div class="container" id="diagram">
+
+</div>
+
+<script>
+    var diagram = Diagram.parse(document.getElementById('txt').innerText);
+    diagram.drawSVG("diagram", {theme: 'simple'});
+</script>

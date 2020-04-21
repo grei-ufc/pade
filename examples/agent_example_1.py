@@ -15,7 +15,7 @@ class AgenteHelloWorld(Agent):
 
 if __name__ == '__main__':
 
-    agents_per_process = 3
+    agents_per_process = 5
     c = 0
     agents = list()
     for i in range(agents_per_process):

@@ -1,0 +1,129 @@
+{% include 'header.html' %}
+
+<script>
+    $(function () {
+
+        $('.list-group-item').on('click', function () {
+            $('.glyphicon', this)
+                .toggleClass('glyphicon-chevron-right')
+                .toggleClass('glyphicon-chevron-down');
+        });
+
+    });
+</script>
+
+<style>
+    .just-padding {
+        padding: 15px;
+    }
+
+    .list-group.list-group-root {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .list-group.list-group-root .list-group {
+        margin-bottom: 0;
+    }
+
+    .list-group.list-group-root .list-group-item {
+        border-radius: 0;
+        border-width: 1px 0 0 0;
+    }
+
+    .list-group.list-group-root > .list-group-item:first-child {
+        border-top-width: 0;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group-item {
+        padding-left: 30px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group-item {
+        padding-left: 45px;
+    }
+
+    .list-group.list-group-root > .list-group > .list-group > .list-group > .list-group-item {
+        padding-left: 60px;
+    }
+
+    .list-group-item .glyphicon {
+        margin-right: 5px;
+    }
+</style>
+
+<body>
+
+    {% block content %}
+
+    <div class="container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% set count = namespace(a=0) %}
+        {% set count2 = namespace(a=0) %}
+
+        <div class="row">
+            <div class="just-padding">
+                <div class="list-group list-group-root well">
+                    {% for key, value in data.items() recursive %}
+                        {% if key == 'Agents' %}
+                            <a href="#Agents" class="list-group-item" data-toggle="collapse">
+                                    <i class="glyphicon glyphicon-chevron-right"></i>Agents
+                            </a>
+                            <div class="list-group collapse" id="Agents">
+                                {% for agents in value %}
+                                {% set count.a = count.a + 1 %}
+                                    <a href="#agent_{{ count.a }}" class="list-group-item" data-toggle="collapse">
+                                        <i class="glyphicon glyphicon-chevron-right"></i>{{ agents['Agent Name'] }}
+                                    </a>
+                                    <div class="list-group collapse" id="agent_{{ count.a }}">
+                                        {% for new_key, new_value in agents.items() recursive %}
+                                            <a href="#" class="list-group-item"><b>{{ new_key }}</b>: {{ new_value }}</a>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor%}
+                            </div>
+                        {% elif key == 'Messages' %}
+                            <a href="#Messages" class="list-group-item" data-toggle="collapse">
+                                    <i class="glyphicon glyphicon-chevron-right"></i>Messages
+                            </a>
+                            <div class="list-group collapse" id="Messages">
+                                {% for messages in value %}
+                                {% set count2.a = count2.a + 1 %}
+                                    <a href="#message_{{ count2.a }}" class="list-group-item" data-toggle="collapse">
+                                        <i class="glyphicon glyphicon-chevron-right"></i>{{ messages['Content'] }}
+                                    </a>
+                                    <div class="list-group collapse" id="message_{{ count2.a }}">
+                                        {% for message, content in messages.items() recursive %}
+                                            <a href="#" class="list-group-item"><b>{{ message }}</b>: {{ content }}</a>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <a href="#" class="list-group-item"><b>{{ key }}</b>: {{ value }}</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+</body>
+
+{% include 'footer.html' %}

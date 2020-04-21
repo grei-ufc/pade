@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    {% extends "bootstrap/base.html" %}
+    {% import "bootstrap/wtf.html" as wtf %}
+
+    {% block head %}
+        {{ super() }}
+        <meta charset="UTF-8">
+        <link href="/static/signin.css" rel="stylesheet">
+    {% endblock %}
+
+    {% block title %} Python Agent DEvelopment framework {% endblock %}
+
+    {% block content %}
+    <div class="container">
+
+        <form class="form-signin" method="POST">
+            {% for message in get_flashed_messages() %}
+                <div class="alert alert-danger">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    {{ message }}
+                </div>
+            {% endfor %}
+            <h2 class="form-signin-heading">Create a new user in PADE</h2>
+            {{ form.csrf_token }}
+            {{ wtf.quick_form(form) }}
+        </form>
+
+    </div> <!-- /container -->
+    {% endblock %}
+</html>
