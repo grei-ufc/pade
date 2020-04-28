@@ -147,7 +147,7 @@ class ACLMessage(ET.Element):
         datetime_tag.append(microsecond)
 
         self.system_message = False
-        self.datetime = None
+        #self.datetime = None # It makes sense put None at this property? (see self.datetime attribution above)
         self.sender = None
         self.receivers = list()
         self.reply_to = list()
@@ -270,13 +270,19 @@ class ACLMessage(ET.Element):
         return ET.tostring(self)
 
     def get_conversation_id(self):
-        return self.conversationID
+        return self.conversation_id
+
+    def get_content(self):
+        return self.content
 
     def get_language(self):
         return self.language
 
     def get_ontology(self):
         return self.ontology
+
+    def get_protocol(self):
+        return self.protocol
 
     def get_performative(self):
         return self.performative
@@ -526,6 +532,7 @@ class ACLMessage(ET.Element):
         ''' Returns a new ACLMessage object cloned from this class
         '''
         clone = ACLMessage()
+        clone.datetime = self.datetime.replace()
         if self.performative != None:
             clone.set_performative(self.performative)
         if self.system_message != None:
@@ -548,8 +555,9 @@ class ACLMessage(ET.Element):
             clone.set_ontology(self.ontology)
         if self.protocol != None:
             clone.set_protocol(self.protocol)
-        if self.conversationID != None:
-            clone.set_conversation_id(self.conversationID)
+        if self.conversation_id != None:
+            clone.set_conversation_id(self.conversation_id)
+        # Is possible to clone self.message_id? I'm skipping it.
         if self.reply_with != None:
             clone.set_reply_with(self.reply_with)
         if self.reply_to != None:

@@ -31,7 +31,7 @@ class DeliverPostponedMessage(CyclicBehaviour):
 			else:
 				self.agent.send(package['message'])
 		else:
-			display_message(self.agent, 'The message could not be delivered to the receiver %s.' % package['message'].receivers[0].getName())
+			display_message(self.agent, 'A message could not be delivered to the receiver %s.' % package['message'].receivers[0].getName())
 
 	def deliver(self, message):
 		self.queue.put({'message': message,	'time_stamp': datetime.now()})

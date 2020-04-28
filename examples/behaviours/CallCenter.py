@@ -1,4 +1,3 @@
-from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import CyclicBehaviour, WakeUpBehaviour, OneShotBehaviour
 from pade.core.agent import Agent
@@ -12,16 +11,16 @@ class Attendant(Agent):
 
 class CheckQueue(CyclicBehaviour):
 	def action(self):
-		# Waits for a call by 3 seconds (using the read_timeout() method)
+		# Waits for a call for 3 seconds (using the read_timeout() method)
 		call = self.read_timeout(3)
 		# If there is at least a call to reply...
 		if call != None: # You must handle None objects when using read_timeout()
-			reply = call.create_reply() # Create a reply
+			reply = call.create_reply() # Creates a reply
 			reply.set_content('Here is your help.')
-			self.send(reply) # Sending the reply
-			display_message(self.agent, 'Help sent to %s.' % call.sender.getLocalName())
+			self.send(reply) # Sends the reply
+			display_message(self.agent, 'Help sent to %s.' % call.sender.getName())
 		else:
-			# Goes drink water
+			# Goes to drink water
 			display_message(self.agent, 'I am going to drink water.')
 			self.wait(10)
 			display_message(self.agent, 'I returned from water. e.e')
@@ -29,9 +28,13 @@ class CheckQueue(CyclicBehaviour):
 
 # Customer Agent
 class Customer(Agent):
-	def __init__(self, aid, time):
+	# We're using the __init__() method to handle the input 
+	# parameters for this agent
+	def __init__(self, aid, time, attendant):
+		# This super().__init__(aid) call is needed
 		super().__init__(aid)
 		self.time = time # The time to customer make a call
+		self.attendant = attendant # The address of attendant
 
 	def setup(self):
 		self.add_behaviour(Call(self, self.time))
@@ -42,7 +45,7 @@ class Call(WakeUpBehaviour):
 		# Preparing a message
 		call = ACLMessage(ACLMessage.REQUEST)
 		call.set_content('I need help!')
-		call.add_receiver('attendant')
+		call.add_receiver(self.agent.attendant)
 		self.send(call) # Sending a message
 		display_message(self.agent, 'I am making a call.')
 
@@ -51,15 +54,19 @@ class CloseCall(OneShotBehaviour):
 	def action(self):
 		# The customer only ends the call when gets a response
 		response = self.read()
-		# You don't need to handle None objects, because read() returns always ACLMessage objects
+		# You don't need to handle None objects, because the read()
+		# method always returns an ACLMessage object. The behaviour
+		# will remain blocked until a message arrives.
 		display_message(self.agent, 'I received help and I am closing the call. Thank you. =)')
 		display_message(self.agent, 'Help content: %s' % response.content)
 
 
 if __name__ == '__main__':
 	agents = list()
-	agents.append(Attendant('attendant'))
-	agents.append(Customer('customer-1', 2))
-	agents.append(Customer('customer-2', 10))
-	agents.append(Customer('customer-3', 20))
+	attendant = Attendant('attendant')
+	agents.append(attendant)
+	# Passing the attendant address for each customer
+	agents.append(Customer('customer-1', 2, attendant.aid))
+	agents.append(Customer('customer-2', 10, attendant.aid))
+	agents.append(Customer('customer-3', 20, attendant.aid))
 	start_loop(agents)
