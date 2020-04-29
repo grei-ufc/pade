@@ -76,7 +76,7 @@ if __name__ == '__main__':
 	ping_aid = AID('ping') # Creates an AID for ping
 	pong_aid = AID('pong') # Creates an AID for pong
 	# Creates a PingAgent using the AID ping_aid and passing the address (AID) of PongAgent (pong_aid)
-	ping = PingAgent(ping_aid.getName(), pong_aid)
+	ping = PingAgent(ping_aid, pong_aid)
 	# Creates a PongAgent using the AID pong_aid and passing the address (AID) of PingAgent (ping_aid)
-	pong = PongAgent(pong_aid.getName(), ping_aid)
+	pong = PongAgent(pong_aid, ping_aid)
 	start_loop([ping, pong])
