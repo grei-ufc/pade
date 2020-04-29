@@ -51,7 +51,7 @@ class Filter():
     def set_conversation_id(self, conversation_id):
         self.conversation_id = conversation_id
 
-    
+
     def set_protocol(self, protocol):
         self.protocol = protocol
 
