@@ -1,20 +1,30 @@
-from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop
 
 
-# Customer Agent
+# Sender Agent
 class SenderAgent(Agent):
+	# We need to get the receiver AID. We did it in the __init__() method
+	def __init__(self, name, receiver):
+		# This super().__init__() call is needed
+		super().__init__(name)
+		self.receiver = receiver # Gets the receiver address (AID)
+
 	def setup(self):
+		# Adds the SendMessage behaviour
 		self.add_behaviour(SendMessage(self))
 
 class SendMessage(OneShotBehaviour):
 	def action(self):
+		# Create a message with INFORM performative
 		message = ACLMessage(ACLMessage.INFORM)
-		message.add_receiver(AID('receiver'))
+		# Adds the address (AID) of the message recipient
+		message.add_receiver(self.agent.receiver)
+		# Adds some content
 		message.set_content('Hello! :)')
+		# Send the message to receiver
 		self.send(message)
 		display(self.agent, 'I sent a message to receiver.')
 
@@ -22,16 +32,21 @@ class SendMessage(OneShotBehaviour):
 # Receiver Agent
 class ReceiverAgent(Agent):
 	def setup(self):
+		# Adds the ReceiveMessage behaviour
 		self.add_behaviour(ReceiveMessage(self))
 
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
+		# Receives (reads) the message from queue
 		message = self.read()
+		# Shows the message content
 		display(self.agent, 'I received a message with the content: %s.' % message.content)
 
 
 if __name__ == '__main__':
 	agents = list()
-	agents.append(ReceiverAgent('receiver'))
-	agents.append(SenderAgent('sender'))
-	start_loop(agents)
+	# Creates a ReceiverAgent object
+	receiver = ReceiverAgent('receiver')
+	# Creates a SenderAgent object, passing the receiver AID
+	sender = SenderAgent('sender', receiver.aid)
+	start_loop([receiver, sender])

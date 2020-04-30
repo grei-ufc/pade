@@ -6,17 +6,21 @@ from pade.misc.utility import display_message, start_loop
 
 
 class SenderAgent(Agent):
+	def __init__(self, name, receiver):
+		super().__init__(name)
+		self.receiver = receiver # Gets the receiver AID
+
 	def setup(self):
 		self.add_behaviour(SendMessage(self, 1, 0))
 
 class SendMessage(TickerBehaviour):
 	def __init__(self, agent, time, counter):
 		super().__init__(agent, time)
-		self.counter = counter
+		self.counter = counter # Gets initial number of the counter
 
 	def on_tick(self):
 		message = ACLMessage(ACLMessage.INFORM)
-		message.add_receiver(AID('receiver'))
+		message.add_receiver(self.agent.receiver)
 		message.set_content('Message #%d' % self.counter)
 		self.send(message)
 		self.counter += 1
@@ -26,17 +30,22 @@ class SendMessage(TickerBehaviour):
 
 # Receiver Agent
 class ReceiverAgent(Agent):
+	def __init__(self, name, sender):
+		super().__init__(name)
+		self.sender = sender # Gets the local name of sender
+
 	def setup(self):
 		self.add_behaviour(ReceiveMessage(self))
 
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
 		message = self.read()
-		if message.sender.getLocalName() == 'sender':
+		if message.sender.getLocalName() == self.agent.sender:
 			display_message(self.agent, 'This is:  %s.' % message.content)
 
+
+
 if __name__ == '__main__':
-	agents = list()
-	agents.append(ReceiverAgent('receiver'))
-	agents.append(SenderAgent('sender'))
-	start_loop(agents)
+	receiver = ReceiverAgent('receiver', 'sender')
+	sender = SenderAgent('sender', receiver.aid)
+	start_loop([receiver, sender])

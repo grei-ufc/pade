@@ -710,7 +710,7 @@ class Agent(Agent_):
         Description
     """
     
-    def __init__(self, aid, debug=False):
+    def __init__(self, aid, debug=False, ignore_ams=True, wait_time=300):
         """Summary
         
         Parameters
@@ -724,6 +724,17 @@ class Agent(Agent_):
 
         self.comport_connection = CompConnection(self)
         self.system_behaviours.append(self.comport_connection)
+
+        # Extra attributes
+
+        # Scheduler object to manage the behaviours of this agent
+        self.scheduler = Scheduler(self)
+        # It indicates if the ams messages will be filtered before delivered to behaviours
+        self.ignore_ams = ignore_ams
+        # It indicates whether this agent is active or not
+        self.active = True
+        # It is a pre-programmed behaviour that deals with postponed messages
+        self.deliverer = DeliverPostponedMessage(self, wait_time)
 
     def update_ams(self, ams):
         """Summary
@@ -782,8 +793,8 @@ class Agent(Agent_):
         self.setup()
 
     def add_behaviour(self, behaviour):
-        ''' It adds only once a behaviour in the scheduler. Afterwards,
-        the behaviour will be scheduled within BehaviourTask.
+        ''' This method adds a behaviour in the scheduler. The behaviour
+        will be managed by the scheduler, as a BehaviourTask.
         '''
         if isinstance(behaviour, BaseBehaviour):
             task = BehaviourTask(behaviour, self.scheduler)
@@ -793,7 +804,7 @@ class Agent(Agent_):
             raise ValueError('behaviour object type must be BaseBehaviour!')
 
     def remove_task(self, task):
-        ''' It removes a task from scheduler. It must be used when a
+        ''' This method removes a task from scheduler. It must be used when a
         behaviour finishes.
         '''
         try:
@@ -805,7 +816,6 @@ class Agent(Agent_):
         ''' It passes the arrived message to all existing behaviours in 
         scheduler (all behaviours in the self.scheduler.behaviours queue).
         '''
-        #display(self.agent, '<> Recebi uma mensagem aleatória! <>')
         for task in self.scheduler.active_tasks:
             task.behaviour.receive(message)
 
@@ -843,7 +853,4 @@ class Agent(Agent_):
 
 
     def receiver_available(self, receiver):
-        for address in self.agentInstance.table:
-            if receiver.getLocalName() in address:
-                return True
-        return False
+        return receiver in self.agentInstance.table.values()

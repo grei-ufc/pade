@@ -38,32 +38,31 @@ class Filter():
         self.protocol = None
         self.ontology = None
         self.language = None
-        self.sender_local_name = None
 
     
     def set_sender(self, aid):
         self.sender = aid
-        
+
+
     def set_performative(self, performative):
         self.performative = performative
+
     
     def set_conversation_id(self, conversation_id):
         self.conversation_id = conversation_id
-    
+
+
     def set_protocol(self, protocol):
         self.protocol = protocol
+
 
     def set_ontology(self, ontology):
         self.ontology = ontology
 
+
     def set_language(self, language):
         self.language = language
 
-    def set_sender_local_name(self, local_name):
-        if isinstance(local_name, AID):
-            self.sender_local_name = local_name.getLocalName()
-        else:
-            self.sender_local_name = local_name
     
     def filter(self, message):
         state = True
@@ -84,9 +83,6 @@ class Filter():
             state = False
 
         if self.language != None and self.language != message.language:
-            state = False
-
-        if self.sender == None and self.sender_local_name != None and self.sender_local_name != message.sender.getLocalName():
             state = False
 
         return state
