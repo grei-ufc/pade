@@ -20,7 +20,7 @@ No código a seguir o *call_later()* é utilizado na classe *HelloAgent()* no m�
 
     class HelloAgent(Agent):
         def __init__(self, aid):
-            super(HelloAgent, self).__init__(aid=aid, debug=False)
+            super().__init__(aid=aid, debug=False)
 
         def on_start(self):
             super().on_start()
