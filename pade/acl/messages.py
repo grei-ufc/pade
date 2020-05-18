@@ -292,6 +292,9 @@ class ACLMessage(ET.Element):
 
     def get_performative(self):
         return self.performative
+    
+    def get_sender(self):
+        return self.sender
 
     def as_xml(self):
         domElement = minidom.parseString(ET.tostring(self))
