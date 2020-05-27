@@ -1,6 +1,5 @@
-﻿
-# Behaviours in PADE
-##### PADE Update (LAAI | UFPA), released at 4-22-2019, updated at 4-23-2020
+﻿# Behaviours in PADE
+##### PADE Update (LAAI | UFPA), released at 4-22-2019, updated at 5-26-2020
 
 
 
@@ -13,6 +12,7 @@
 	- [CyclicBehaviour](#cyclicbehaviour-class)
 	- [TickerBehaviour](#tickerbehaviour-class)
 	- [SequentialBehaviour](#sequentialbehaviour-class)
+- [Mutual Exclusion with behaviours](#mutual-exclusion-with-behaviours)
 - [Classes and methods](#classes-and-methods)
 	- [SimpleBehaviour](#simplebehaviour)
 	- [OneShotBehaviour class](#oneshotbehaviour)
@@ -267,15 +267,138 @@ Finally, we used the `Agent.add_behaviour(BaseBehaviour)` method to add the `seq
 
 
 
-> Note: You can add any `BaseBehaviour` subclass to a `SequentialBehaviour` object, however, it is recommended to use only finite behaviours. In theory, you will create a `SequentialBehaviour` object to be finalized in some time, but this will never happen if one of its sub-behaviours is a cyclic behaviour. =P
+> Note: You can add any `BaseBehaviour` subclass to a `SequentialBehaviour` object, however, it is recommended to use only finite behaviours. In theory, you will create a `SequentialBehaviour` object to be finalized in some point, but this will never happen if one of its sub-behaviours is a cyclic behaviour. =P
+
+
+## Mutual Exclusion with behaviours
+At some point in your programmer's life, you may need a behaviour to perform certain activity that another behaviour should not perform at the same time. This may occurs, as the behaviours in PADE are executed in parallel, by default. You can tell me to use the `SequentialBehaviour`, that can solve the most of the problems like this, but it may not fit all cases. The `SequentialBehaviour` executes one behaviour at a time, and this may not be what you want.
+
+When you want to run two or more behaviours of the same agent simultaneously, and also want that they synchronize their activities, the mutual exclusion may fit your need.
+
+The main idea of mutual exclusion is establish points of code to be executed without interference from other behaviours. It may be useful when you want to ensure that a shared resource (a variable, an object, a file, or another resource) is accessed synchronously by the behaviours of the same agent. It may be used also when you want to switch between different roles that an agent can assume throughout its lifecycle.
+
+To deal with that, we will need to use the class `Lock` of the `threading` module. We must create an object from this class and pass it to all the behaviours that we want to synchronize. Besides that, we need to specify which point of the behaviour will stay `locked` and `unlocked`. This point is called critical section.
+
+After pass the `Lock` object to the behaviour, we can use the method `BaseBehaviour.lock()` to indicate the begin of the critical section. Similarly, the method `BaseBehaviour.unlock()`indicates the end of the critical section. Any code between these methods will only be executed if another behaviour is not executing its critical section as well.
+
+Programmatically speaking, when a behaviour calls the method `lock()`, it checks if other behaviour already holds the lock. If so, the behaviour will block until the other behaviour releases the lock. The release is made when a behaviour calls the method `unlock()`. If the lock is free, the behaviour holds the lock and any other behaviour will be unable to execute its critical section.
+
+If you want to know more about how the `Lock` class works, see the Python threading module documentation [here](https://docs.python.org/3/library/threading.html#lock-objects).
+
+> Note: If you want that other behaviours perform its critical sections, don't forget to release the lock using the `unlock()` method. ;)
+
+To clear our thinking, we will see two usage examples of the mutual exclusion. First, we will rewrite the counting example implemented with `SequentialBehaviour` class. Note the usage of the `lock()` and `unlock()` methods.
+
+``` python
+from pade.behaviours.types import OneShotBehaviour
+from pade.core.agent import Agent
+from pade.misc.utility import display, start_loop
+import threading
+
+
+class Sequential(Agent):
+	def setup(self):
+		# Creating a Lock object to the behaviours which
+		# we want the mutual exclusion
+		lock = threading.Lock()
+		# Adding the behaviours and passing to them the
+		# same created lock object
+		self.add_behaviour(Count1_10(self, lock = lock))
+		self.add_behaviour(Count11_20(self, lock = lock))
+		self.add_behaviour(Count21_30(self, lock = lock))
+
+# Behaviour that counts from 1 to 10
+class Count1_10(OneShotBehaviour):
+	def action(self):
+		self.lock() # Here starts the critical section
+		display(self.agent, 'Now, I will count from 1 to 10 slowly:')
+		for num in range(1,11):
+			display(self.agent, num)
+			self.wait(1) # I put this so that we can see the behaviours blocking
+		self.unlock() # Here ends the critical section
+
+# Behaviour that counts from 11 to 20
+class Count11_20(OneShotBehaviour):
+	def action(self):
+		self.lock()
+		display(self.agent, 'Now, I will count from 11 to 20 slowly:')
+		for num in range(11,21):
+			display(self.agent, num)
+			self.wait(1)
+		self.unlock()
+
+# Behaviour that counts from 21 to 30
+class Count21_30(OneShotBehaviour):
+	def action(self):
+		self.lock()
+		display(self.agent, 'Now, I will count from 21 to 30 slowly:')
+		for num in range(21,31):
+			display(self.agent, num)
+			self.wait(1)
+		self.unlock()
+
+
+if __name__ == '__main__':
+	start_loop([Sequential('seq')])
+```
+
+Running the above code, you will see the same results of the `SequentialBehaviour` approach. Although the results are the same, instead of the behaviours execute one after the other, the behaviours executed parallelly. However, the critical section of each one was executed one at a time, thanks to the mutual exclusion.
+
+You probably saw the same counting order as `SequentialBehaviour` because of the enqueuement of the behaviours on PADE core. In addition, the critical section of the behaviours in the above example are placed in similar parts of the code.
+
+To make sure that the mutual exclusion really works, lets to see another example. Probably our results will be pretty different, once the threads scheduling is different in our hardware and OS. Even so, the code below aims to show us how the mutual exclusion works when the critical sections are placed in different codes.
+
+``` python
+from pade.behaviours.types import CyclicBehaviour
+from pade.core.agent import Agent
+from pade.misc.utility import display, start_loop
+import threading
+
+
+class MutualExclusionAgent(Agent):
+	def setup(self):
+		# Creating a Lock object
+		lock = threading.Lock()
+		# Adding the behaviours and passing the same lock
+		# object to them
+		self.add_behaviour(SayBiscoito(self, lock = lock))
+		self.add_behaviour(SayBolacha(self, lock = lock))
+
+class SayBiscoito(CyclicBehaviour):
+	def action(self):
+		self.lock() # Starts the critical section
+		for _ in range(5): # The agent will hold the lock by 5 prints
+			display(self.agent, 'The correct name is "BISCOITO".')
+			self.wait(0.5)
+		self.unlock() # Ends the critical section
+
+class SayBolacha(CyclicBehaviour):
+	def action(self):
+		self.lock()
+		# Here the agent will hold the lock only by 1 print, and 
+		# release it right away
+		display(self.agent, '"BOLACHA" is the correct name.')
+		self.unlock()
+
+
+if __name__ == '__main__':
+	start_loop([MutualExclusionAgent('mea')])
+```
+
+Run the above code and see the results. Note that sometimes the `SayBiscoito` holds the lock and prints 5 times its phrase. Afterward, it releases the lock and tries to hold it again. If the `SayBolacha` can hold the lock, it prints its phrase by 1 time and releases the lock right away. These two behaviours will continue to disputate the same lock for the eternity. All the times that `SayBiscoito` gets the lock, it will print by 5 times, while the `SayBolacha` will print by once. The `SayBiscoito` never will print 4 or 6 times, because its critical section holds the lock exactly by 5 times.
+
+> **Important note ¹:** the mutual exclusion works for all the finite and infinite behaviours but doesn't work to compound behaviours (like `SequentialBehaviour`).
+> **Important note ²:** keep in mind that mutual exclusion can generate problems with deadlock, even in distributed systems. Then, use it with some software engineering to avoid problems. ;)
+
 
 ## Classes and methods
 Here you will find a summary about the classes and their methods. Use it to aid your development.
 
 ### SimpleBehaviour
-- **\_\_init__(agent)**:  initiate the agent.
+- **\_\_init__(agent, lock = None)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
+		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -327,11 +450,24 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
+- **lock()**: tries to hold a lock object. If so, continues the execution; if don't, blocks until can hold the lock.
+	- _Returns:_
+		- `None`
+
+- **unlock()**: releases a held lock object.
+	- _Returns:_
+		- `None`
+
+- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+	- _Returns:_
+		- `None`
+
 
 ### OneShotBehaviour
-- **\_\_init__(agent)**:  initiate the agent.
+- **\_\_init__(agent, lock = None)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
+		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -383,11 +519,24 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
+- **lock()**: tries to hold a lock object. If so, continues the execution; if don't, blocks until can hold the lock.
+	- _Returns:_
+		- `None`
+
+- **unlock()**: releases a held lock object.
+	- _Returns:_
+		- `None`
+
+- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+	- _Returns:_
+		- `None`
+
 
 ### CyclicBehaviour
-- **\_\_init__(agent)**:  initiate the agent.
+- **\_\_init__(agent, lock = None)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
+		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -439,12 +588,25 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
+- **lock()**: tries to hold a lock object. If so, continues the execution; if don't, blocks until can hold the lock.
+	- _Returns:_
+		- `None`
+
+- **unlock()**: releases a held lock object.
+	- _Returns:_
+		- `None`
+
+- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+	- _Returns:_
+		- `None`
+
 
 ### WakeUpBehaviour
-- **\_\_init__(agent, time)**:  initiate the agent.
+- **\_\_init__(agent, time, lock = None)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
 		- `time`: a float parameter that indicates the time that the behaviour will wait before performs its `on_wake()` method.
+		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -500,12 +662,25 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
+- **lock()**: tries to hold a lock object. If so, continues the execution; if don't, blocks until can hold the lock.
+	- _Returns:_
+		- `None`
+
+- **unlock()**: releases a held lock object.
+	- _Returns:_
+		- `None`
+
+- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+	- _Returns:_
+		- `None`
+
 
 ### TickerBehaviour
-- **\_\_init__(agent, time)**:  initiate the agent.
+- **\_\_init__(agent, time, lock = None)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
 		- `time`: a float parameter that indicates the time that the behaviour will wait before performs its `on_tick()` method.
+		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -561,6 +736,17 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `bool`: by returning `True`, the behaviour has messages in its queue. By returning `False`, the behaviour doesn't have messages in its queue.
 
+- **lock()**: tries to hold a lock object. If so, continues the execution; if don't, blocks until can hold the lock.
+	- _Returns:_
+		- `None`
+
+- **unlock()**: releases a held lock object.
+	- _Returns:_
+		- `None`
+
+- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+	- _Returns:_
+		- `None`
 
 
 ### SequentialBehaviour
@@ -627,6 +813,8 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 
 
 ## Contact us
+All the presented code examples can be found at the `pade/examples/behaviours-and-messages/` directory of this repository.
+
 If you find a bug or need any specific help, feel free to visit us or submit an _issue_ on [GitHub](https://github.com/grei-ufc/pade). We appreciate contributions to make PADE better. ;)
 
 Written by [Italo Campos](mailto:italo.ramon.campos@gmail.com) with [StackEdit](https://stackedit.io/).

@@ -6,16 +6,17 @@ are used to model the agent behaviours.
 from pade.behaviours.base import BaseBehaviour
 from pade.acl.messages import ACLMessage
 
+
 class SimpleBehaviour(BaseBehaviour):
 
 	''' SimpleBehaviour class models a basic behaviour. Its action()
 	and done() methods must be written in the subclasses.
 	'''
 
-	def __init__(self, agent):
+	def __init__(self, agent, lock = None):
 		''' Simply calls the superclass __init__() method.
 		'''
-		super().__init__(agent)
+		super().__init__(agent, lock)
 
 	def action(self):
 		''' This is an abstract method that must be overridden in the
@@ -36,8 +37,8 @@ class OneShotBehaviour(BaseBehaviour):
 	action() method only once.
 	'''
 
-	def __init__(self, agent):
-		super().__init__(agent)
+	def __init__(self, agent, lock = None):
+		super().__init__(agent, lock)
 
 	def action(self):
 		''' This is an abstract method that must be overridden in the
@@ -58,8 +59,8 @@ class CyclicBehaviour(BaseBehaviour):
 	action() method until the end of the agent.
 	'''
 
-	def __init__(self, agent):
-		super().__init__(agent)
+	def __init__(self, agent, lock = None):
+		super().__init__(agent, lock)
 
 	def action(self):
 		''' This is an abstract method that must be overridden in the
@@ -82,8 +83,8 @@ class WakeUpBehaviour(OneShotBehaviour):
 	passed into its __init__() method. 
 	'''
 
-	def __init__(self, agent, time):
-		super().__init__(agent)
+	def __init__(self, agent, time, lock = None):
+		super().__init__(agent, lock)
 		self.time = time
 
 	def action(self):
@@ -108,8 +109,8 @@ class TickerBehaviour(CyclicBehaviour):
 	seconds is passed into its __init__() method. 
 	'''
 
-	def __init__(self, agent, time):
-		super().__init__(agent)
+	def __init__(self, agent, time, lock = None):
+		super().__init__(agent, lock)
 		self.time = time
 
 	def action(self):
@@ -135,8 +136,8 @@ class SequentialBehaviour(OneShotBehaviour):
 	'''
 
 	def __init__(self, agent):
-		super().__init__(agent)
-		# sub-behaviours list
+		super().__init__(agent, lock = None)
+		# Sub-behaviours list
 		self.subbehaviours = list()
 
 	def action(self):
@@ -147,7 +148,6 @@ class SequentialBehaviour(OneShotBehaviour):
 			behaviour.action()
 			while not behaviour.done():
 				behaviour.action()
-				self.wait(0.1)
 			behaviour.on_end()
 
 	def add_subbehaviour(self, behaviour):

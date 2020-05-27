@@ -1,5 +1,4 @@
-﻿
-# Message Exchange
+﻿# Message Exchange
 ##### PADE Update (LAAI | UFPA), released at 4-22-2019, updated at 4-24-2020
 
 
@@ -467,6 +466,8 @@ The `SearchContact` behaviour receives requests and answers to them by serializi
 
 
 ## Contact us
+All the presented code examples can be found at the `pade/examples/behaviours-and-messages/` directory of this repository.
+
 That is all. We hope you enjoy PADE. If you find a bug or need any specific help, feel free to visit us or submit an _issue_ on [GitHub](https://github.com/grei-ufc/pade). We appreciate contributions to make PADE better. ;)
 
 Written by [Italo Campos](mailto:italo.ramon.campos@gmail.com) with [StackEdit](https://stackedit.io/).
