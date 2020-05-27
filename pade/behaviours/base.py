@@ -6,7 +6,7 @@ order to PADE Scheduler be able to manage the agent behaviours.
 from pade.behaviours.protocols import Behaviour
 from pade.acl.messages import ACLMessage
 from time import sleep
-import queue, threading
+import queue
 
 class BaseBehaviour(Behaviour):
 
@@ -14,7 +14,7 @@ class BaseBehaviour(Behaviour):
 	implements the basic methods for scheduled behaviours.
 	'''
 
-	def __init__(self, agent, lock = None):
+	def __init__(self, agent):
 		''' This method initializes a new instance of BaseBehaviour
 		class and explicitly calls the Behaviour.__init__() method.
 		'''
@@ -22,7 +22,7 @@ class BaseBehaviour(Behaviour):
 		# Queue of received messages by the agent and unread by this behaviour
 		self.messages = queue.Queue()
 		# Lock object (to ensure the mutual exclusion, when needed)
-		self.__lock = lock
+		self.__lock = None
 
 
 	def read(self, block = True):
@@ -107,10 +107,7 @@ class BaseBehaviour(Behaviour):
 		''' Adds a threading.Lock object to this behaviour, allowing 
 		it to execute the mutual exclusion correctly.
 		'''
-		if isinstance(lock, threading.Lock):
-			self.__lock = lock
-		else:
-			raise(Exception('A threading.Lock object is required.'))
+		self.__lock = lock
 	
 
 	def lock(self):

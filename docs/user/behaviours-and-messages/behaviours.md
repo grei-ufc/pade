@@ -279,7 +279,7 @@ The main idea of mutual exclusion is establish points of code to be executed wit
 
 To deal with that, we will need to use the class `Lock` of the `threading` module. We must create an object from this class and pass it to all the behaviours that we want to synchronize. Besides that, we need to specify which point of the code will stay `locked` and `unlocked`. This point is called critical section.
 
-After pass the `Lock` object to the behaviour, we can use the method `BaseBehaviour.lock()` to indicate the begin of the critical section. Similarly, the method `BaseBehaviour.unlock()`indicates the end of the critical section. Any code between these methods will only perform if another behaviour is not executing its critical section as well.
+To pass the `Lock` object to the desired behaviours, we must use the `BaseBehaviour.add_lock(lock)`. To indicate the begin of the critical section, we use the method `BaseBehaviour.lock()`. Similarly, the method `BaseBehaviour.unlock()`indicates the end of the critical section. Any code between these methods will only perform if another behaviour is not executing its critical section as well.
 
 Programmatically speaking, when a behaviour calls the method `lock()`, it checks if another behaviour already holds the lock. If so, the behaviour will block until the other behaviour releases the lock. The release is made when a behaviour calls the method `unlock()`. When the lock is free, a behaviour holds the lock and any other behaviour will be unable to execute its critical section.
 
@@ -296,14 +296,21 @@ import threading
 
 class Sequential(Agent):
 	def setup(self):
-		# Creating a Lock object to the behaviours which
-		# we want the mutual exclusion
+		# Creating a Lock object
 		lock = threading.Lock()
-		# Adding the behaviours and passing to them the
-		# same created lock object
-		self.add_behaviour(Count1_10(self, lock = lock))
-		self.add_behaviour(Count11_20(self, lock = lock))
-		self.add_behaviour(Count21_30(self, lock = lock))
+		# Creating the behaviours
+		count1 = Count1_10(self)
+		count2 = Count11_20(self)
+		count3 = Count21_30(self)
+		# Adding the same lock to behaviours we
+		# want the mutual exclusion
+		count1.add_lock(lock)
+		count2.add_lock(lock)
+		count3.add_lock(lock)
+		# Adding the behaviours on agent
+		self.add_behaviour(count1)
+		self.add_behaviour(count2)
+		self.add_behaviour(count3)
 
 # Behaviour that counts from 1 to 10
 class Count1_10(OneShotBehaviour):
@@ -357,10 +364,15 @@ class MutualExclusionAgent(Agent):
 	def setup(self):
 		# Creating a Lock object
 		lock = threading.Lock()
-		# Adding the behaviours and passing the same lock
-		# object to them
-		self.add_behaviour(SayBiscoito(self, lock = lock))
-		self.add_behaviour(SayBolacha(self, lock = lock))
+		# Creating the behaviours
+		say_biscoito = SayBiscoito(self)
+		say_bolacha = SayBolacha(self)
+		# Passing the same lock object to behaviours
+		say_bolacha.add_lock(lock)
+		say_biscoito.add_lock(lock)
+		# Adding the behaviours in the agent
+		self.add_behaviour(say_biscoito)
+		self.add_behaviour(say_bolacha)
 
 class SayBiscoito(CyclicBehaviour):
 	def action(self):
@@ -394,10 +406,9 @@ Run the above code and see the results. Note that the `SayBiscoito` behaviour ho
 Here you will find a summary about the classes and their methods. Use it to aid your development.
 
 ### SimpleBehaviour
-- **\_\_init__(agent, lock = None)**:  initiate the agent.
+- **\_\_init__(agent,)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
-		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -457,16 +468,17 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `None`
 
-- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+- **add_lock(lock)**: adds a `Lock` object to behaviour.
+	- _Arguments:_
+		- `lock`: object from `threading.Lock` class. Implements the mutual exclusion for behaviours.
 	- _Returns:_
 		- `None`
 
 
 ### OneShotBehaviour
-- **\_\_init__(agent, lock = None)**:  initiate the agent.
+- **\_\_init__(agent,)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
-		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -526,16 +538,17 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `None`
 
-- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+- **add_lock(lock)**: adds a `Lock` object to behaviour.
+	- _Arguments:_
+		- `lock`: object from `threading.Lock` class. Implements the mutual exclusion for behaviours.
 	- _Returns:_
 		- `None`
 
 
 ### CyclicBehaviour
-- **\_\_init__(agent, lock = None)**:  initiate the agent.
+- **\_\_init__(agent,)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
-		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -595,17 +608,18 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `None`
 
-- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+- **add_lock(lock)**: adds a `Lock` object to behaviour.
+	- _Arguments:_
+		- `lock`: object from `threading.Lock` class. Implements the mutual exclusion for behaviours.
 	- _Returns:_
 		- `None`
 
 
 ### WakeUpBehaviour
-- **\_\_init__(agent, time, lock = None)**:  initiate the agent.
+- **\_\_init__(agent, time)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
 		- `time`: a float parameter that indicates the time that the behaviour will wait before performs its `on_wake()` method.
-		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -669,17 +683,18 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `None`
 
-- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+- **add_lock(lock)**: adds a `Lock` object to behaviour.
+	- _Arguments:_
+		- `lock`: object from `threading.Lock` class. Implements the mutual exclusion for behaviours.
 	- _Returns:_
 		- `None`
 
 
 ### TickerBehaviour
-- **\_\_init__(agent, time, lock = None)**:  initiate the agent.
+- **\_\_init__(agent, time)**:  initiate the agent.
 	- _Arguments:_
 		- `agent`: object from `Agent` class. Indicates which agent hold it.
 		- `time`: a float parameter that indicates the time that the behaviour will wait before performs its `on_tick()` method.
-		- `lock`: a `threading.Lock` object to implements mutual exclusion.
 	- _Returns:_
 		- `None`
 
@@ -743,7 +758,9 @@ Here you will find a summary about the classes and their methods. Use it to aid 
 	- _Returns:_
 		- `None`
 
-- **add_lock(lock)**: adds a `threading.Lock` object to behaviour.
+- **add_lock(lock)**: adds a `Lock` object to behaviour.
+	- _Arguments:_
+		- `lock`: object from `threading.Lock` class. Implements the mutual exclusion for behaviours.
 	- _Returns:_
 		- `None`
 

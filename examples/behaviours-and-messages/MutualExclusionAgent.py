@@ -8,10 +8,15 @@ class MutualExclusionAgent(Agent):
 	def setup(self):
 		# Creating a Lock object
 		lock = threading.Lock()
-		# Adding the behaviours and passing the same lock
-		# object to them
-		self.add_behaviour(SayBiscoito(self, lock = lock))
-		self.add_behaviour(SayBolacha(self, lock = lock))
+		# Creating the behaviours
+		say_biscoito = SayBiscoito(self)
+		say_bolacha = SayBolacha(self)
+		# Passing the same lock object to behaviours
+		say_bolacha.add_lock(lock)
+		say_biscoito.add_lock(lock)
+		# Adding the behaviours in the agent
+		self.add_behaviour(say_biscoito)
+		self.add_behaviour(say_bolacha)
 
 class SayBiscoito(CyclicBehaviour):
 	def action(self):

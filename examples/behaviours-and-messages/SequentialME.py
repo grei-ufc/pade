@@ -6,14 +6,21 @@ import threading
 
 class Sequential(Agent):
 	def setup(self):
-		# Creating a Lock object to the behaviours which
-		# we want the mutual exclusion
+		# Creating a Lock object
 		lock = threading.Lock()
-		# Adding the behaviours and passing to them the
-		# same created lock object
-		self.add_behaviour(Count1_10(self, lock = lock))
-		self.add_behaviour(Count11_20(self, lock = lock))
-		self.add_behaviour(Count21_30(self, lock = lock))
+		# Creating the behaviours
+		count1 = Count1_10(self)
+		count2 = Count11_20(self)
+		count3 = Count21_30(self)
+		# Adding the same lock to behaviours we
+		# want the mutual exclusion
+		count1.add_lock(lock)
+		count2.add_lock(lock)
+		count3.add_lock(lock)
+		# Adding the behaviours on agent
+		self.add_behaviour(count1)
+		self.add_behaviour(count2)
+		self.add_behaviour(count3)
 
 # Behaviour that counts from 1 to 10
 class Count1_10(OneShotBehaviour):

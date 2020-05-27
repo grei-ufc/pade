@@ -13,10 +13,10 @@ class SimpleBehaviour(BaseBehaviour):
 	and done() methods must be written in the subclasses.
 	'''
 
-	def __init__(self, agent, lock = None):
+	def __init__(self, agent):
 		''' Simply calls the superclass __init__() method.
 		'''
-		super().__init__(agent, lock)
+		super().__init__(agent)
 
 	def action(self):
 		''' This is an abstract method that must be overridden in the
@@ -37,8 +37,8 @@ class OneShotBehaviour(BaseBehaviour):
 	action() method only once.
 	'''
 
-	def __init__(self, agent, lock = None):
-		super().__init__(agent, lock)
+	def __init__(self, agent):
+		super().__init__(agent)
 
 	def action(self):
 		''' This is an abstract method that must be overridden in the
@@ -59,8 +59,8 @@ class CyclicBehaviour(BaseBehaviour):
 	action() method until the end of the agent.
 	'''
 
-	def __init__(self, agent, lock = None):
-		super().__init__(agent, lock)
+	def __init__(self, agent):
+		super().__init__(agent)
 
 	def action(self):
 		''' This is an abstract method that must be overridden in the
@@ -83,8 +83,8 @@ class WakeUpBehaviour(OneShotBehaviour):
 	passed into its __init__() method. 
 	'''
 
-	def __init__(self, agent, time, lock = None):
-		super().__init__(agent, lock)
+	def __init__(self, agent, time):
+		super().__init__(agent)
 		self.time = time
 
 	def action(self):
@@ -109,8 +109,8 @@ class TickerBehaviour(CyclicBehaviour):
 	seconds is passed into its __init__() method. 
 	'''
 
-	def __init__(self, agent, time, lock = None):
-		super().__init__(agent, lock)
+	def __init__(self, agent, time):
+		super().__init__(agent)
 		self.time = time
 
 	def action(self):
@@ -136,7 +136,7 @@ class SequentialBehaviour(OneShotBehaviour):
 	'''
 
 	def __init__(self, agent):
-		super().__init__(agent, lock = None)
+		super().__init__(agent)
 		# Sub-behaviours list
 		self.subbehaviours = list()
 
