@@ -388,6 +388,7 @@ if __name__ == '__main__':
 Run the above code and see the results. Note that sometimes the `SayBiscoito` holds the lock and prints 5 times its phrase. Afterward, it releases the lock and tries to hold it again. If the `SayBolacha` can hold the lock, it prints its phrase by 1 time and releases the lock right away. These two behaviours will continue to disputate the same lock for the eternity. All the times that `SayBiscoito` gets the lock, it will print by 5 times, while the `SayBolacha` will print by once. The `SayBiscoito` never will print 4 or 6 times, because its critical section holds the lock exactly by 5 times.
 
 > **Important note ¹:** the mutual exclusion works for all the finite and infinite behaviours but doesn't work to compound behaviours (like `SequentialBehaviour`).
+
 > **Important note ²:** keep in mind that mutual exclusion can generate problems with deadlock, even in distributed systems. Then, use it with some software engineering to avoid problems. ;)
 
 
