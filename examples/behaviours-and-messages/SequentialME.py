@@ -18,12 +18,12 @@ class Sequential(Agent):
 # Behaviour that counts from 1 to 10
 class Count1_10(OneShotBehaviour):
 	def action(self):
-		self.lock() # Here starts the critical section
+		self.lock() # Here starts the critical section (holds the lock)
 		display(self.agent, 'Now, I will count from 1 to 10 slowly:')
 		for num in range(1,11):
 			display(self.agent, num)
 			self.wait(1) # I put this so that we can see the behaviours blocking
-		self.unlock() # Here ends the critical section
+		self.unlock() # Here ends the critical section (releases the lock)
 
 # Behaviour that counts from 11 to 20
 class Count11_20(OneShotBehaviour):
