@@ -37,6 +37,7 @@ from twisted.internet import protocol, reactor
 
 from pade.core.peer import PeerProtocol
 from pade.acl.messages import ACLMessage
+from pade.acl.filters import Filter
 from pade.core.delivery import DeliverPostponedMessage
 from pade.behaviours.protocols import Behaviour
 from pade.behaviours.base import BaseBehaviour
@@ -45,6 +46,7 @@ from pade.acl.aid import AID
 from pade.scheduler.core import Scheduler, BehaviourTask
 from pade.misc.utility import display_message
 
+from collections import deque
 from pickle import dumps, loads
 import random
 
@@ -241,6 +243,8 @@ class Agent_(object):
         A dictionary with AMS information {'name': ams_IP, 'port': ams_port}
     behaviours : list
         Agent's behaviours list
+    messages : deque
+        Messages received by the agent
     debug : boollean
         if True activate the debug mode
     ILP : TYPE
@@ -271,6 +275,7 @@ class Agent_(object):
         self.ams = dict()
         self.sniffer = dict()
         self.behaviours = list()
+        self.messages = deque()
         self.system_behaviours = list()
         self.__messages = list()
         self.ILP = None
@@ -442,13 +447,33 @@ class Agent_(object):
         message : ACLMessage
             receive message 
         """
-
         if message.system_message:
             for system_behaviour in self.system_behaviours:
                 system_behaviour.execute(message)
         else:
             for behaviour in self.behaviours:
                 behaviour.execute(message)
+
+    def read(self, messageFilters=None):
+        '''
+        Get the first message from the top of the message stack (left-side of
+        the deque) with match the filters provided.
+
+        If any filter was provided, return the message from the top of stack.
+        Parameters
+        ----------
+        messageFilters : Filter
+            filter to be applied at the messages
+        '''
+        if messageFilters == None:
+            return self.messages.popleft()
+
+        for i in self.messages:
+            if messageFilters.filter(i):
+                self.messages.remove(i)
+                return i
+
+        return None
 
     def send(self, message):
         """This method calls the method self._send to sends 
@@ -776,9 +801,8 @@ class Agent(Agent_):
             _message.set_system_message(is_system_message=True)
             self.send(_message)
 
-        # Passes the received message to all behaviours
         if not self.ignore_ams or not message.system_message:
-            self.receive(message)
+            self.messages.appendleft(message)
 
     def setup(self):
         ''' This method is an alternative to initiate agents without
@@ -812,12 +836,11 @@ class Agent(Agent_):
         except ValueError:
             raise ValueError('the behaviour does not exists in scheduler.')
 
-    def receive(self, message):
-        ''' It passes the arrived message to all existing behaviours in 
-        scheduler (all behaviours in the self.scheduler.behaviours queue).
+    def has_messages(self):
+        ''' A method to returns if this behaviour has messages in its
+        received messages queue.
         '''
-        for task in self.scheduler.active_tasks:
-            task.behaviour.receive(message)
+        return len(self.messages) > 0
 
     def pause_agent(self):
         ''' This method indicates to scheduler to pause its activities.
