@@ -17,6 +17,9 @@ class SenderAgent(Agent):
 		self.add_behaviour(SendMessage(self))
 
 class SendMessage(OneShotBehaviour):
+	def __init__(self, agent):
+		super().__init__(agent)
+
 	def action(self):
 		# Create a message with INFORM performative
 		message = ACLMessage(ACLMessage.INFORM)
@@ -25,9 +28,8 @@ class SendMessage(OneShotBehaviour):
 		# Adds some content
 		message.set_content('Hello! :)')
 		# Send the message to receiver
-		self.send(message)
+		self.agent.send(message)
 		display(self.agent, 'I sent a message to receiver.')
-
 
 # Receiver Agent
 class ReceiverAgent(Agent):
@@ -36,12 +38,15 @@ class ReceiverAgent(Agent):
 		self.add_behaviour(ReceiveMessage(self))
 
 class ReceiveMessage(CyclicBehaviour):
-	def action(self):
-		# Receives (reads) the message from queue
-		message = self.read()
-		# Shows the message content
-		display(self.agent, 'I received a message with the content: %s.' % message.content)
+	def __init__(self, agent):
+		super().__init__(agent)
 
+	def action(self):
+		if self.agent.has_messages():
+			# Receives (reads) the message from queue
+			message = self.agent.read()
+			# Shows the message content
+			display(self.agent, 'I received a message with the content: %s.' % message.content)
 
 if __name__ == '__main__':
 	agents = list()
