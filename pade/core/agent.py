@@ -49,6 +49,7 @@ from pade.misc.utility import display_message
 from collections import deque
 from pickle import dumps, loads
 import random
+import threading
 
 
 class AgentProtocol(PeerProtocol):
@@ -245,6 +246,8 @@ class Agent_(object):
         Agent's behaviours list
     messages : deque
         Messages received by the agent
+    messages_lock : threading.Lock
+        Lock the message stack during operations on the stack
     debug : boollean
         if True activate the debug mode
     ILP : TYPE
@@ -276,6 +279,7 @@ class Agent_(object):
         self.sniffer = dict()
         self.behaviours = list()
         self.messages = deque()
+        self.messages_lock = threading.Lock()
         self.system_behaviours = list()
         self.__messages = list()
         self.ILP = None
@@ -465,13 +469,14 @@ class Agent_(object):
         messageFilters : Filter
             filter to be applied at the messages
         '''
-        if messageFilters == None:
-            return self.messages.popleft()
+        with self.messages_lock:
+            if messageFilters == None:
+                return self.messages.popleft()
 
-        for i in self.messages:
-            if messageFilters.filter(i):
-                self.messages.remove(i)
-                return i
+            for i in self.messages:
+                if messageFilters.filter(i):
+                    self.messages.remove(i)
+                    return i
 
         return None
 
@@ -801,8 +806,9 @@ class Agent(Agent_):
             _message.set_system_message(is_system_message=True)
             self.send(_message)
 
-        if not self.ignore_ams or not message.system_message:
-            self.messages.appendleft(message)
+        with self.messages_lock:
+            if not self.ignore_ams or not message.system_message:
+                self.messages.appendleft(message)
 
     def setup(self):
         ''' This method is an alternative to initiate agents without
@@ -840,7 +846,8 @@ class Agent(Agent_):
         ''' A method to returns if this behaviour has messages in its
         received messages queue.
         '''
-        return len(self.messages) > 0
+        with self.messages_lock:
+            return len(self.messages) > 0
 
     def pause_agent(self):
         ''' This method indicates to scheduler to pause its activities.
