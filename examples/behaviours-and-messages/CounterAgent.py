@@ -1,3 +1,7 @@
+''' This example shows how SimpleBehaviour works. The agent simply
+counts from 0 to 30.
+'''
+
 from pade.behaviours.types import SimpleBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop

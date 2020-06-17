@@ -1,3 +1,7 @@
+''' This example shows how the data serialization works. Customers
+send requests to supermarket about products from specific sections.
+'''
+
 from pade.acl.messages import ACLMessage
 from pade.acl.filters import Filter
 from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
@@ -20,7 +24,7 @@ class RequestList(OneShotBehaviour):
 	def action(self):
 		message = ACLMessage(ACLMessage.REQUEST)
 		message.add_receiver(self.agent.supermarket)
-		message.set_ontology(self.agent.section) # Defines the type of list required
+		message.set_protocol(self.agent.section) # Defines the type of list required
 		message.set_content('Please, give me this list')
 		self.send(message)
 		display(self.agent, 'I requested for %s products.' % self.agent.section)
@@ -51,7 +55,7 @@ class FruitList(CyclicBehaviour):
 		f = Filter()
 		# The object 'f' is the 'model' of message you want to receive
 		f.set_performative(ACLMessage.REQUEST) # Only accept REQUEST messages
-		f.set_ontology('fruits') # Only accept messagens with 'fruits' in ontology field
+		f.set_protocol('fruits') # Only accept messagens with 'fruits' in protocol field
 
 		# Receiving a message
 		message = self.read()
@@ -69,7 +73,7 @@ class FoodList(CyclicBehaviour):
 		# Setting the filter
 		f = Filter()
 		f.set_performative(ACLMessage.REQUEST)
-		f.set_ontology('foods')
+		f.set_protocol('foods')
 		message = self.read()
 
 		# Filtering the received message
@@ -86,7 +90,7 @@ class OfficeList(CyclicBehaviour):
 		# Setting the filter
 		f = Filter()
 		f.set_performative(ACLMessage.REQUEST)
-		f.set_ontology('office')
+		f.set_protocol('office')
 		message = self.read()
 
 		# Filtering the received message
@@ -103,7 +107,7 @@ class UnknownList(CyclicBehaviour):
 		message = self.read()
 
 		# Filtering the received message manually
-		if not message.ontology in ['fruits', 'foods', 'office']:
+		if not message.protocol in ['fruits', 'foods', 'office']:
 			reply = message.create_reply()
 			reply.set_content('Unknown list')
 			reply.set_performative(ACLMessage.INFORM)

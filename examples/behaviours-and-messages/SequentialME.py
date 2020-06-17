@@ -1,3 +1,7 @@
+''' This example shows how the mutual exclusion works. The agent do a
+counting from 1 to 30.
+'''
+
 from pade.behaviours.types import OneShotBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop
@@ -25,32 +29,38 @@ class Sequential(Agent):
 # Behaviour that counts from 1 to 10
 class Count1_10(OneShotBehaviour):
 	def action(self):
-		self.lock() # Here starts the critical section (holds the lock)
+		# Here starts the critical section (holds the lock)
+		self.lock.acquire()
 		display(self.agent, 'Now, I will count from 1 to 10 slowly:')
 		for num in range(1,11):
 			display(self.agent, num)
 			self.wait(1) # I put this so that we can see the behaviours blocking
-		self.unlock() # Here ends the critical section (releases the lock)
+		# Here ends the critical section (releases the lock)
+		self.lock.release()
 
 # Behaviour that counts from 11 to 20
 class Count11_20(OneShotBehaviour):
 	def action(self):
-		self.lock()
+		# Here starts the critical section (holds the lock)
+		self.lock.acquire()
 		display(self.agent, 'Now, I will count from 11 to 20 slowly:')
 		for num in range(11,21):
 			display(self.agent, num)
 			self.wait(1)
-		self.unlock()
+		# Here ends the critical section (releases the lock)
+		self.lock.release()
 
 # Behaviour that counts from 21 to 30
 class Count21_30(OneShotBehaviour):
 	def action(self):
-		self.lock()
+		# Here starts the critical section (holds the lock)
+		self.lock.acquire()
 		display(self.agent, 'Now, I will count from 21 to 30 slowly:')
 		for num in range(21,31):
 			display(self.agent, num)
 			self.wait(1)
-		self.unlock()
+		# Here ends the critical section (releases the lock)
+		self.lock.release()
 
 
 if __name__ == '__main__':

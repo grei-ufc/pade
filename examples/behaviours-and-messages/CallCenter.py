@@ -1,3 +1,9 @@
+''' This example shows how the read_timeout() method works. This
+example models an attendant that goes to drink water in each 3
+seconds, and returns to attend customers. The customers request,
+at different times, the call center services.
+'''
+
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import CyclicBehaviour, WakeUpBehaviour, OneShotBehaviour
 from pade.core.agent import Agent
@@ -21,7 +27,7 @@ class CheckQueue(CyclicBehaviour):
 			display_message(self.agent, 'Help sent to %s.' % call.sender.getName())
 		else:
 			# Goes to drink water
-			display_message(self.agent, 'I am going to drink water.')
+			display_message(self.agent, "I'm gonna drink water.")
 			self.wait(10)
 			display_message(self.agent, 'I returned from water. e.e')
 
@@ -47,7 +53,7 @@ class Call(WakeUpBehaviour):
 		call.set_content('I need help!')
 		call.add_receiver(self.agent.attendant)
 		self.send(call) # Sending a message
-		display_message(self.agent, 'I am making a call.')
+		display_message(self.agent, "I'm calling the call center.")
 
 
 class CloseCall(OneShotBehaviour):

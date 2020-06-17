@@ -1,3 +1,9 @@
+''' This example shows how the agents can ignore the AMS messages
+or not: that is programmer's choice (using the parameter
+ignore_ams). This behaviour will unblock every times the agent
+receives a message from AMS.
+'''
+
 from pade.behaviours.types import CyclicBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display_message, start_loop
