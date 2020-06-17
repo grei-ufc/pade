@@ -274,7 +274,7 @@ enable the PADE Scheduler to manage the agent behaviours.
     
       - `behaviours`
 
-  - ### [Classes](#header-classes)
+  - ### [Classes](#classes)
     
       - #### `BaseBehaviour`
         

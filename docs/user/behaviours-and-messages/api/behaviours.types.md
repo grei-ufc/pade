@@ -382,7 +382,7 @@ subclasses are used to model the agent behaviours of various types.
     
       - `behaviours`
 
-  - ### [Classes](#header-classes)
+  - ### [Classes](#classes)
     
       - #### `CyclicBehaviour`
         

@@ -4,9 +4,9 @@ This document indexes other documents related to behaviours programming and mess
 - [Behaviours](behaviours.md)
 - [Message exchange](message-exchange.md)
 - [Examples](https://github.com/italocampos/pade/tree/master/examples/behaviours-and-messages)
-- [Some behaviour API](https://github.com/italocampos/pade/tree/master/docs/user/behaviours-and-messages/api)
-	- [behaviours.core]()
-	- [behaviours.types]()
-	- [scheduler.core]()
+- [Some behaviour API](api)
+	- [behaviours.core](api/behaviours.core.md)
+	- [behaviours.types](api/behaviours.types.md)
+	- [scheduler.core](api/scheduler.core.md)
 
-> Written by @italocampos with [StackEdit](https://stackedit.io/).
+> Written by [@italocampos](https://github.com/italocampos) with [StackEdit](https://stackedit.io/).

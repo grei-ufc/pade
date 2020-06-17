@@ -10,8 +10,8 @@
 	- [CyclicBehaviour](#cyclicbehaviour-class)
 	- [TickerBehaviour](#tickerbehaviour-class)
 	- [SequentialBehaviour](#sequentialbehaviour-class)
-- [Mutual Exclusion with behaviours](#mutual-exclusion-with-behaviours)
 - [Behaviour return feature](#behaviour-return-feature)
+- [Mutual Exclusion with behaviours](#mutual-exclusion-with-behaviours)
 - [Contact us](#contact-us)
 
 
@@ -558,7 +558,7 @@ All the presented code examples can be found at the `pade/examples/behaviours-an
 
 If you find a bug or need any specific help, feel free to visit us or submit an _issue_ on [GitHub](https://github.com/grei-ufc/pade). We appreciate contributions to make PADE better. ;)
 
-Written by @italocampos with [StackEdit](https://stackedit.io/).
+> Written by [@italocampos](https://github.com/italocampos) with [StackEdit](https://stackedit.io/).
 
 ---
 

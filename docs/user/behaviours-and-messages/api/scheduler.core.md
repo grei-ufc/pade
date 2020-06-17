@@ -112,7 +112,7 @@ provide the support for finite, infinite and compound behaviours.
     
       - `scheduler`
 
-  - ### [Classes](#header-classes)
+  - ### [Classes](#classes)
     
       - #### `BehaviourTask`
         
