@@ -10,7 +10,7 @@ from pade.behaviours.types import CyclicBehaviour
 from queue import Queue
 from pade.misc.utility import display_message
 
-class DeliverPostponedMessage(CyclicBehaviour):
+class MessageDelivery(CyclicBehaviour):
 	''' DeliveryPostponedMessage class basically executes the attempt to deliver 
 	the message behaviour. It stores the messages in a queue until the max_wait
 	time is reach.

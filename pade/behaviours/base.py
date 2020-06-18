@@ -5,8 +5,7 @@ order to PADE Scheduler be able to manage the agent behaviours.
 
 from pade.behaviours.protocols import Behaviour
 from pade.acl.messages import ACLMessage
-from time import sleep
-import queue
+import queue, time
 
 class BaseBehaviour(Behaviour):
 
@@ -20,7 +19,7 @@ class BaseBehaviour(Behaviour):
 		'''
 		super().__init__(agent)
 		# Queue of received messages by the agent and unread by this behaviour
-		self.messages = queue.Queue()
+		self._messages = queue.Queue()
 		# Lock object (to ensure the mutual exclusion, when needed)
 		self._lock = None
 
@@ -29,10 +28,10 @@ class BaseBehaviour(Behaviour):
 		''' It gets the first message in the local message queue.
 		'''
 		if block:
-			return self.messages.get()
+			return self._messages.get()
 		else:
 			try:
-				return self.messages.get_nowait()
+				return self._messages.get_nowait()
 			except queue.Empty:
 				return None
 
@@ -53,7 +52,7 @@ class BaseBehaviour(Behaviour):
 		if message != None:
 			return message
 		else:
-			sleep(timeout)
+			time.sleep(timeout)
 			return self.read(block = False)
 
 
@@ -61,7 +60,7 @@ class BaseBehaviour(Behaviour):
 		''' It sets a new message on local messages queue.
 		'''
 		if isinstance(message, ACLMessage):
-			self.messages.put(message)
+			self._messages.put(message)
 		else:
 			raise ValueError('message object type must be ACLMessage!')
 
@@ -85,7 +84,7 @@ class BaseBehaviour(Behaviour):
 		''' This method sleeps a behaviour until occurs a timeout. The
 		behaviour will execute normally afterwards.
 		'''
-		sleep(timeout)
+		time.sleep(timeout)
 
 
 	def on_end(self):
@@ -100,7 +99,7 @@ class BaseBehaviour(Behaviour):
 		''' A method to returns if this behaviour has messages in its
 		received messages queue.
 		'''
-		return self.messages.qsize() != 0
+		return self._messages.qsize() != 0
 
 
 	def add_lock(self, lock):

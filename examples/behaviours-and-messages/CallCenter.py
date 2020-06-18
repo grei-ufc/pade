@@ -13,7 +13,7 @@ class CheckQueue(CyclicBehaviour):
 	def action(self):
 		# Waits for a call for 3 seconds (using the read_timeout() method)
 		call = self.read_timeout(3)
-		# If there is at least a call to reply...
+		# If there is at least one call to reply...
 		if call != None: # You must handle None objects when using read_timeout()
 			reply = call.create_reply() # Creates a reply
 			reply.set_content('Here is your help.')
@@ -21,7 +21,7 @@ class CheckQueue(CyclicBehaviour):
 			display_message(self.agent, 'Help sent to %s.' % call.sender.getName())
 		else:
 			# Goes to drink water
-			display_message(self.agent, 'I am going to drink water.')
+			display_message(self.agent, "I'm gonna drink water.")
 			self.wait(10)
 			display_message(self.agent, 'I returned from water. e.e')
 
@@ -47,7 +47,7 @@ class Call(WakeUpBehaviour):
 		call.set_content('I need help!')
 		call.add_receiver(self.agent.attendant)
 		self.send(call) # Sending a message
-		display_message(self.agent, 'I am making a call.')
+		display_message(self.agent, "I'm making a call.")
 
 
 class CloseCall(OneShotBehaviour):
@@ -57,7 +57,7 @@ class CloseCall(OneShotBehaviour):
 		# You don't need to handle None objects, because the read()
 		# method always returns an ACLMessage object. The behaviour
 		# will remain blocked until a message arrives.
-		display_message(self.agent, 'I received help and I am closing the call. Thank you. =)')
+		display_message(self.agent, " received help and I'm closing the call. Thank you. =)")
 		display_message(self.agent, 'Help content: %s' % response.content)
 
 

@@ -37,7 +37,7 @@ from twisted.internet import protocol, reactor
 
 from pade.core.peer import PeerProtocol
 from pade.acl.messages import ACLMessage
-from pade.core.delivery import DeliverPostponedMessage
+from pade.core.delivery import MessageDelivery
 from pade.behaviours.protocols import Behaviour
 from pade.behaviours.base import BaseBehaviour
 from pade.behaviours.protocols import FipaRequestProtocol, FipaSubscribeProtocol
@@ -734,7 +734,7 @@ class Agent(Agent_):
         # It indicates whether this agent is active or not
         self.active = True
         # It is a pre-programmed behaviour that deals with postponed messages
-        self.deliverer = DeliverPostponedMessage(self, wait_time)
+        self.deliverer = MessageDelivery(self, wait_time)
 
     def update_ams(self, ams):
         """Summary
