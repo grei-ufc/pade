@@ -1,3 +1,7 @@
+''' This example shows how the message exchange works in PADE. The
+SenderAgent sends a message to ReceiverAgent.
+'''
+
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
 from pade.core.agent import Agent

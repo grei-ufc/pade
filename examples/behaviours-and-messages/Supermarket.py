@@ -1,3 +1,7 @@
+''' This example shows how the data serialization works. Customers
+send requests to supermarket about products from specific sections.
+'''
+
 from pade.acl.messages import ACLMessage
 from pade.acl.filters import Filter
 from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour

@@ -1,3 +1,7 @@
+''' This example shows how TickerBehaviour works on PADE. An agent
+prints a message in the screen every 1 second.
+'''
+
 from pade.behaviours.types import TickerBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display_message, start_loop

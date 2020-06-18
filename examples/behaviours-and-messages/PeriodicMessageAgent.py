@@ -1,3 +1,9 @@
+''' This example shows how TickerBehaviour works in PADE. Also, the
+example shows how the message delivery systems works in PADE. Note
+that no message is lost. A SenderAgent periodically sends messages to
+ReceiverAgent.
+'''
+
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import OneShotBehaviour, TickerBehaviour, WakeUpBehaviour, CyclicBehaviour
@@ -32,7 +38,7 @@ class SendMessage(TickerBehaviour):
 class ReceiverAgent(Agent):
 	def __init__(self, name, sender):
 		super().__init__(name)
-		self.sender = sender # Gets the local name of sender
+		self.sender = sender # Gets the local name of the sender
 
 	def setup(self):
 		self.add_behaviour(ReceiveMessage(self))

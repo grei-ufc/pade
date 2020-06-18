@@ -1,3 +1,7 @@
+''' This example shows how the mutual exclusion works. The agent
+periodically prints messages in the screen.
+'''
+
 from pade.behaviours.types import CyclicBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop

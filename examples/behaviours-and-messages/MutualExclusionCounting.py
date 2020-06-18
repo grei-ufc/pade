@@ -1,3 +1,7 @@
+''' This example shows how the mutual exclusion works. The agent do a
+counting from 1 to 30.
+'''
+
 from pade.behaviours.types import OneShotBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop
