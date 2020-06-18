@@ -22,7 +22,7 @@ class BaseBehaviour(Behaviour):
 		# Queue of received messages by the agent and unread by this behaviour
 		self.messages = queue.Queue()
 		# Lock object (to ensure the mutual exclusion, when needed)
-		self.__lock = None
+		self._lock = None
 
 
 	def read(self, block = True):
@@ -107,18 +107,14 @@ class BaseBehaviour(Behaviour):
 		''' Adds a threading.Lock object to this behaviour, allowing 
 		it to execute the mutual exclusion correctly.
 		'''
-		self.__lock = lock
+		self._lock = lock
 	
-
+	@property	
 	def lock(self):
 		''' Tries to acquire the lock of the threading.Lock object.
 		The behaviour will block if fails.
 		'''
-		self.__lock.acquire()
-	
-
-	def unlock(self):
-		''' Releases the lock of the threading.Lock object, allowing
-		the other behaviours to acquire it.
-		'''
-		self.__lock.release()
+		if self._lock != None:
+			return self._lock
+		else:
+			raise(AttributeError('No such lock object added to this behaviour.'))

@@ -20,19 +20,19 @@ class MutualExclusionAgent(Agent):
 
 class SayBiscoito(CyclicBehaviour):
 	def action(self):
-		self.lock() # Starts the critical section
-		for _ in range(5): # The agent will hold the lock by 5 prints
-			display(self.agent, 'The correct name is "BISCOITO".')
-			self.wait(0.5)
-		self.unlock() # Ends the critical section
+		# Defines the entire critical section
+		with self.lock:
+			for _ in range(5): # The agent will hold the lock by 5 prints
+				display(self.agent, 'The correct name is "BISCOITO".')
+				self.wait(0.5)
 
 class SayBolacha(CyclicBehaviour):
 	def action(self):
-		self.lock()
-		# Here the agent will hold the lock only by 1 print, and 
-		# release it right away
-		display(self.agent, '"BOLACHA" is the correct name.')
-		self.unlock()
+		# Defines the entire critical section
+		with self.lock:
+			# Here the agent will hold the lock only by 1 print, and 
+			# release it right away
+			display(self.agent, '"BOLACHA" is the correct name.')
 
 
 if __name__ == '__main__':

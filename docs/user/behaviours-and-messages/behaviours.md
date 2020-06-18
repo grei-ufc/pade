@@ -271,21 +271,19 @@ Finally, we used the `Agent.add_behaviour(BaseBehaviour)` method to add the `seq
 
 
 ## Mutual Exclusion with behaviours
-At some point in your programmer's life, you may need a behaviour to perform certain activity that another behaviour should not perform at the same time. This is possible to occurs, as the behaviours in PADE are executed in parallel by default. You can tell me to use the `SequentialBehaviour`, that can solve the most of the problems like this, but it may not fit all cases. The `SequentialBehaviour` executes one behaviour at a time, and this may not be what you want.
+At some point in your programmer's life, you may need a behaviour to perform certain activity that another behaviour should not perform at the same time. This is possible to occurs, as the behaviours in PADE are executed in parallel by default. You can suggest me to use the `SequentialBehaviour`, that can solve the most of the problems like this, but it may not fit all cases. The `SequentialBehaviour` executes one behaviour at a time, and this may not be what you want.
 
-When you want to run two or more behaviours of the same agent simultaneously, and also want they synchronize their activities, the mutual exclusion may fit your need.
+When you want to run two or more behaviours of the same agent simultaneously, and also want they synchronize their activities, the mutual exclusion may fit your need. The main idea of mutual exclusion is establish points of code to be executed without interference from other behaviours. It may be useful when you want to ensure that a shared resource (a variable, an object, a file, or another resource) is accessed synchronously by the behaviours of the same agent. It may be used also when you want to switch between different roles that an agent can assume throughout its lifecycle.
 
-The main idea of mutual exclusion is establish points of code to be executed without interference from other behaviours. It may be useful when you want to ensure that a shared resource (a variable, an object, a file, or another resource) is accessed synchronously by the behaviours of the same agent. It may be used also when you want to switch between different roles that an agent can assume throughout its lifecycle.
+To deal with that, we will need to handle an object from the class `Lock` of the `threading` module. We must create an object from this class and pass it to all the behaviours that we want to synchronize. Besides that, we need to specify which point of the code will stay locked and unlocked. This point is called critical section.
 
-To deal with that, we will need to use the class `Lock` of the `threading` module. We must create an object from this class and pass it to all the behaviours that we want to synchronize. Besides that, we need to specify which point of the code will stay `locked` and `unlocked`. This point is called critical section.
+To pass the `Lock` object to the desired behaviours, we must use the `BaseBehaviour.add_lock(lock)`. We can use two different ways to indicate the critical section. We can use the `with` Python statement in the `lock` object, either use the methods `acquire()` and `release()` from the class `Lock`. To see how these methods work, refer to the `threading.Lock` [documentation](https://docs.python.org/3/library/threading.html#threading.Lock). To illustrate, we will see examples that use the both ways to do the mutual exclusion. 
 
-To pass the `Lock` object to the desired behaviours, we must use the `BaseBehaviour.add_lock(lock)`. To indicate the begin of the critical section, we use the method `BaseBehaviour.lock()`. Similarly, the method `BaseBehaviour.unlock()`indicates the end of the critical section. Any code between these methods will only perform if another behaviour is not executing its critical section as well.
-
-Programmatically speaking, when a behaviour calls the method `lock()`, it checks if another behaviour already holds the lock. If so, the behaviour will block until the other behaviour releases the lock. The release is made when a behaviour calls the method `unlock()`. When the lock is free, a behaviour holds the lock and any other behaviour will be unable to execute its critical section.
+Programmatically speaking, when a behaviour enters its critical section (by entering the `with` statement or executing the `acquire()` method), it checks if another behaviour already holds the lock. If so, the behaviour will block until the other behaviour releases the lock. The release is made when the behaviour leaves its critical section (by leaving the `with` statement or executing the `release()` method). When the lock is free, the behaviour that was waiting holds the lock and any other behaviour will be unable to execute its critical section as well.
 
 If you want to know more about how the `Lock` class works, see the Python threading module documentation [here](https://docs.python.org/3/library/threading.html#lock-objects).
 
-To clear our thinking, we will see two usage examples of behaviours with mutual exclusion. First, we will rewrite the counting example implemented with `SequentialBehaviour` class. Note the usage of the `lock()` and `unlock()` methods.
+To clear our thinking, we will see two usage examples of behaviours with mutual exclusion. First, we will rewrite the counting example implemented with `SequentialBehaviour` class. Note the critical sections.
 
 ``` python
 from pade.behaviours.types import OneShotBehaviour
@@ -315,43 +313,47 @@ class Sequential(Agent):
 # Behaviour that counts from 1 to 10
 class Count1_10(OneShotBehaviour):
 	def action(self):
-		self.lock() # Here starts the critical section (holds the lock)
+		# Here starts the critical section (holds the lock)
+		self.lock.acquire()
 		display(self.agent, 'Now, I will count from 1 to 10 slowly:')
 		for num in range(1,11):
 			display(self.agent, num)
 			self.wait(1) # I put this so that we can see the behaviours blocking
-		self.unlock() # Here ends the critical section (releases the lock)
+		# Here ends the critical section (releases the lock)
+		self.lock.release()
 
 # Behaviour that counts from 11 to 20
 class Count11_20(OneShotBehaviour):
 	def action(self):
-		self.lock()
+		# Here starts the critical section (holds the lock)
+		self.lock.acquire()
 		display(self.agent, 'Now, I will count from 11 to 20 slowly:')
 		for num in range(11,21):
 			display(self.agent, num)
 			self.wait(1)
-		self.unlock()
+		# Here ends the critical section (releases the lock)
+		self.lock.release()
 
 # Behaviour that counts from 21 to 30
 class Count21_30(OneShotBehaviour):
 	def action(self):
-		self.lock()
+		# Here starts the critical section (holds the lock)
+		self.lock.acquire()
 		display(self.agent, 'Now, I will count from 21 to 30 slowly:')
 		for num in range(21,31):
 			display(self.agent, num)
 			self.wait(1)
-		self.unlock()
+		# Here ends the critical section (releases the lock)
+		self.lock.release()
 
 
 if __name__ == '__main__':
 	start_loop([Sequential('seq')])
 ```
 
-Running the above code, you will see the same results of the `SequentialBehaviour` approach. Although the results are the same, instead of the behaviours execute one after the other, the behaviours executed parallelly. However, the critical section of each one was executed one at a time, thanks to the mutual exclusion.
+Running the above code, you will see the same results of the `SequentialBehaviour` approach. Although the results are the same, instead of the behaviours execute one after the other, the behaviours executed in parallel. However, the critical section of each one was executed one at a time, thanks to the mutual exclusion. Try to removes the critical section points to see what happens with the agent behaviours. ;)
 
-You probably saw the same counting order as `SequentialBehaviour` because of the behaviours enqueuing on PADE core. In addition, the critical section of the behaviours in the above example are placed in similar parts of the code.
-
-To make sure that the mutual exclusion really works, lets to see another example. Probably our results will be pretty different, once the threads scheduling is different in our hardware and OS. Even so, the code below aims to show us how the mutual exclusion works when the critical sections are placed in different codes.
+To make sure that the mutual exclusion really works, lets to see another example. Probably our results will be pretty different, once the threads scheduling is different in our hardware and OS. Even so, the code below aims to show us how the mutual exclusion works when many behaviours tries to hold the lock at the same time.
 
 ``` python
 from pade.behaviours.types import CyclicBehaviour
@@ -376,26 +378,26 @@ class MutualExclusionAgent(Agent):
 
 class SayBiscoito(CyclicBehaviour):
 	def action(self):
-		self.lock() # Starts the critical section
-		for _ in range(5): # The agent will hold the lock by 5 prints
-			display(self.agent, 'The correct name is "BISCOITO".')
-			self.wait(0.5)
-		self.unlock() # Ends the critical section
+		# Defines the entire critical section
+		with self.lock:
+			for _ in range(5): # The agent will hold the lock by 5 prints
+				display(self.agent, 'The correct name is "BISCOITO".')
+				self.wait(0.5)
 
 class SayBolacha(CyclicBehaviour):
 	def action(self):
-		self.lock()
-		# Here the agent will hold the lock only by 1 print, and 
-		# release it right away
-		display(self.agent, '"BOLACHA" is the correct name.')
-		self.unlock()
+		# Defines the entire critical section
+		with self.lock:
+			# Here the agent will hold the lock only by 1 print, and 
+			# release it right away
+			display(self.agent, '"BOLACHA" is the correct name.')
 
 
 if __name__ == '__main__':
 	start_loop([MutualExclusionAgent('mea')])
 ```
 
-Run the above code and see the results. Note that the `SayBiscoito` behaviour holds the lock and prints 5 times its phrase. Afterward, it releases the lock and tries to hold it again. If the `SayBolacha` behaviour can hold the lock first, it prints its phrase by 1 time and releases the lock right away. These two behaviours will continue to disputate the same lock for the eternity. All the times that `SayBiscoito` gets the lock, it will print by 5 times, while the `SayBolacha` will print by once. The `SayBiscoito` never will print 4 or 6 times, because its critical section holds the lock exactly by 5 times.
+Run the above code and watch the results. Note that the `SayBiscoito` behaviour holds the lock and prints 5 times its phrase. Afterward, it releases the lock and tries to hold it again. If the `SayBolacha` behaviour can hold the lock first, it prints its phrase by 1 time and releases the lock right away. These two behaviours will continue to disputate the same lock for the eternity. All the times that `SayBiscoito` gets the lock, it will print by 5 times, while the `SayBolacha` will print by once. The `SayBiscoito` never will print 4 or 6 times, because its critical section holds the lock exactly by 5 times.
 
 > **Important note ¹:** the mutual exclusion works for all the finite and infinite behaviours but doesn't work to compound behaviours (like `SequentialBehaviour`).
 
