@@ -1,7 +1,3 @@
-''' This example shows how the message exchange works in PADE. Two
-agents periodically exchange messages.
-'''
-
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import CyclicBehaviour, OneShotBehaviour

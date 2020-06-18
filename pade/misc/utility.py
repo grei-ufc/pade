@@ -41,17 +41,8 @@ def display_message(name, data):
     # print('[' + name + '] ' + date + str(data))
 
 def display(agent, message):
-    ''' This function shows a message in PADE console without date and hour
-    information.
-
-    Parameters
-    ----------
-    agent : Agent
-        The agent which prints the message in the screen.
-    message : str
-        The message to be printed in the screen.
+    ''' This function shows a message in PADE console without date and hour.
     '''
-    
     click.echo(click.style('[{}] --> '.format(agent.aid.getName()), fg='green') + str(message))
 
 def call_in_thread(method, *args):

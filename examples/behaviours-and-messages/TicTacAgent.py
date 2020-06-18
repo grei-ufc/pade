@@ -1,8 +1,3 @@
-''' This example shows how CyclicBehaviour works on PADE. Also, this
-example shows how the wait() method works. An agent prints a message
-in the screen every 1 second.
-'''
-
 from pade.behaviours.types import CyclicBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display_message, start_loop

@@ -470,7 +470,8 @@ All the presented code examples can be found at the `pade/examples/behaviours-an
 
 That is all. We hope you enjoy PADE. If you find a bug or need any specific help, feel free to visit us or submit an _issue_ on [GitHub](https://github.com/grei-ufc/pade). We appreciate contributions to make PADE better. ;)
 
-> Written by [@italocampos](https://github.com/italocampos) with [StackEdit](https://stackedit.io/).
+
+Written by [Italo Campos](mailto:italo.ramon.campos@gmail.com) with [StackEdit](https://stackedit.io/).
 
 ---
 

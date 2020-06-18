@@ -1,7 +1,3 @@
-''' This example shows how SequentialBehaviour works in PADE. An
-agent do a counting from 1 to 30.
-'''
-
 from pade.behaviours.types import OneShotBehaviour, SequentialBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop

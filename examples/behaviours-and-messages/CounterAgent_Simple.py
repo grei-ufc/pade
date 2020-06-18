@@ -1,7 +1,3 @@
-''' This example shows how SimpleBehaviour works. The agent simply
-counts from 0 to 10.
-'''
-
 from pade.behaviours.types import SimpleBehaviour
 from pade.core.agent import Agent
 from pade.misc.utility import display, start_loop
@@ -33,6 +29,7 @@ class Count(SimpleBehaviour):
 	# This method is executed when the behaviour dies x_x
 	def on_end(self):
 		display(self.agent, 'Counting finished.')
+
 
 
 if __name__ == '__main__':

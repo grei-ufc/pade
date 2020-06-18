@@ -1,7 +1,3 @@
-''' This example shows how OneShotBehaviour works. The agent
-prints a hello world message in the screen.
-'''
-
 # Needed imports
 from pade.behaviours.types import OneShotBehaviour
 from pade.core.agent import Agent

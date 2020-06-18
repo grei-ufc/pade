@@ -1,7 +1,3 @@
-''' This example shows how WakeUpBehaviour works. The agent
-prints a message in the screen.
-'''
-
 # Needed imports
 from pade.behaviours.types import WakeUpBehaviour
 from pade.core.agent import Agent

@@ -62,6 +62,3 @@ pade/web/data.sqlite-journal
 
 # PyCharm IDE
 \.idea/
-
-# Personal commit doc
-commit.md
