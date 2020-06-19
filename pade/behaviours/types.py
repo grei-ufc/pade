@@ -286,9 +286,9 @@ class SequentialBehaviour(OneShotBehaviour):
 		ValueError
 			If the passed object is not an ACLMessage.
 		'''
-		
+
 		if isinstance(message, ACLMessage):
 			for behaviour in self.subbehaviours:
-				behaviour.messages.put(message)
+				behaviour.receive(message)
 		else:
 			raise ValueError('message object type must be ACLMessage!')

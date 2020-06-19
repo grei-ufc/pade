@@ -12,6 +12,7 @@
 	- [CyclicBehaviour](#cyclicbehaviour-class)
 	- [TickerBehaviour](#tickerbehaviour-class)
 	- [SequentialBehaviour](#sequentialbehaviour-class)
+- [Behaviour return feature](#behaviour-return-feature)
 - [Mutual Exclusion with behaviours](#mutual-exclusion-with-behaviours)
 - [Contact us](#contact-us)
 
@@ -259,8 +260,151 @@ In the code above, we used the `add_subbehaviour(BaseBehavior)` method to add an
 Finally, we used the `Agent.add_behaviour(BaseBehaviour)` method to add the `sequential` object to the agent. At this moment, the `sequential` behaviour will execute its sub-behaviours.
 
 
-
 > Note: You can add any `BaseBehaviour` subclass to a `SequentialBehaviour` object, however, it is recommended to use only finite behaviours. In theory, you will create a `SequentialBehaviour` object to be finalized in some point, but this will never happen if one of its sub-behaviours is a cyclic behaviour. =P
+
+
+
+## Behaviour return feature
+While you're developing a small multiagent system, the features described above will probably meet all of your needs. Each agent has defined roles and performs a small number of tasks.
+
+However, the world is cruel and, when you're developing more difficult things, in practice, you will see your code tends to be a mess. You will note that the agents will keep them roles, but many of the small tasks that they perform are the same. At this time, you will feel you are writing the same code again and again. This is a disaster!
+
+To deal with cases like these, PADE provides the behaviour return feature. This feature is similar to function return in Python, however, it is implemented using two methods of the `BaseBehaviour` class: the methods `set_return(data)` and `wait_return()`. Programmatically speaking, this feature implements a thread synchronization, where one thread (a behaviour) waits for the return by another thread (another behaviour).
+
+To understand how these methods works, lets see a general code. Let's assume that `behaviour_a` has a reference to `behaviour_b`. Let's assume also that `behaviour_a` has a `say(str)` method that shows a message in the screen.
+
+``` python
+# Code in behaviour_a
+behaviour_a.say('The message is: %s' % behaviour_a.wait_return(behaviour_b))
+```
+
+The `behaviour_a` executes the method `wait_return()` which calls the return of `behaviour_b`. At this time, the `behaviour_a` will block and wait for the `behaviour_b`'s return. Let's assume that the following code is executed in `behaviour_b`:
+
+``` python
+# Code in behaviour_b
+behaviour_b.set_returns('Use Linux. <3')
+```
+
+When `behaviour_b` executes the above line, the string `'Use Linux <3'` is returned to `behaviour_a`. At this time, the `behaviour_a` will resume its execution and print the message in the screen.
+
+The behaviour return feature provides the possibility to share behaviours between different agents. This feature allows the programmer to place recurrent code in one behaviour that can be executed by any agent that performs that actions. In addition to avoid code repetition, the behaviour return feature favors the modularization and the code organization.
+
+Let's see the behaviour return feature working in one example. The example below models agents that choose trips within certain criteria. There are two types of agents: the hurried agents (that choose the shortest trips) and the economic agents (that choose the cheapest trips). Note when the behaviour return is used in the code.
+
+``` python
+from pade.behaviours.types import WakeUpBehaviour, OneShotBehaviour
+from pade.core.agent import Agent
+from pade.misc.utility import display, start_loop
+import random
+
+
+# HurriedPassenger Agent
+class HurriedPassenger(Agent):
+	def __init__(self, aid, start_time, destination, trips):
+		super().__init__(aid)
+		self.destination = destination
+		self.trips = trips
+		self.start_time = start_time
+
+	def setup(self):
+		self.add_behaviour(ChooseShortestTrip(self, self.start_time))
+
+class ChooseShortestTrip(WakeUpBehaviour):
+	def on_wake(self):
+		display(self.agent, 'I started to choose the trips.')
+		# Creates a behaviour instance
+		selected_trips = FilterDestination(self.agent)
+		# Adds it in the agent
+		self.agent.add_behaviour(selected_trips)
+		# Here this behaiviour will block and wait for the 
+		# `selected_trips` return
+		trips = self.wait_return(selected_trips)
+		# Choosing the shortest trip
+		if trips == []:
+			display(self.agent, 'There is no trips available to %s.' % self.agent.destination)
+		else:
+			shortest = 0
+			for i in range(1, len(trips)):
+				if trips[i]['time'] < trips[shortest]['time']:
+					shortest = i
+			display(self.agent, 'I chose this trip:')
+			print('-', trips[shortest])
+
+
+# EconomicPassenger Agent
+class EconomicPassenger(Agent):
+	def __init__(self, aid, start_time, destination, trips):
+		super().__init__(aid)
+		self.destination = destination
+		self.trips = trips
+		self.start_time = start_time
+
+	def setup(self):
+		self.add_behaviour(ChooseCheapestTrip(self, self.start_time))
+
+class ChooseCheapestTrip(WakeUpBehaviour):
+	def on_wake(self):
+		display(self.agent, 'I started to choose the trips.')
+		# Creates a behaviour instance
+		selected_trips = FilterDestination(self.agent)
+		# Adds it in the agent
+		self.agent.add_behaviour(selected_trips)
+		# Here this behaiviour will block and wait for the 
+		# `selected_trips` return
+		trips = self.wait_return(selected_trips)
+		# Choosing the cheapest trip
+		if trips == []:
+			display(self.agent, 'There is no trips available to %s.' % self.agent.destination)
+		else:
+			cheapest = 0
+			for i in range(1, len(trips)):
+				if trips[i]['price'] < trips[cheapest]['price']:
+					cheapest = i
+			display(self.agent, 'I chose this trip:')
+			print('-', trips[cheapest])
+
+
+class FilterDestination(OneShotBehaviour):
+	def action(self):
+		selection = list()
+		# Select the trips with the correct destination
+		for trip in self.agent.trips:
+			if trip['destination'] == self.agent.destination:
+				selection.append(trip)
+		display(self.agent, 'I got the trips for %s.' % self.agent.destination)
+		# Sets the selected trips able to be returned
+		self.set_return(selection)
+
+
+if __name__ == '__main__':
+	trips = list()
+	# Randomly creates the buses destinations
+	for number in range(700, 720):
+		trips.append({
+			'number': number,
+			'destination': random.choice(['Belém', 'Recife', 'Teresina', 'Fortaleza']),
+			'time' : random.randint(20, 35),
+			'price' : random.randint(180, 477) + round(random.random(), 2)
+		})
+	# Prints the entire trips list
+	print('The available trips are:')
+	for trip in trips:
+		print('-', trip)
+	# Initiating loop with the passed agents
+	agents = list()
+	agents.append(HurriedPassenger('hurried-a', 0, 'Belém', trips))
+	agents.append(HurriedPassenger('hurried-b', 2, 'Teresina', trips))
+	agents.append(HurriedPassenger('hurried-c', 4, 'Fortaleza', trips))
+	agents.append(EconomicPassenger('economic-a', 6, 'Recife', trips))
+	agents.append(EconomicPassenger('economic-b', 8, 'Belém', trips))
+	agents.append(EconomicPassenger('economic-c', 10, 'Fortaleza', trips))
+	start_loop(agents)
+```
+
+Run the command `pade start-runtime example_name.py` and watch the magic happens. Note that there are different agents performing different actions, having different roles, but sharing the same `FilterDestination` behaviour.  Both type of agents have a common task which is abstracted into a shared behaviour. This is the main contribution of this feature.
+
+You may say "couldn't you solve this problem using just methods or functions?". I answer yes, I could. However, we can see that in large projects with many behaviours and many agents, remember which behaviour performs a certain action is hard. By encapsulating a common action in a single behaviour, you can easily share a behaviour among as many agents as you want.
+
 
 
 ## Mutual Exclusion with behaviours

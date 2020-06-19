@@ -33,7 +33,7 @@ the PADE Scheduler to manage the agent behaviours.
 
 from pade.behaviours.protocols import Behaviour
 from pade.acl.messages import ACLMessage
-import queue, time
+import queue, time, threading
 
 class BaseBehaviour(Behaviour):
 	''' The basic behaviour class.
@@ -47,6 +47,10 @@ class BaseBehaviour(Behaviour):
 		The behaviour local message queue.
 	_lock : threding.Lock()
 		The lock object used to implement mutual exclusion.
+	_return : object
+		The data to be returned by this behaviour to another behaviour.
+	_event : threading.Event()
+		The event object used to implement the behaviour returning.
 	'''
 
 	def __init__(self, agent):
@@ -61,6 +65,8 @@ class BaseBehaviour(Behaviour):
 		# Queue of received messages by the agent and unread by this behaviour
 		self._messages = queue.Queue()
 		self._lock = None
+		self._return = None
+		self._event = threading.Event()
 
 
 	def read(self, block = True):
@@ -219,7 +225,8 @@ class BaseBehaviour(Behaviour):
 		'''
 
 		self._lock = lock
-	
+
+
 	@property	
 	def lock(self):
 		''' Returns the added lock object.
@@ -234,8 +241,45 @@ class BaseBehaviour(Behaviour):
 		threading.Lock
 			The local lock object.
 		'''
-		
+
 		if self._lock != None:
 			return self._lock
 		else:
 			raise(AttributeError('No such lock object added to this behaviour.'))
+
+
+	def set_return(self, data):
+		''' Sets the return for this behaviour.
+
+		Parameters
+		----------
+		data : object
+			The data to be returned by the behaviour.
+		'''
+
+		self._return = data
+		self._event.set()
+
+
+	def wait_return(self, behaviour, timeout = None):
+		''' Waits for the return from other behaviour.
+
+		Whether the target behaviour return is not set, this method
+		will block the behaviour until the return is set.
+
+		Parameters
+		----------
+		behaviour : BaseBehaviour
+			The behaviour you want to get the return.
+		timeout : float, optional
+			The max timeout to wait the target behaviour returns.
+
+		Returns
+		-------
+		object
+			The return data.
+		'''
+
+		behaviour._event.wait(timeout)
+		behaviour._event.clear()
+		return behaviour._return
