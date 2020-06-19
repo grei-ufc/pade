@@ -30,7 +30,8 @@ class ChooseShortestTrip(WakeUpBehaviour):
 		# Here this behaiviour will block and wait for the 
 		# `selected_trips` return
 		trips = self.wait_return(selected_trips)
-		# Choosing the shortest trip
+		# After the return, we will choose the shortest trip among
+		# the returned trips
 		if trips == []:
 			display(self.agent, 'There is no trips available to %s.' % self.agent.destination)
 		else:
@@ -63,7 +64,8 @@ class ChooseCheapestTrip(WakeUpBehaviour):
 		# Here this behaiviour will block and wait for the 
 		# `selected_trips` return
 		trips = self.wait_return(selected_trips)
-		# Choosing the cheapest trip
+		# After the return, we will choose the cheapest trip among
+		# the returned trips
 		if trips == []:
 			display(self.agent, 'There is no trips available to %s.' % self.agent.destination)
 		else:

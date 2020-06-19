@@ -25,7 +25,7 @@ class SayHello(OneShotBehaviour):
 		display_message(self.agent, 'Hello world!')
 
 
-# It starts the agent HelloWorldAgent with PADE
+# This starts the agent HelloWorldAgent with PADE
 if __name__ == '__main__':
 	# Defining a HelloWorldAgent object
 	helloagent = HelloWorldAgent('hello')
