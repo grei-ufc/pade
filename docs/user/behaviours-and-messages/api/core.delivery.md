@@ -1,5 +1,16 @@
 <div role="mai<div role="main">
 
+<div id="section-intro" class="section">
+
+## Message delivery module
+
+This module contains the implementation of the message delivery service. If an
+agent is unable to receive messages, this behaviour will postpone the message
+and retry to send it, within a timeout. If the receiver is not available at the
+timeout, the message is discarded.
+
+</div>
+
 <div class="section">
 
 ## Classes

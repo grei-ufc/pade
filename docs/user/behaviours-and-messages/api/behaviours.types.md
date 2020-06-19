@@ -7,12 +7,86 @@
 This module implements the BaseBehaviour class extensions. These
 subclasses are used to model the agent behaviours of various types.
 
-
 </div>
 
 <div class="section">
 
 ## Classes
+
+  - `  class CompoundBehaviour (agent) `
+    
+    <div class="desc">
+    
+    This class models compound behaviours in PADE.
+    
+    CompoundBehaviour is an abstract class to model behaviours that
+    handle other behaviours as sub-behaviours. This classe implements
+    the general add\_subbehaviour(SimpleBehaviour) method that add
+    simple behaviours in the local queue as sub-behaviours. The actions
+    of this class need to be implemented in subclasses.
+    
+    ##### Attributes
+    
+      - **`_subbehaviours`** : `list`  
+        The list of added subbehaviours.
+    
+    ##### Parameters
+    
+      - **`agent`** : `Agent`  
+        The agent that holds the behaviour.
+    
+    </div>
+    
+    ##### Ancestors
+    
+      - pade.behaviours.base.BaseBehaviour
+      - pade.behaviours.protocols.Behaviour
+    
+    ##### Subclasses
+    
+      - [SequentialBehaviour](#behaviours.types.SequentialBehaviour "behaviours.types.SequentialBehaviour")
+    
+    ##### Methods
+    
+      - `  def add_subbehaviour(self, behaviour) `
+        
+        <div class="desc">
+        
+        Adds sub-behaviours in this sub-behaviour local list.
+        
+        ##### Parameters
+        
+          - **`behaviour`** : `SimpleBehaviour`  
+            The simple behaviour to be added as sub-behaviour.
+        
+        ##### Raises
+        
+          - `ValueError`  
+            If the sub-behaviour not it a subclass from SimpleBehaviour.
+        
+        </div>
+    
+      - `  def receive(self, message) `
+        
+        <div class="desc">
+        
+        Passes the received message to the sub-behaviours.
+        
+        This method doesn't save the messages in the local queue, by
+        default. If you want to change that behaviour, override this
+        method in the subclasses.
+        
+        ##### Parameters
+        
+          - **`message`** : `ACLMessage`  
+            The message to be passed to the sub-behaviours.
+        
+        ##### Raises
+        
+          - `ValueError`  
+            If the passed object is not an ACLMessage.
+        
+        </div>
 
   - `  class CyclicBehaviour (agent) `
     
@@ -32,7 +106,8 @@ subclasses are used to model the agent behaviours of various types.
     
     ##### Ancestors
     
-      - pade.behaviours.core.BaseBehaviour
+      - [SimpleBehaviour](#behaviours.types.SimpleBehaviour "behaviours.types.SimpleBehaviour")
+      - pade.behaviours.base.BaseBehaviour
       - pade.behaviours.protocols.Behaviour
     
     ##### Subclasses
@@ -40,16 +115,6 @@ subclasses are used to model the agent behaviours of various types.
       - [TickerBehaviour](#behaviours.types.TickerBehaviour "behaviours.types.TickerBehaviour")
     
     ##### Methods
-    
-      - `  def action(self) `
-        
-        <div class="desc">
-        
-        An abstract method that performs the actions of the behaviour.
-        
-        This method can be overridden in the subclasses.
-        
-        </div>
     
       - `  def done(self) `
         
@@ -62,8 +127,15 @@ subclasses are used to model the agent behaviours of various types.
         indefinitely.
         
         </div>
-<br>
-
+    
+    ##### Inherited members
+    
+      - `SimpleBehaviour`:
+          - `action`
+          - `add_lock`
+          - `lock`
+          - `set_return`
+          - `wait_return`
 
   - `  class OneShotBehaviour (agent) `
     
@@ -83,25 +155,15 @@ subclasses are used to model the agent behaviours of various types.
     
     ##### Ancestors
     
-      - pade.behaviours.core.BaseBehaviour
+      - [SimpleBehaviour](#behaviours.types.SimpleBehaviour "behaviours.types.SimpleBehaviour")
+      - pade.behaviours.base.BaseBehaviour
       - pade.behaviours.protocols.Behaviour
     
     ##### Subclasses
     
-      - [SequentialBehaviour](#behaviours.types.SequentialBehaviour "behaviours.types.SequentialBehaviour")
       - [WakeUpBehaviour](#behaviours.types.WakeUpBehaviour "behaviours.types.WakeUpBehaviour")
     
     ##### Methods
-    
-      - `  def action(self) `
-        
-        <div class="desc">
-        
-        An abstract method that performs the actions of the behaviour.
-        
-        This method can be overridden in the subclasses.
-        
-        </div>
     
       - `  def done(self) `
         
@@ -114,7 +176,15 @@ subclasses are used to model the agent behaviours of various types.
         only once.
         
         </div>
-<br>
+    
+    ##### Inherited members
+    
+      - `SimpleBehaviour`:
+          - `action`
+          - `add_lock`
+          - `lock`
+          - `set_return`
+          - `wait_return`
 
   - `  class SequentialBehaviour (agent) `
     
@@ -123,15 +193,9 @@ subclasses are used to model the agent behaviours of various types.
     This class models the sequential-compound behaviours in PADE.
     
     SequentialBehaviour models a sequential-compound behaviour. This
-    classe adds other non-compound behaviours (like OneShotBehaviour or
-    SimpleBehaviour) as sub-behaviours, and performs them sequentially.
-    The execution order is defined as the sub-behavious are added. No
-    overrides are required for this class.
-    
-    ##### Attributes
-    
-      - **`_subbehaviours`** : `list`  
-        The list of added subbehaviours.
+    classe adds SimpleBehaviour and its subclasses as sub-behaviours,
+    and execute them sequentially. The execution order is defined as the
+    sub-behavious are added. No overrides are required for this class.
     
     ##### Parameters
     
@@ -142,8 +206,8 @@ subclasses are used to model the agent behaviours of various types.
     
     ##### Ancestors
     
-      - [OneShotBehaviour](#behaviours.types.OneShotBehaviour "behaviours.types.OneShotBehaviour")
-      - pade.behaviours.core.BaseBehaviour
+      - [CompoundBehaviour](#behaviours.types.CompoundBehaviour "behaviours.types.CompoundBehaviour")
+      - pade.behaviours.base.BaseBehaviour
       - pade.behaviours.protocols.Behaviour
     
     ##### Methods
@@ -159,43 +223,23 @@ subclasses are used to model the agent behaviours of various types.
         
         </div>
     
-      - `  def add_subbehaviour(self, behaviour) `
+      - `  def done(self) `
         
         <div class="desc">
         
-        Adds sub-behaviours in this sub-behaviour local list.
+        Defines when the behaviour ends.
         
-        ##### Parameters
-        
-          - **`behaviour`** : `BaseBehaviour`  
-            The behaviour to be added as sub-behaviour.
-        
-        </div>
-    
-      - `  def receive(self, message) `
-        
-        <div class="desc">
-        
-        Passes the received message to the sub-behaviours.
-        
-        ##### Parameters
-        
-          - **`message`** : `ACLMessage`  
-            The message to be passed to the sub-behaviours.
-        
-        ##### Raises
-        
-          - `ValueError`  
-            If the passed object is not an ACLMessage.
+        This method always returns True and should not be overridden in
+        the subclasses. By returning True, the behaviour will execute
+        only once.
         
         </div>
     
     ##### Inherited members
     
-      - `OneShotBehaviour`:
-          - `done`
-<br>
-<br>
+      - `CompoundBehaviour`:
+          - `add_subbehaviour`
+          - `receive`
 
   - `  class SimpleBehaviour (agent) `
     
@@ -208,6 +252,15 @@ subclasses are used to model the agent behaviours of various types.
     actions. The done() method must indicate (by returning True) when
     this behaviour will finalize.
     
+    ##### Attributes
+    
+      - **`_lock`** : `threding.Lock()`  
+        The lock object used to implement mutual exclusion.
+      - **`_return`** : `object`  
+        The data to be returned by this behaviour to another behaviour.
+      - **`_event`** : `threading.Event()`  
+        The event object used to implement the behaviour returning.
+    
     ##### Parameters
     
       - **`agent`** : `Agent`  
@@ -217,8 +270,33 @@ subclasses are used to model the agent behaviours of various types.
     
     ##### Ancestors
     
-      - pade.behaviours.core.BaseBehaviour
+      - pade.behaviours.base.BaseBehaviour
       - pade.behaviours.protocols.Behaviour
+    
+    ##### Subclasses
+    
+      - [CyclicBehaviour](#behaviours.types.CyclicBehaviour "behaviours.types.CyclicBehaviour")
+      - [OneShotBehaviour](#behaviours.types.OneShotBehaviour "behaviours.types.OneShotBehaviour")
+    
+    ##### Instance variables
+    
+      - `var lock`
+        
+        <div class="desc">
+        
+        Returns the added lock object.
+        
+        ##### Raises
+        
+          - `AttributeError`  
+            If there is no a lock object added.
+        
+        ##### Returns
+        
+          - `threading.Lock`  
+            The local lock object.
+        
+        </div>
     
     ##### Methods
     
@@ -232,6 +310,21 @@ subclasses are used to model the agent behaviours of various types.
         
         </div>
     
+      - `  def add_lock(self, lock) `
+        
+        <div class="desc">
+        
+        Adds a threading.Lock object to this behaviour.
+        
+        This allows the behaviour to execute the mutual exclusion.
+        
+        ##### Parameters
+        
+          - **`lock`** : `threadong.Lock`  
+            The lock object.
+        
+        </div>
+    
       - `  def done(self) `
         
         <div class="desc">
@@ -242,7 +335,42 @@ subclasses are used to model the agent behaviours of various types.
         exactly when the behaviour will ends (by returning True).
         
         </div>
-<br>
+    
+      - `  def set_return(self, data) `
+        
+        <div class="desc">
+        
+        Sets the return for this behaviour.
+        
+        ##### Parameters
+        
+          - **`data`** : `object`  
+            The data to be returned by the behaviour.
+        
+        </div>
+    
+      - `  def wait_return(self, behaviour, timeout=None) `
+        
+        <div class="desc">
+        
+        Waits for the return from other behaviour.
+        
+        Whether the target behaviour return is not set, this method will
+        block the behaviour until the return is set.
+        
+        ##### Parameters
+        
+          - **`behaviour`** : `BaseBehaviour`  
+            The behaviour you want to get the return.
+          - **`timeout`** : `float`, optional  
+            The max timeout to wait the target behaviour returns.
+        
+        ##### Returns
+        
+          - `object`  
+            The return data.
+        
+        </div>
 
   - `  class TickerBehaviour (agent, time) `
     
@@ -274,7 +402,8 @@ subclasses are used to model the agent behaviours of various types.
     ##### Ancestors
     
       - [CyclicBehaviour](#behaviours.types.CyclicBehaviour "behaviours.types.CyclicBehaviour")
-      - pade.behaviours.core.BaseBehaviour
+      - [SimpleBehaviour](#behaviours.types.SimpleBehaviour "behaviours.types.SimpleBehaviour")
+      - pade.behaviours.base.BaseBehaviour
       - pade.behaviours.protocols.Behaviour
     
     ##### Methods
@@ -303,9 +432,11 @@ subclasses are used to model the agent behaviours of various types.
     ##### Inherited members
     
       - `CyclicBehaviour`:
+          - `add_lock`
           - `done`
-<br>
-<br>
+          - `lock`
+          - `set_return`
+          - `wait_return`
 
   - `  class WakeUpBehaviour (agent, time) `
     
@@ -337,7 +468,8 @@ subclasses are used to model the agent behaviours of various types.
     ##### Ancestors
     
       - [OneShotBehaviour](#behaviours.types.OneShotBehaviour "behaviours.types.OneShotBehaviour")
-      - pade.behaviours.core.BaseBehaviour
+      - [SimpleBehaviour](#behaviours.types.SimpleBehaviour "behaviours.types.SimpleBehaviour")
+      - pade.behaviours.base.BaseBehaviour
       - pade.behaviours.protocols.Behaviour
     
     ##### Methods
@@ -366,7 +498,11 @@ subclasses are used to model the agent behaviours of various types.
     ##### Inherited members
     
       - `OneShotBehaviour`:
+          - `add_lock`
           - `done`
+          - `lock`
+          - `set_return`
+          - `wait_return`
 
 </div>
 
@@ -384,26 +520,32 @@ subclasses are used to model the agent behaviours of various types.
 
   - ### [Classes](#classes)
     
+      - #### `CompoundBehaviour`
+        
+          - `add_subbehaviour`
+          - `receive`
+    
       - #### `CyclicBehaviour`
         
-          - `action`
           - `done`
     
       - #### `OneShotBehaviour`
         
-          - `action`
           - `done`
     
       - #### `SequentialBehaviour`
         
           - `action`
-          - `add_subbehaviour`
-          - `receive`
+          - `done`
     
       - #### `SimpleBehaviour`
         
           - `action`
+          - `add_lock`
           - `done`
+          - `lock`
+          - `set_return`
+          - `wait_return`
     
       - #### `TickerBehaviour`
         

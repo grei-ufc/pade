@@ -7,9 +7,7 @@
 This module implements the base of the Behaviours classes, in order to
 enable the PADE Scheduler to manage the agent behaviours.
 
-
 </div>
-
 
 <div class="section">
 
@@ -21,19 +19,13 @@ enable the PADE Scheduler to manage the agent behaviours.
     
     The basic behaviour class.
     
-    This class ihnerits from Behaviour class and implements the basic
+    This class inherits from Behaviour class and implements the basic
     methods for scheduled behaviours.
     
     ##### Attributes
     
       - **`_messages`** : `list`  
         The behaviour local message queue.
-      - **`_lock`** : `threding.Lock()`  
-        The lock object used to implement mutual exclusion.
-      - **`_return`** : `object`  
-        The data to be returned by this behaviour to another behaviour.
-      - **`_event`** : `threading.Event()`  
-        The event object used to implement the behaviour returning.
     
     ##### Parameters
     
@@ -46,26 +38,6 @@ enable the PADE Scheduler to manage the agent behaviours.
     
       - pade.behaviours.protocols.Behaviour
     
-    ##### Instance variables
-    
-      - `var lock`
-        
-        <div class="desc">
-        
-        Returns the added lock object.
-        
-        ##### Raises
-        
-          - `AttributeError`  
-            If there is no a lock object added.
-        
-        ##### Returns
-        
-          - `threading.Lock`  
-            The local lock object.
-        
-        </div>
-    
     ##### Methods
     
       - `  def action(self) `
@@ -75,21 +47,6 @@ enable the PADE Scheduler to manage the agent behaviours.
         An abstract method that performs the actions of the behaviour.
         
         This method must be overridden in the subclasses.
-        
-        </div>
-    
-      - `  def add_lock(self, lock) `
-        
-        <div class="desc">
-        
-        Adds a threading.Lock object to this behaviour.
-        
-        This allows the behaviour to execute the mutual exclusion.
-        
-        ##### Parameters
-        
-          - **`lock`** : `threadong.Lock`  
-            The lock object.
         
         </div>
     
@@ -211,19 +168,6 @@ enable the PADE Scheduler to manage the agent behaviours.
         
         </div>
     
-      - `  def set_return(self, data) `
-        
-        <div class="desc">
-        
-        Sets the return for this behaviour.
-        
-        ##### Parameters
-        
-          - **`data`** : `object`  
-            The data to be returned by the behaviour.
-        
-        </div>
-    
       - `  def wait(self, timeout) `
         
         <div class="desc">
@@ -234,29 +178,6 @@ enable the PADE Scheduler to manage the agent behaviours.
         
           - **`timeout`** : `float`  
             The time to be waited.
-        
-        </div>
-    
-      - `  def wait_return(self, behaviour, timeout=None) `
-        
-        <div class="desc">
-        
-        Waits for the return from other behaviour.
-        
-        Whether the target behaviour return is not set, this method will
-        block the behaviour until the return is set.
-        
-        ##### Parameters
-        
-          - **`behaviour`** : `BaseBehaviour`  
-            The behaviour you want to get the return.
-          - **`timeout`** : `float`, optional  
-            The max timeout to wait the target behaviour returns.
-        
-        ##### Returns
-        
-          - `object`  
-            The return data.
         
         </div>
 
@@ -279,18 +200,14 @@ enable the PADE Scheduler to manage the agent behaviours.
       - #### `BaseBehaviour`
         
           - `action`
-          - `add_lock`
           - `done`
           - `has_messages`
-          - `lock`
           - `on_end`
           - `read`
           - `read_timeout`
           - `receive`
           - `send`
-          - `set_return`
           - `wait`
-          - `wait_return`
 
 </div>
 
