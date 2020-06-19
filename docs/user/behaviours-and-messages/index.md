@@ -3,7 +3,7 @@ This document indexes other documents related to behaviours programming and mess
 
 - [Behaviours](behaviours.md)
 - [Message exchange](message-exchange.md)
-- [Examples](../../examples/behaviours-and-messages)
+- [Examples](../../../examples/behaviours-and-messages)
 - [Some behaviour API](api)
 	- [behaviours.base](api/behaviours.base.md)
 	- [behaviours.types](api/behaviours.types.md)
