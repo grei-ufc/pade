@@ -109,7 +109,59 @@ class TimedBehaviour(Behaviour):
         reactor.callLater(self.time, self.on_time)
 
 
-class FipaRequestProtocol(Behaviour):
+class FipaProtocol(Behaviour):
+
+    """ This class implements a basis for all FIPA-compliant
+        protocols
+    """
+
+    def __init__(self, agent, message, is_initiator):
+        """Inicializes the class that implements a FipaProtocol
+
+            :param agent: instance of the agent that will execute the protocol's
+                         established behaviours.
+            :param message: message to be sent by the agent when is_initiator
+                         parameter is true.
+            :param is_initiator: boolean type parameter that specifies if the 
+                         protocol instance will act as Initiator or Participant.
+
+        """
+        super(FipaProtocol, self).__init__(agent)
+
+        self.is_initiator = is_initiator
+        self.message = message
+
+        self.filter_not_undestood = Filter()
+        self.filter_not_undestood.set_performative(ACLMessage.NOT_UNDERSTOOD)
+
+        if self.message is not None:
+            self.filter_conversation_id = Filter()
+            self.filter_conversation_id.set_conversation_id(self.message.conversation_id)
+
+    def handle_not_understood(self , message):
+        """This method should be overridden when implementing a protocol.
+            This method is always executed when the agent receives a 
+            FIPA_NOT_UNDERSTOOD type message 
+
+            :param message: FIPA-ACL message
+        """
+        pass
+    
+    def execute(self, message):
+        """This method overrides the execute method from Behaviour class.
+            The selection of the method to be executed after the receival
+            of a message is implemented here.
+
+            :param message: FIPA-ACL message
+        """
+        super(FipaProtocol, self).execute(message)
+
+        self.message = message
+
+        if self.filter_not_undestood.filter(self.message):
+            self.handle_not_understood(message)
+
+class FipaRequestProtocol(FipaProtocol):
 
     """This class implements the FipaRequestProtocol protocol,
         inheriting from the Behaviour class and implementing its methods.
@@ -126,10 +178,7 @@ class FipaRequestProtocol(Behaviour):
                          protocol instance will act as Initiator or Participant.
 
         """
-        super(FipaRequestProtocol, self).__init__(agent)
-
-        self.is_initiator = is_initiator
-        self.message = message
+        super(FipaRequestProtocol, self).__init__(agent, message, is_initiator)
 
         self.filter_protocol = Filter()
         self.filter_protocol.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
@@ -148,10 +197,6 @@ class FipaRequestProtocol(Behaviour):
 
         self.filter_inform = Filter()
         self.filter_inform.set_performative(ACLMessage.INFORM)
-
-        if self.message is not None:
-            self.filter_conversation_id = Filter()
-            self.filter_conversation_id.set_conversation_id(self.message.conversation_id)
 
     def on_start(self):
         """
@@ -212,14 +257,13 @@ class FipaRequestProtocol(Behaviour):
         pass
 
     def execute(self, message):
-        """This method overrides the execute method from Behaviour class.
+        """This method overrides the execute method from FipaProtocol class.
             The selection of the method to be executed after the receival
             of a message is implemented here.
 
             :param message: FIPA-ACL message
         """
-
-        self.message = message
+        super(FipaRequestProtocol, self).execute(message)
 
         if self.filter_protocol.filter(self.message):
 
@@ -244,7 +288,7 @@ class FipaRequestProtocol(Behaviour):
             return
 
 
-class FipaContractNetProtocol(Behaviour):
+class FipaContractNetProtocol(FipaProtocol):
 
     """This class implements the FipaContractNetProtocol protocol,
         inheriting from the Behaviour class and implementing its methods.
@@ -261,14 +305,11 @@ class FipaContractNetProtocol(Behaviour):
             :param is_initiator: boolean type parameter that specifies if the 
                          protocol instance will act as Initiator or Participant.
         """
-        super(FipaContractNetProtocol, self).__init__(agent)
+        super(FipaContractNetProtocol, self).__init__(agent, message, is_initiator)
 
-        self.is_initiator = is_initiator
         self.received_qty = 0
 
         self.proposes = []
-
-        self.message = message
 
         self.filter_protocol = Filter()
         self.filter_protocol.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
@@ -293,10 +334,6 @@ class FipaContractNetProtocol(Behaviour):
 
         self.filter_inform = Filter()
         self.filter_inform.set_performative(ACLMessage.INFORM)
-
-        if self.message is not None:
-            self.filter_conversation_id = Filter()
-            self.filter_conversation_id.set_conversation_id(self.message.conversation_id)
 
     def on_start(self):
         """This method overrides the on_start method from Behaviour class
@@ -412,7 +449,7 @@ class FipaContractNetProtocol(Behaviour):
         self.handle_all_proposes(self.proposes)
 
     def execute(self, message):
-        """This method overrides the execute method from Behaviour class.
+        """This method overrides the execute method from FipaProtocol class.
             The selection of the method to be executed after the receival
             of a message is implemented here.
 
@@ -420,8 +457,6 @@ class FipaContractNetProtocol(Behaviour):
         """
 
         super(FipaContractNetProtocol, self).execute(message)
-
-        self.message = message
 
         if self.filter_protocol.filter(self.message):
             if self.filter_cfp.filter(self.message):
@@ -467,7 +502,7 @@ class FipaContractNetProtocol(Behaviour):
             return
 
 
-class FipaSubscribeProtocol(Behaviour):
+class FipaSubscribeProtocol(FipaProtocol):
     """This class implements the FipaSubscribeProtocol protocol,
         inheriting from the Behaviour class and implementing its methods.
     """
@@ -476,10 +511,8 @@ class FipaSubscribeProtocol(Behaviour):
         """Initialize method
         """
 
-        super(FipaSubscribeProtocol, self).__init__(agent)
+        super(FipaSubscribeProtocol, self).__init__(agent, message, is_initiator)
 
-        self.is_initiator = is_initiator
-        self.message = message
         self.subscribers = set()
 
         self.filter_protocol = Filter()
@@ -502,10 +535,6 @@ class FipaSubscribeProtocol(Behaviour):
 
         self.filter_failure = Filter()
         self.filter_failure.set_performative(ACLMessage.FAILURE)
-
-        if self.message is not None:
-            self.filter_conversation_id = Filter()
-            self.filter_conversation_id.set_conversation_id(self.message.conversation_id)
 
     def on_start(self):
         """his method overrides the on_start method from Behaviour class
@@ -556,15 +585,13 @@ class FipaSubscribeProtocol(Behaviour):
         pass
 
     def execute(self, message):
-        """This method overrides the execute method from Behaviour class.
+        """This method overrides the execute method from FipaProtocol class.
             The selection of the method to be executed after the receival
             of a message is implemented here.
 
             :param message: FIPA-ACL message
         """
         super(FipaSubscribeProtocol, self).execute(message)
-
-        self.message = message
 
         if self.filter_protocol.filter(self.message):
             if self.filter_subscribe.filter(self.message):
