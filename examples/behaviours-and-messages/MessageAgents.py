@@ -25,9 +25,8 @@ class SendMessage(OneShotBehaviour):
 		# Adds some content
 		message.set_content('Hello! :)')
 		# Send the message to receiver
-		self.send(message)
+		self.agent.send(message)
 		display(self.agent, 'I sent a message to receiver.')
-
 
 # Receiver Agent
 class ReceiverAgent(Agent):
@@ -37,11 +36,11 @@ class ReceiverAgent(Agent):
 
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
-		# Receives (reads) the message from queue
-		message = self.read()
-		# Shows the message content
-		display(self.agent, 'I received a message with the content: %s.' % message.content)
-
+		if self.agent.has_messages():
+			# Receives (reads) the message from queue
+			message = self.agent.read()
+			# Shows the message content
+			display(self.agent, 'I received a message with the content: %s.' % message.content)
 
 if __name__ == '__main__':
 	agents = list()

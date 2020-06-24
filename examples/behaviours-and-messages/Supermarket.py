@@ -25,15 +25,16 @@ class RequestList(OneShotBehaviour):
 		self.send(message)
 		display(self.agent, 'I requested for %s products.' % self.agent.section)
 
-class PrintList(OneShotBehaviour):
+class PrintList(CyclicBehaviour):
 	def action(self):
 		# Setting a filter
 		f = Filter()
 		# The object 'f' is the 'model' of message you want to receive
-		f.set_performative(ACLMessage.INFORM) # The filter only accept INFORM messages
-		message = self.read()
-		if f.filter(message): # Filtering the message
-			display(self.agent, 'I received this list: \n%s' % message.content)
+		f.set_ontology(self.agent.section) # The filter only accept agent's section messages
+		if self.agent.has_messages():
+			message = self.agent.read(f)
+			if message != None: # Filtering the message
+				display(self.agent, 'I received this list: \n%s' % message.content)
 
 
 # Supermarket Agent
@@ -42,7 +43,7 @@ class Supermarket(Agent):
 		self.add_behaviour(FruitList(self))
 		self.add_behaviour(FoodList(self))
 		self.add_behaviour(OfficeList(self))
-		self.add_behaviour(UnknownList(self))
+		#self.add_behaviour(UnknownList(self)) # Removed because we don't have a 'not' filter yet
 
 # Behaviour that deals with fruit requisitions
 class FruitList(CyclicBehaviour):
@@ -52,16 +53,16 @@ class FruitList(CyclicBehaviour):
 		# The object 'f' is the 'model' of message you want to receive
 		f.set_performative(ACLMessage.REQUEST) # Only accept REQUEST messages
 		f.set_ontology('fruits') # Only accept messagens with 'fruits' in ontology field
-
-		# Receiving a message
-		message = self.read()
+		
 		# Filtering the received message based on 'f' filter
-		if f.filter(message): # If the message satisfies the filter 'f'
-			reply = message.create_reply() # Creates a reply to the sender
-			reply.set_content('apple\nbanana\ncocoa\ncoconuts\ngrape\norange\nstrawberry')
-			reply.set_performative(ACLMessage.INFORM)
-			self.send(reply) # Sends the reply to the sender
-			display(self.agent, 'Fruit list sent to %s.' % message.sender.getName())
+		if self.agent.has_messages(): # If the message satisfies the filter 'f'
+			message = self.agent.read(f)
+			if message != None:
+				reply = message.create_reply() # Creates a reply to the sender
+				reply.set_content('apple\nbanana\ncocoa\ncoconuts\ngrape\norange\nstrawberry')
+				reply.set_performative(ACLMessage.INFORM)
+				self.send(reply) # Sends the reply to the sender
+				display(self.agent, 'Fruit list sent to %s.' % message.sender.getName())
 
 # Behaviour that deals with food requisitions
 class FoodList(CyclicBehaviour):
@@ -70,15 +71,17 @@ class FoodList(CyclicBehaviour):
 		f = Filter()
 		f.set_performative(ACLMessage.REQUEST)
 		f.set_ontology('foods')
-		message = self.read()
-
-		# Filtering the received message
-		if f.filter(message): # If the message satisfies the filter 'f'
-			reply = message.create_reply()
-			reply.set_content('meat\nchicken\ncookies\nice cream\nbread')
-			reply.set_performative(ACLMessage.INFORM)
-			self.send(reply)
-			display(self.agent, 'Food list sent to %s.' % message.sender.getName())
+		
+		# Filtering the received message based on 'f' filter
+		if self.agent.has_messages(): # If the message satisfies the filter 'f'
+			message = self.agent.read(f)
+			if message != None:
+				reply = message.create_reply() # Creates a reply to the sender
+				reply = message.create_reply()
+				reply.set_content('meat\nchicken\ncookies\nice cream\nbread')
+				reply.set_performative(ACLMessage.INFORM)
+				self.send(reply)
+				display(self.agent, 'Food list sent to %s.' % message.sender.getName())
 
 # Behaviour that deals with office requisitions
 class OfficeList(CyclicBehaviour):
@@ -87,28 +90,31 @@ class OfficeList(CyclicBehaviour):
 		f = Filter()
 		f.set_performative(ACLMessage.REQUEST)
 		f.set_ontology('office')
-		message = self.read()
-
-		# Filtering the received message
-		if f.filter(message):
-			reply = message.create_reply()
-			reply.set_content('pen\nclips\nscissors\npaper\npencil')
-			reply.set_performative(ACLMessage.INFORM)
-			self.send(reply)
-			display(self.agent, 'Office material list sent to %s.' % message.sender.getName())
+		
+		# Filtering the received message based on 'f' filter
+		if self.agent.has_messages(): # If the message satisfies the filter 'f'
+			message = self.agent.read(f)
+			if message != None:
+				reply = message.create_reply() # Creates a reply to the sender
+				reply = message.create_reply()
+				reply.set_content('pen\nclips\nscissors\npaper\npencil')
+				reply.set_performative(ACLMessage.INFORM)
+				self.send(reply)
+				display(self.agent, 'Office material list sent to %s.' % message.sender.getName())
 
 # Behaviour that deals with any other requisition
 class UnknownList(CyclicBehaviour):
 	def action(self):
-		message = self.read()
-
-		# Filtering the received message manually
-		if not message.ontology in ['fruits', 'foods', 'office']:
-			reply = message.create_reply()
-			reply.set_content('Unknown list')
-			reply.set_performative(ACLMessage.INFORM)
-			self.send(reply)
-			display(self.agent, 'Unknown requisition')
+		if self.agent.has_messages():
+			message = self.agent.read()
+			
+			# Filtering the received message manually
+			if not message.ontology in ['fruits', 'foods', 'office']:
+				reply = message.create_reply()
+				reply.set_content('Unknown list')
+				reply.set_performative(ACLMessage.INFORM)
+				self.send(reply)
+				display(self.agent, 'Unknown requisition')
 
 
 if __name__ == '__main__':
@@ -121,7 +127,7 @@ if __name__ == '__main__':
 
 	# Instantiating customers and passing the supermarket AID to them
 	agents.append(Customer('customer-1', 'office', supermarket.aid))
-	agents.append(Customer('customer-2', 'house', supermarket.aid))
+	#agents.append(Customer('customer-2', 'house', supermarket.aid)) # Removed because we don't have a 'not' filter yet
 	agents.append(Customer('customer-3', 'fruits', supermarket.aid))
 	agents.append(Customer('customer-4', 'foods', supermarket.aid))
 
