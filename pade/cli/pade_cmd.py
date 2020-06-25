@@ -228,11 +228,7 @@ def main(config):
                 p.kill()
             break
 
-@click.group()
-def cmd():
-    pass
-
-@cmd.command()
+@click.group(invoke_without_command=True)
 @click.argument('agent_files', nargs=-1)
 @click.option('--num', default=1)
 @click.option('--port', default=2000)
@@ -243,7 +239,7 @@ def cmd():
 @click.option('--username', prompt='please enter a username', default='pade_user')
 @click.option('--password', prompt=True, hide_input=True, default='12345')
 @click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
-def start_runtime(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, username, password):
+def cmd(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, username, password):
     config = dict()
     config['agent_files'] = agent_files
     config['num'] = num
