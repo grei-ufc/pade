@@ -38,17 +38,18 @@ class PingTurn(CyclicBehaviour):
 		# behaviour, use self.read(block = False) or 
 		# self.read_timeout(timeout). These methods returns None 
 		# if don't have messages to agent. See docs to more details.
-		message = self.read()
-		if message.sender == self.agent.pong:
-			# Preparing a reply to self.receiver
-			reply = message.create_reply()
-			reply.set_content('PING')
-			display_message(self.agent, 'Turn: %s' % message.content)
-			# Wait a time before send the message
-			#(Do you want to see the results, don't you?)
-			self.wait(0.5)
-			# Sending the message
-			self.send(reply)
+		if self.agent.has_messages():
+			message = self.agent.read()
+			if message.sender == self.agent.pong:
+				# Preparing a reply to self.receiver
+				reply = message.create_reply()
+				reply.set_content('PING')
+				display_message(self.agent, 'Turn: %s' % message.content)
+				# Wait a time before send the message
+				#(Do you want to see the results, don't you?)
+				self.wait(0.5)
+				# Sending the message
+				self.send(reply)
 
 
 # ==== Pong Agent ====
@@ -63,15 +64,16 @@ class PongAgent(Agent):
 
 class PongTurn(CyclicBehaviour):
 	def action(self):
-		message = self.read()
-		if message.sender == self.agent.ping:
-			# Preparing a reply to 'ping'
-			reply = message.create_reply()
-			reply.set_content('PONG')
-			display_message(self.agent, 'Turn: %s' % message.content)
-			self.wait(0.5)
-			# Sending the reply
-			self.send(reply)
+		if self.agent.has_messages():
+			message = self.agent.read()
+			if message.sender == self.agent.ping:
+				# Preparing a reply to 'ping'
+				reply = message.create_reply()
+				reply.set_content('PONG')
+				display_message(self.agent, 'Turn: %s' % message.content)
+				self.wait(0.5)
+				# Sending the reply
+				self.send(reply)
 
 
 # ==== Starting main loop of PADE ====

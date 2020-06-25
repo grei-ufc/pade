@@ -37,6 +37,7 @@ from twisted.internet import reactor
 from sqlalchemy import create_engine, MetaData, Table
 
 from pickle import loads, dumps
+import xml.etree.ElementTree as ET
 import random
 import os
 import sys
@@ -79,6 +80,9 @@ class Sniffer(Agent):
 
             for message in messages:
                 receivers = ';'.join([i.localname for i in message.receivers])
+                content = message.content
+                if isinstance(content, ET.Element):
+                    content = ET.tostring(content)
 
                 insert_obj = MESSAGES.insert()
                 sql_act = insert_obj.values(agent_id=self.agent_db_id[sender],
@@ -86,7 +90,7 @@ class Sniffer(Agent):
                                             date=message.datetime,
                                             performative=message.performative,
                                             protocol=message.protocol,
-                                            content=message.content,
+                                            content=content,
                                             conversation_id=message.conversation_id,
                                             message_id=message.messageID,
                                             ontology=message.ontology,

@@ -349,10 +349,10 @@ if __name__ == '__main__':
     METADATA.bind = ENGINE
     AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
     
-    ams = AMS(port=int(sys.argv[4]))
+    ams = AMS(host=sys.argv[4],
+              port=int(sys.argv[5]))
     # instantiates AMS agent and calls listenTCP method
     # from Twisted to launch the agent
-    ams_agent = AMS() # TODO: precisa implementar a passagem de parametros
     ams.register_user(username=sys.argv[1],
                       email=sys.argv[2],
                       password=sys.argv[3])

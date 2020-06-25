@@ -97,6 +97,7 @@ class MosaikCon(object):
             elif function == 'step':
                 self.time = func_args[0]
                 self.inputs = func_args[1]
+                self.msg_id_step = msg_id_respose
                 r = self.step(self.time, self.inputs)
 
                 '''
@@ -147,7 +148,6 @@ class MosaikCon(object):
                 if r:
                     message = self.__create_message(1, msg_id_respose, r)
                 else:
-                    self.msg_id_step = msg_id_respose
                     return
 
             elif function == 'get_data':
@@ -178,8 +178,10 @@ class MosaikCon(object):
 
     def step_done(self):
         message = self.__create_message(1, self.msg_id_step, self.time + self.step_size)
-        self.agent.mosaik_connection.message = None
         self.agent.mosaik_connection.transport.write(message)
+        self.agent.mosaik_connection.message = None
+        self.agent.mosaik_connection.mosaik_msg_id = None
+        self.agent.mosaik_connection.await_gen = None
 
     def get_data(self, outputs):
         response = dict()
