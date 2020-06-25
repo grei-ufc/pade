@@ -278,7 +278,7 @@ class AMS(Agent_):
         message.set_system_message(is_system_message=True)
 
         self.comport_conn_verify = CompConnectionVerify(self, message)
-        self.comport_send_conn_messages = ComportSendConnMessages(self, message, 10.0)
+        self.comport_send_conn_messages = ComportSendConnMessages(self, message, 5.0)
         self.comport_conn_verify_timed = ComportVerifyConnTimed(self, 20.0)
         self.comport_conn_verify_reg = CompVerifyRegister(self)
 
@@ -349,10 +349,10 @@ if __name__ == '__main__':
     METADATA.bind = ENGINE
     AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
     
-    ams = AMS(port=int(sys.argv[4]))
+    ams = AMS(host=sys.argv[4],
+              port=int(sys.argv[5]))
     # instantiates AMS agent and calls listenTCP method
     # from Twisted to launch the agent
-    ams_agent = AMS() # TODO: precisa implementar a passagem de parametros
     ams.register_user(username=sys.argv[1],
                       email=sys.argv[2],
                       password=sys.argv[3])

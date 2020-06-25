@@ -37,13 +37,19 @@ from twisted.internet import protocol, reactor
 
 from pade.core.peer import PeerProtocol
 from pade.acl.messages import ACLMessage
+from pade.acl.filters import Filter
+from pade.core.delivery import DeliverPostponedMessage
 from pade.behaviours.protocols import Behaviour
+from pade.behaviours.base import BaseBehaviour
 from pade.behaviours.protocols import FipaRequestProtocol, FipaSubscribeProtocol
 from pade.acl.aid import AID
+from pade.scheduler.core import Scheduler, BehaviourTask
 from pade.misc.utility import display_message
 
+from collections import deque
 from pickle import dumps, loads
 import random
+import threading
 
 
 class AgentProtocol(PeerProtocol):
@@ -238,6 +244,10 @@ class Agent_(object):
         A dictionary with AMS information {'name': ams_IP, 'port': ams_port}
     behaviours : list
         Agent's behaviours list
+    messages : deque
+        Messages received by the agent
+    messages_lock : threading.Lock
+        Lock the message stack during operations on the stack
     debug : boollean
         if True activate the debug mode
     ILP : TYPE
@@ -263,14 +273,17 @@ class Agent_(object):
         self.mosaik_connection = None
         self.aid = aid
         self.debug = debug
-        
-        # ALL: create a aid object with the aid of ams
+
+        # ALL: create an aid object with the aid of ams
         self.ams = dict()
         self.sniffer = dict()
         self.behaviours = list()
+        self.messages = deque()
+        self.messages_lock = threading.Lock()
         self.system_behaviours = list()
         self.__messages = list()
         self.ILP = None
+
 
     @property
     def aid(self):
@@ -289,8 +302,10 @@ class Agent_(object):
         """
         if isinstance(value, AID):
             self.__aid = value
+        elif isinstance(value, str):
+            self.__aid = AID(name = value)
         else:
-            raise ValueError('aid object type must be AID!')
+            raise ValueError('aid object type must be AID or str!')
 
     @property
     def debug(self):
@@ -390,7 +405,7 @@ class Agent_(object):
         for v in value:
             if not issubclass(v.__class__, Behaviour):
                 raise ValueError(
-                    'behaviour must be a subclass of the Behaviour class!')
+                    'behaviour must be a subclass of Behaviour class!')
         else:
             self.__behaviours = value
 
@@ -422,7 +437,7 @@ class Agent_(object):
         for v in value:
             if not issubclass(v.__class__, Behaviour):
                 raise ValueError(
-                    'behaviour must be a subclass of the Behaviour class!')
+                    'behaviour must be a subclass of Behaviour class!')
         else:
             self.__system_behaviours = value
 
@@ -436,13 +451,34 @@ class Agent_(object):
         message : ACLMessage
             receive message 
         """
-
         if message.system_message:
             for system_behaviour in self.system_behaviours:
                 system_behaviour.execute(message)
         else:
             for behaviour in self.behaviours:
                 behaviour.execute(message)
+
+    def read(self, messageFilters=None):
+        '''
+        Get the first message from the top of the message stack (left-side of
+        the deque) with match the filters provided.
+
+        If any filter was provided, return the message from the top of stack.
+        Parameters
+        ----------
+        messageFilters : Filter
+            filter to be applied at the messages
+        '''
+        with self.messages_lock:
+            if messageFilters == None:
+                return self.messages.popleft()
+
+            for i in self.messages:
+                if messageFilters.filter(i):
+                    self.messages.remove(i)
+                    return i
+
+        return None
 
     def send(self, message):
         """This method calls the method self._send to sends 
@@ -539,7 +575,7 @@ class Agent_(object):
         """
 
         for agent_aid in self.agentInstance.table.values():
-                message.add_receiver(agent_aid)
+            message.add_receiver(agent_aid)
 
         self.send(message)
 
@@ -557,7 +593,7 @@ class Agent_(object):
                 message.add_receiver(agent_aid)
 
     def on_start(self):
-        """This method defines the initial behaviours 
+        """This method defines the initial behaviours
         of an agent.
         """
 
@@ -565,9 +601,11 @@ class Agent_(object):
         # by the user.
         for system_behaviour in self.system_behaviours:
             system_behaviour.on_start()
-        
-        reactor.callLater(2.0, self.__launch_agent_behaviours)
-    
+
+        #reactor.callLater(2.0, self.__launch_agent_behaviours)
+        self.__launch_agent_behaviours()
+
+
     def __launch_agent_behaviours(self):
         """Aux method to send behaviours
         """
@@ -702,7 +740,7 @@ class Agent(Agent_):
         Description
     """
     
-    def __init__(self, aid, debug=False):
+    def __init__(self, aid, debug=False, ignore_ams=True, wait_time=300):
         """Summary
         
         Parameters
@@ -713,9 +751,20 @@ class Agent(Agent_):
             Description
         """
         super(Agent, self).__init__(aid=aid, debug=debug)
-        
-        self.comport_connection = CompConnection(self)        
+
+        self.comport_connection = CompConnection(self)
         self.system_behaviours.append(self.comport_connection)
+
+        # Extra attributes
+
+        # Scheduler object to manage the behaviours of this agent
+        self.scheduler = Scheduler(self)
+        # It indicates if the ams messages will be filtered before delivered to behaviours
+        self.ignore_ams = ignore_ams
+        # It indicates whether this agent is active or not
+        self.active = True
+        # It is a pre-programmed behaviour that deals with postponed messages
+        self.deliverer = DeliverPostponedMessage(self, wait_time)
 
     def update_ams(self, ams):
         """Summary
@@ -756,3 +805,82 @@ class Agent(Agent_):
             'message' : message}))
             _message.set_system_message(is_system_message=True)
             self.send(_message)
+
+        with self.messages_lock:
+            if not self.ignore_ams or not message.system_message:
+                self.messages.appendleft(message)
+
+    def setup(self):
+        ''' This method is an alternative to initiate agents without
+        override the self.on_start() method in the subclasses.
+        '''
+        pass
+
+    def on_start(self):
+        super().on_start()
+        self.scheduler.start()
+        self.add_behaviour(self.deliverer)
+        self.setup()
+
+    def add_behaviour(self, behaviour):
+        ''' This method adds a behaviour in the scheduler. The behaviour
+        will be managed by the scheduler, as a BehaviourTask.
+        '''
+        if isinstance(behaviour, BaseBehaviour):
+            task = BehaviourTask(behaviour, self.scheduler)
+            self.scheduler.active_tasks.append(task)
+            self.scheduler.tasks.put(task)
+        else:
+            raise ValueError('behaviour object type must be BaseBehaviour!')
+
+    def remove_task(self, task):
+        ''' This method removes a task from scheduler. It must be used when a
+        behaviour finishes.
+        '''
+        try:
+            self.scheduler.active_tasks.remove(task)
+        except ValueError:
+            raise ValueError('the behaviour does not exists in scheduler.')
+
+    def has_messages(self):
+        ''' A method to returns if this behaviour has messages in its
+        received messages queue.
+        '''
+        with self.messages_lock:
+            return len(self.messages) > 0
+
+    def pause_agent(self):
+        ''' This method indicates to scheduler to pause its activities.
+        '''
+        super().pause_agent()
+        self.active = False
+
+    def resume_agent(self):
+        ''' This method indicates to scheduler to resume its activities.
+        '''
+        super().resume_agent()
+        self.active = True
+        self.scheduler.start()
+
+    def send(self, message):
+        ''' This method checks if a receiver is already capable to receive
+        messages. If not, the agent will try to send the message by 5 
+        minutes (by default).
+        '''
+        receivers = list()
+        for receiver in message.receivers:
+            if not self.receiver_available(receiver):
+                postponed_message = message.clone()
+                postponed_message.reset_receivers()
+                postponed_message.add_receiver(receiver)
+                self.deliverer.deliver(postponed_message)
+            else:
+                receivers.append(receiver)
+        message.reset_receivers()
+        for receiver in receivers:
+            message.add_receiver(receiver)
+        super().send(message)
+
+
+    def receiver_available(self, receiver):
+        return receiver in self.agentInstance.table.values()

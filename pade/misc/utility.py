@@ -30,13 +30,20 @@ import click
 
 def display_message(name, data):
     """
-        Method do displsy message in the console.
+        Method do display a message in the console.
     """
     date = datetime.now()
     date = date.strftime('%d/%m/%Y %H:%M:%S.%f')[:-3]
-    click.echo(click.style('[{}] {} --> '.format(name, date), fg='green') + str(data))
+    try:
+        click.echo(click.style('[{}] {} --> '.format(name.aid.getName(), date), fg='green') + str(data))
+    except AttributeError:
+        click.echo(click.style('[{}] {} --> '.format(name, date), fg='green') + str(data))
     # print('[' + name + '] ' + date + str(data))
 
+def display(agent, message):
+    ''' This function shows a message in PADE console without date and hour.
+    '''
+    click.echo(click.style('[{}] --> '.format(agent.aid.getName()), fg='green') + str(message))
 
 def call_in_thread(method, *args):
     reactor.callInThread(method, *args)
