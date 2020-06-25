@@ -1,0 +1,22 @@
+# Changelog
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+### Added
+- Support for mutual exclusion between behaviors.
+- Support for finite behaviors.
+- Behaviours programming style seems like [JADE](https://jade.tilab.com/).
+- Support for paralell execution of behaviors (default execution method).
+- Support for sequential execution of behaviors.
+- Message reading in the blocking and non-blocking modes.
+- Message delivery made by AID objects instead of local names.
+- Support for postpone the message delivery (5 min by default). It is useful when the AMS
+is not available at the system initiation.
+- Addition of more fields (ontology and language) in the message filtering system.
+
+## [x.x.x] - 2020-05-26
+### Added
+- All the previous version of PADE.
