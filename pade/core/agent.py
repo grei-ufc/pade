@@ -807,25 +807,27 @@ class Agent(Agent_):
                 self.messages.appendleft(message)
 
 
-    def read(self, messageFilters=None):
+    def receive(self, message_filter = None):
         '''
         Get the first message from the top of the message stack (left-side of
         the deque) with match the filters provided.
 
         If any filter was provided, return the message from the top of stack.
+        
         Parameters
         ----------
-        messageFilters : Filter
+        message_filter : Filter
             filter to be applied at the messages
         '''
+
         with self.messages_lock:
-            if messageFilters == None:
+            if message_filter == None:
                 return self.messages.popleft()
 
-            for i in self.messages:
-                if messageFilters.filter(i):
-                    self.messages.remove(i)
-                    return i
+            for message in self.messages:
+                if message_filter.filter(message):
+                    self.messages.remove(message)
+                    return message
         return None
 
 
