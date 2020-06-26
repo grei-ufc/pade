@@ -1,165 +1,361 @@
-'''
-This file implements the BaseBehaviour class extensions. These classes
-are used to model the agent behaviours.
-'''
+"""Framework for Intelligent Agents Development - PADE
+
+The MIT License (MIT)
+
+Copyright (c) 2019 Lucas S Melo
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+Behaviour types module
+----------------------
+
+This module implements the BaseBehaviour class extensions. These subclasses are
+used to model the agent behaviours of various types.
+
+@author: Italo Campos
+"""
 
 from pade.behaviours.base import BaseBehaviour
 from pade.acl.messages import ACLMessage
+import queue, threading
 
 
 class SimpleBehaviour(BaseBehaviour):
+	''' Class that implements the SimpleBehaviour.
 
-	''' SimpleBehaviour class models a basic behaviour. Its action()
-	and done() methods must be written in the subclasses.
+	SimpleBehaviour class models a basic behaviour. The action() method must be
+	overridden in the subclasses to define the behaviour actions. The done()
+	method must indicate (by returning True) when this behaviour will finalize.
+
+	Attributes
+	----------
+	_lock : threding.Lock()
+		The lock object used to implement mutual exclusion.
 	'''
 
 	def __init__(self, agent):
-		''' Simply calls the superclass __init__() method.
 		'''
+		Parameters
+		----------
+		agent : Agent
+			The agent which performs the behaviour.
+		'''
+
 		super().__init__(agent)
+		self._lock = None
+
 
 	def action(self):
-		''' This is an abstract method that must be overridden in the
-		subclasses, implementing the main actions of this behaviour.
+		'''  An abstract method that performs the actions of the behaviour.
+
+		This method can be overridden in the subclasses.
 		'''
+
 		pass
+
 
 	def done(self):
-		''' This is an abstract method that must be overridden in the
-		subclasses, dealing with the finish of this behaviour.
+		''' Defines when the behaviour ends.
+
+		This method must be overridden in the subclasses, defining exactly when
+		the behaviour will ends (by returning True).
 		'''
+
 		pass
 
 
-class OneShotBehaviour(BaseBehaviour):
+	def block(self):
+		''' Blocks the behaviour until a new message arrive.
+		'''
 
-	''' OneShotBehaviour class models a finite behaviour. It executes its
-	action() method only once.
+		self.agent.message_event.wait()
+
+
+	def add_lock(self, lock):
+		''' Adds a threading.Lock object to this behaviour.
+
+		This allows the behaviour to execute the mutual exclusion.
+
+		Parameters
+		----------
+		lock : threadong.Lock
+			The lock object.
+		'''
+
+		self._lock = lock
+
+
+	@property
+	def lock(self):
+		''' Returns the added lock object.
+
+		Raises
+		------
+		AttributeError
+			If there is no a lock object added.
+
+		Returns
+		-------
+		threading.Lock
+			The local lock object.
+		'''
+
+		if self._lock != None:
+			return self._lock
+		else:
+			raise(AttributeError('No such lock object added to this behaviour.'))
+
+
+
+class CompoundBehaviour(BaseBehaviour):
+	''' This class models compound behaviours in PADE.
+
+	CompoundBehaviour is an abstract class to model behaviours that handle
+	other behaviours as sub-behaviours. This classe implements the general
+	add_subbehaviour(SimpleBehaviour) method that add simple behaviours in the
+	local queue as sub-behaviours. The actions of this class need to be
+	implemented in subclasses.
+
+	Attributes
+	----------
+	_subbehaviours : list
+		The list of added subbehaviours.
 	'''
 
 	def __init__(self, agent):
+		'''
+		Parameters
+		----------
+		agent : Agent
+			The agent that holds the behaviour.
+		'''
+
 		super().__init__(agent)
+		self.subbehaviours = list()
+
+
+	def add_subbehaviour(self, behaviour):
+		''' Adds sub-behaviours in this sub-behaviour local list.
+
+		Parameters
+		----------
+		behaviour : SimpleBehaviour
+			The simple behaviour to be added as sub-behaviour.
+
+		Raises
+		------
+		ValueError
+			If the sub-behaviour not it a subclass from SimpleBehaviour.
+		'''
+
+		if isinstance(behaviour, SimpleBehaviour):
+			self.subbehaviours.append(behaviour)
+		else:
+			raise ValueError('sub-behaviours must be of the type SimpleBehaviour!')
+
+
+
+class OneShotBehaviour(SimpleBehaviour):
+	''' This class models a finite behaviour.
+
+	OneShotBehaviour are behaviours that executes its action() method only 
+	once.
+	'''
 
 	def action(self):
-		''' This is an abstract method that must be overridden in the
-		subclasses, implementing the main actions of this behaviour.
+		'''  An abstract method that performs the actions of the behaviour.
+
+		This method can be overridden in the subclasses.
 		'''
+
 		pass
 
+
 	def done(self):
-		''' This method ever returns True, indicating that the behaviour
-		will execute only once. It should not be changed in subclasses.
+		''' Defines when the behaviour ends.
+
+		This method always returns True and should not be overridden in the
+		subclasses. By returning True, the behaviour will execute only once.
 		'''
+
 		return True
 
 
-class CyclicBehaviour(BaseBehaviour):
 
-	''' CyclicBehaviour class models an infinite behaviour. It executes its
-	action() method until the end of the agent.
+class CyclicBehaviour(SimpleBehaviour):
+	''' This class models an infinite behaviour.
+
+	CyclicBehaviour are behaviours that executes its action() method until the
+	end of the agent.
 	'''
 
-	def __init__(self, agent):
-		super().__init__(agent)
-
 	def action(self):
-		''' This is an abstract method that must be overridden in the
-		subclasses, implementing the main actions of this behaviour.
+		'''  An abstract method that performs the actions of the behaviour.
+
+		This method can be overridden in the subclasses.
 		'''
+
 		pass
 
+
 	def done(self):
-		''' This method ever returns False, indicating that the behaviour
-		will execute indefinitely. It should not be changed in subclasses.
+		''' Defines when the behaviour ends.
+
+		This method always returns False and should not be overridden in the
+		subclasses. By returning False, the behaviour will execute
+		indefinitely.
 		'''
+
 		return False
 
 
-class WakeUpBehaviour(OneShotBehaviour):
 
-	''' WakeUpBehaviour class models a finite behaviour. It executes its
-	actions only once, after a timeout occurs. The actions of this class
-	must be implemented into on_wake() method. A time value in seconds is 
-	passed into its __init__() method. 
+class WakeUpBehaviour(OneShotBehaviour):
+	''' This class models a finite behaviour that waits a timeout before
+	performs its actions.
+
+	WakeUpBehaviour class models a finite behaviour that executes its actions
+	after a timeout. The actions of this class must be implemented into the
+	on_wake() method.
+
+	Attributes
+	----------
+	time : float
+		The amount of time (in seconds) to be waited before the behaviour
+		performs its actions.
 	'''
 
 	def __init__(self, agent, time):
+		'''
+		Parameters
+		----------
+		agent : Agent
+			The agent that executes the behaviour.
+		time : float
+			The amount of time (in seconds) to be waited before the behaviour
+			performs its actions.
+		'''
+
 		super().__init__(agent)
 		self.time = time
 
+
 	def action(self):
-		''' This is a method that executes the general functions of this 
-		behaviour type. It should not be changed in subclasses.
+		''' This method performs the actions of the behaviour.
+
+		This method should not be overridden in the subclasses. Use the method
+		on_wake() to write the actions of this behaviour.
 		'''
+
 		self.wait(self.time)
 		self.on_wake()
 
+
 	def on_wake(self):
-		''' This is an abstract method that must be overridden in the
-		subclasses, implementing the main actions of this behaviour.
+		'''  An abstract method that performs the actions of the behaviour.
+
+		This method can be overridden in the subclasses.
 		'''
+
 		pass
+
 
 
 class TickerBehaviour(CyclicBehaviour):
+	''' This class models an infinite behaviour that waits a timeout before
+	performs its actions.
 
-	''' TickerBehaviour class models an infinite behaviour. It executes its
-	actions after a timeout occurs, while the agent lives. The actions of 
-	this class must be implemented into on_tick() method. A time value in
-	seconds is passed into its __init__() method. 
+	TickerBehaviour class models an infinite behaviour that always waits a
+	timeout before execute its actions. The actions of this class must be
+	implemented into the on_tick() method.
+
+	Attributes
+	----------
+	time : float
+		The amount of time (in seconds) to be waited before each execution of
+		the behaviour.
 	'''
 
 	def __init__(self, agent, time):
+		'''
+		Parameters
+		----------
+		agent : Agent
+			The agent that executes the behaviour.
+		time : float
+			The amount of time (in seconds) to be waited before each execution
+			of the behaviour.
+		'''
+
 		super().__init__(agent)
 		self.time = time
 
+
 	def action(self):
-		''' This is a method that executes the general functions of this 
-		behaviour type. It should not be changed in subclasses.
+		''' This method performs the actions of the behaviour.
+
+		This method should not be overridden in the subclasses. Use the method
+		on_tick() to write the actions of this behaviour.
 		'''
+
 		self.wait(self.time)
 		self.on_tick()
 
+
 	def on_tick(self):
-		''' This is an abstract method that must be overridden in the
-		subclasses, implementing the main actions of this behaviour.
+		'''  An abstract method that performs the actions of the behaviour.
+
+		This method can be overridden in the subclasses.
 		'''
+
 		pass
 
 
-class SequentialBehaviour(OneShotBehaviour):
 
-	''' SequentialBehaviour class models a compound behaviour. It executes
-	its sub-behaviours in a defined sequence. The execution order is defined
-	at the time that the sub-behavious are added. No overrides are required
-	in this class.
+class SequentialBehaviour(CompoundBehaviour):
+	''' This class models the sequential-compound behaviours in PADE.
+
+	SequentialBehaviour models a sequential-compound behaviour. This classe
+	adds SimpleBehaviour and its subclasses as sub-behaviours, and execute them
+	sequentially. The execution order is defined as the sub-behavious are
+	added. No overrides are required for this class.
 	'''
 
-	def __init__(self, agent):
-		super().__init__(agent)
-		# Sub-behaviours list
-		self.subbehaviours = list()
-
 	def action(self):
-		''' This is a method that executes the general functions of this 
-		behaviour type. It should not be changed in subclasses.
+		''' This method performs the actions of the behaviour.
+
+		This method executes sequentially the sub-behaviours. This method
+		should not be overridden in the subclasses.
 		'''
+
 		for behaviour in self.subbehaviours:
 			behaviour.action()
 			while not behaviour.done():
 				behaviour.action()
 			behaviour.on_end()
 
-	def add_subbehaviour(self, behaviour):
-		''' This method adds sub-behaviours in this behaviour
-		'''
-		self.subbehaviours.append(behaviour)
 
-	def receive(self, message):
-		''' Overridden method to pass a received message to sub-behaviours.
+	def done(self):
+		''' Defines when the behaviour ends.
+
+		This method always returns True and should not be overridden in the
+		subclasses. By returning True, the behaviour will execute only once.
 		'''
-		if isinstance(message, ACLMessage):
-			for behaviour in self.subbehaviours:
-				behaviour.messages.put(message)
-		else:
-			raise ValueError('message object type must be ACLMessage!')
+
+		return True
