@@ -244,10 +244,6 @@ class Agent_(object):
         A dictionary with AMS information {'name': ams_IP, 'port': ams_port}
     behaviours : list
         Agent's behaviours list
-    messages : deque
-        Messages received by the agent
-    messages_lock : threading.Lock
-        Lock the message stack during operations on the stack
     debug : boollean
         if True activate the debug mode
     ILP : TYPE
@@ -278,8 +274,6 @@ class Agent_(object):
         self.ams = dict()
         self.sniffer = dict()
         self.behaviours = list()
-        self.messages = deque()
-        self.messages_lock = threading.Lock()
         self.system_behaviours = list()
         self.__messages = list()
         self.ILP = None
@@ -458,27 +452,6 @@ class Agent_(object):
             for behaviour in self.behaviours:
                 behaviour.execute(message)
 
-    def read(self, messageFilters=None):
-        '''
-        Get the first message from the top of the message stack (left-side of
-        the deque) with match the filters provided.
-
-        If any filter was provided, return the message from the top of stack.
-        Parameters
-        ----------
-        messageFilters : Filter
-            filter to be applied at the messages
-        '''
-        with self.messages_lock:
-            if messageFilters == None:
-                return self.messages.popleft()
-
-            for i in self.messages:
-                if messageFilters.filter(i):
-                    self.messages.remove(i)
-                    return i
-
-        return None
 
     def send(self, message):
         """This method calls the method self._send to sends 
@@ -738,6 +711,19 @@ class Agent(Agent_):
         Description
     comport_ident : TYPE
         Description
+    scheduler : Scheduler
+        Keeps the reference for behaviours scheduler
+    ignore_ams : bool
+        Signals if the received messages fom AMS will be passed to
+        behaviours
+    active : bool
+        Indicates whether the agent is active or not
+    deliverer : MessageDelivery
+        A pre-programmed behaviour that deals with postponed messages
+    messages : deque
+        Messages received by the agent
+    messages_lock : threading.Lock
+        Lock the message stack during operations on the stack
     """
     
     def __init__(self, aid, debug=False, ignore_ams=True, wait_time=300):
@@ -749,6 +735,12 @@ class Agent(Agent_):
             Description
         debug : bool, optional
             Description
+        ignore_ams : bool, optional
+            Signals if the received messages fom AMS will be passed to
+            behaviours
+        wait_time : float, optional
+            Indicates the time in which the agent will attempt to send
+            a message to receiver
         """
         super(Agent, self).__init__(aid=aid, debug=debug)
 
@@ -765,6 +757,10 @@ class Agent(Agent_):
         self.active = True
         # It is a pre-programmed behaviour that deals with postponed messages
         self.deliverer = DeliverPostponedMessage(self, wait_time)
+        # The local message queue
+        self.messages = deque()
+        # The lock object to ensure thread-safe queue reading
+        self.messages_lock = threading.Lock()
 
     def update_ams(self, ams):
         """Summary
@@ -810,17 +806,42 @@ class Agent(Agent_):
             if not self.ignore_ams or not message.system_message:
                 self.messages.appendleft(message)
 
+
+    def read(self, messageFilters=None):
+        '''
+        Get the first message from the top of the message stack (left-side of
+        the deque) with match the filters provided.
+
+        If any filter was provided, return the message from the top of stack.
+        Parameters
+        ----------
+        messageFilters : Filter
+            filter to be applied at the messages
+        '''
+        with self.messages_lock:
+            if messageFilters == None:
+                return self.messages.popleft()
+
+            for i in self.messages:
+                if messageFilters.filter(i):
+                    self.messages.remove(i)
+                    return i
+        return None
+
+
     def setup(self):
         ''' This method is an alternative to initiate agents without
         override the self.on_start() method in the subclasses.
         '''
         pass
 
+
     def on_start(self):
         super().on_start()
         self.scheduler.start()
         self.add_behaviour(self.deliverer)
         self.setup()
+
 
     def add_behaviour(self, behaviour):
         ''' This method adds a behaviour in the scheduler. The behaviour
@@ -833,6 +854,7 @@ class Agent(Agent_):
         else:
             raise ValueError('behaviour object type must be BaseBehaviour!')
 
+
     def remove_task(self, task):
         ''' This method removes a task from scheduler. It must be used when a
         behaviour finishes.
@@ -842,12 +864,14 @@ class Agent(Agent_):
         except ValueError:
             raise ValueError('the behaviour does not exists in scheduler.')
 
+
     def has_messages(self):
         ''' A method to returns if this behaviour has messages in its
         received messages queue.
         '''
         with self.messages_lock:
             return len(self.messages) > 0
+
 
     def pause_agent(self):
         ''' This method indicates to scheduler to pause its activities.
@@ -861,6 +885,7 @@ class Agent(Agent_):
         super().resume_agent()
         self.active = True
         self.scheduler.start()
+
 
     def send(self, message):
         ''' This method checks if a receiver is already capable to receive
