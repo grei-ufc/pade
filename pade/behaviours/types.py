@@ -154,12 +154,3 @@ class SequentialBehaviour(OneShotBehaviour):
 		''' This method adds sub-behaviours in this behaviour
 		'''
 		self.subbehaviours.append(behaviour)
-
-	def receive(self, message):
-		''' Overridden method to pass a received message to sub-behaviours.
-		'''
-		if isinstance(message, ACLMessage):
-			for behaviour in self.subbehaviours:
-				behaviour.messages.put(message)
-		else:
-			raise ValueError('message object type must be ACLMessage!')
