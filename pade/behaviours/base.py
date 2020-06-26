@@ -6,7 +6,6 @@ order to PADE Scheduler be able to manage the agent behaviours.
 from pade.behaviours.protocols import Behaviour
 from pade.acl.messages import ACLMessage
 from time import sleep
-import queue
 
 class BaseBehaviour(Behaviour):
 
@@ -19,53 +18,8 @@ class BaseBehaviour(Behaviour):
 		class and explicitly calls the Behaviour.__init__() method.
 		'''
 		super().__init__(agent)
-		# Queue of received messages by the agent and unread by this behaviour
-		self.messages = queue.Queue()
 		# Lock object (to ensure the mutual exclusion, when needed)
 		self.__lock = None
-
-
-	def read(self, block = True):
-		''' It gets the first message in the local message queue.
-		'''
-		if block:
-			return self.messages.get()
-		else:
-			try:
-				return self.messages.get_nowait()
-			except queue.Empty:
-				return None
-
-
-	def send(self, message):
-		''' This method gets a message and passes it to self.agent.send() method.
-		It was coded just to complement the pair read/send in the BaseBehaviour class.
-		The method self.agent.send() can still be used directly in the code.
-		'''
-		self.agent.send(message)
-
-
-	def read_timeout(self, timeout):
-		''' It tries to read a message twice until the end of timeout.
-		In cases of no messages, this method returns None
-		'''
-		message = self.read(block = False)
-		if message != None:
-			return message
-		else:
-			sleep(timeout)
-			return self.read(block = False)
-
-
-	def receive(self, message):
-		''' It sets a new message on local messages queue.
-		'''
-		if isinstance(message, ACLMessage):
-			self.messages.put(message)
-		else:
-			raise ValueError('message object type must be ACLMessage!')
-
-
 
 	def action(self):
 		''' This is an abstract method that must be overridden in the
@@ -80,7 +34,6 @@ class BaseBehaviour(Behaviour):
 		'''
 		pass
 
-
 	def wait(self, timeout):
 		''' This method sleeps a behaviour until occurs a timeout. The
 		behaviour will execute normally afterwards.
@@ -94,14 +47,6 @@ class BaseBehaviour(Behaviour):
 		the last action of a behaviour.
 		'''
 		pass
-
-
-	def has_messages(self):
-		''' A method to returns if this behaviour has messages in its
-		received messages queue.
-		'''
-		return self.messages.qsize() != 0
-
 
 	def add_lock(self, lock):
 		''' Adds a threading.Lock object to this behaviour, allowing 
