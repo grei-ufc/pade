@@ -33,6 +33,7 @@ import json
 import datetime
 import sys
 
+from click_default_group import DefaultGroup
 
 class FlaskServerProcess(multiprocessing.Process):
     """
@@ -228,7 +229,11 @@ def main(config):
                 p.kill()
             break
 
-@click.group(invoke_without_command=True)
+@click.group(cls=DefaultGroup, default='start-runtime')
+def cmd():
+    pass
+
+@cmd.command()
 @click.argument('agent_files', nargs=-1)
 @click.option('--num', default=1)
 @click.option('--port', default=2000)
@@ -239,7 +244,7 @@ def main(config):
 @click.option('--username', prompt='please enter a username', default='pade_user')
 @click.option('--password', prompt=True, hide_input=True, default='12345')
 @click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
-def cmd(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, username, password):
+def start_runtime(num, agent_files, port, secure, pade_ams, pade_web, pade_sniffer, username, password):
     config = dict()
     config['agent_files'] = agent_files
     config['num'] = num
