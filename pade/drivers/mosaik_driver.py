@@ -83,16 +83,16 @@ class MosaikCon(object):
             if function == 'init':
                 self.sim_id = func_args[0]
                 params = func_kargs
-                message = self.__create_message(1, msg_id_respose, self.init(self.sim_id, **params))
+                message = self._create_message(1, msg_id_respose, self.init(self.sim_id, **params))
             elif function == 'create':
                 num = func_args[0]
                 model = func_args[1]
                 params = func_kargs
-                message = self.__create_message(1, msg_id_respose, self.create(num, model, **params))
+                message = self._create_message(1, msg_id_respose, self.create(num, model, **params))
 
             elif function == 'setup_done':
                 self.setup_done()
-                message = self.__create_message(1, msg_id_respose, None)
+                message = self._create_message(1, msg_id_respose, None)
 
             elif function == 'step':
                 self.time = func_args[0]
@@ -146,16 +146,16 @@ class MosaikCon(object):
                 # aguardando por uma valor externo para concluir
                 # seu comportamento step. 
                 if r:
-                    message = self.__create_message(1, msg_id_respose, r)
+                    message = self._create_message(1, msg_id_respose, r)
                 else:
                     return
 
             elif function == 'get_data':
                 self.outputs = func_args[0]
-                message = self.__create_message(1, msg_id_respose, self.get_data(self.outputs))
+                message = self._create_message(1, msg_id_respose, self.get_data(self.outputs))
             elif function == 'stop':
                 self.stop()
-                message = self.__create_message(1, msg_id_respose, None)
+                message = self._create_message(1, msg_id_respose, None)
 
         return message
 
@@ -177,7 +177,7 @@ class MosaikCon(object):
         return time + self.time_step
 
     def step_done(self):
-        message = self.__create_message(1, self.msg_id_step, self.time + self.step_size)
+        message = self._create_message(1, self.msg_id_step, self.time + self.step_size)
         self.agent.mosaik_connection.transport.write(message)
         self.agent.mosaik_connection.message = None
         self.agent.mosaik_connection.mosaik_msg_id = None
@@ -197,7 +197,7 @@ class MosaikCon(object):
     def get_progress(self):
         m = ['get_progress', [], {}]
         self.msg_id += 1
-        message = self.__create_message(0, self.msg_id, m)
+        message = self._create_message(0, self.msg_id, m)
         self.agent.mosaik_connection.message = None
         self.agent.mosaik_connection.transport.write(message)
         self.async_requests.append('get_progress')
@@ -208,7 +208,7 @@ class MosaikCon(object):
     def get_data_async(self, data):
         m = ['get_data', [data], {}]
         self.msg_id += 1
-        message = self.__create_message(0, self.msg_id, m)
+        message = self._create_message(0, self.msg_id, m)
         self.agent.mosaik_connection.message = None
         self.agent.mosaik_connection.transport.write(message)
         self.async_requests.append('get_data')
@@ -219,7 +219,7 @@ class MosaikCon(object):
     def set_data_async(self, data):
         m = ['set_data', [data], {}]
         self.msg_id += 1
-        message = self.__create_message(0, self.msg_id, m)
+        message = self._create_message(0, self.msg_id, m)
         self.agent.mosaik_connection.message = None
         self.agent.mosaik_connection.transport.write(message)
         self.async_requests.append('set_data')
@@ -227,7 +227,7 @@ class MosaikCon(object):
     def handle_set_data(self):
         pass
 
-    def __create_message(self, msg_type, id_, content):
+    def _create_message(self, msg_type, id_, content):
         a = json.dumps([msg_type, id_, content])
         b = bytes(a, 'utf-8')
         c = int.to_bytes(len(b), 4, byteorder='big')
