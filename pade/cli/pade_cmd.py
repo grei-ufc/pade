@@ -33,6 +33,7 @@ import json
 import datetime
 import sys
 
+from click_default_group import DefaultGroup
 
 class FlaskServerProcess(multiprocessing.Process):
     """
@@ -228,7 +229,7 @@ def main(config):
                 p.kill()
             break
 
-@click.group()
+@click.group(cls=DefaultGroup, default='start-runtime')
 def cmd():
     pass
 
