@@ -244,10 +244,6 @@ class Agent_(object):
         A dictionary with AMS information {'name': ams_IP, 'port': ams_port}
     behaviours : list
         Agent's behaviours list
-    messages : deque
-        Messages received by the agent
-    messages_lock : threading.Lock
-        Lock the message stack during operations on the stack
     debug : boollean
         if True activate the debug mode
     ILP : TYPE
@@ -278,8 +274,6 @@ class Agent_(object):
         self.ams = dict()
         self.sniffer = dict()
         self.behaviours = list()
-        self.messages = deque()
-        self.messages_lock = threading.Lock()
         self.system_behaviours = list()
         self.__messages = list()
         self.ILP = None
@@ -458,27 +452,6 @@ class Agent_(object):
             for behaviour in self.behaviours:
                 behaviour.execute(message)
 
-    def read(self, messageFilters=None):
-        '''
-        Get the first message from the top of the message stack (left-side of
-        the deque) with match the filters provided.
-
-        If any filter was provided, return the message from the top of stack.
-        Parameters
-        ----------
-        messageFilters : Filter
-            filter to be applied at the messages
-        '''
-        with self.messages_lock:
-            if messageFilters == None:
-                return self.messages.popleft()
-
-            for i in self.messages:
-                if messageFilters.filter(i):
-                    self.messages.remove(i)
-                    return i
-
-        return None
 
     def send(self, message):
         """This method calls the method self._send to sends 
@@ -747,6 +720,10 @@ class Agent(Agent_):
         Indicates whether the agent is active or not
     deliverer : MessageDelivery
         A pre-programmed behaviour that deals with postponed messages
+    messages : deque
+        Messages received by the agent
+    messages_lock : threading.Lock
+        Lock the message stack during operations on the stack
     """
     
     def __init__(self, aid, debug=False, ignore_ams=True, wait_time=300):
@@ -781,6 +758,10 @@ class Agent(Agent_):
         self.active = True
         # It is a pre-programmed behaviour that deals with postponed messages
         self.deliverer = MessageDelivery(self, wait_time)
+        # The local message queue
+        self.messages = deque()
+        # The lock object to ensure thread-safe queue reading
+        self.messages_lock = threading.Lock()
 
     def update_ams(self, ams):
         """Summary
@@ -826,6 +807,28 @@ class Agent(Agent_):
             if not self.ignore_ams or not message.system_message:
                 self.messages.appendleft(message)
 
+    def receive(self, message_filter = None):
+        '''
+        Get the first message from the top of the message stack (left-side of
+        the deque) with match the filters provided.
+
+        If any filter was provided, return the message from the top of stack.
+        
+        Parameters
+        ----------
+        message_filter : Filter
+            filter to be applied at the messages
+        '''
+
+        with self.messages_lock:
+            if message_filter == None:
+                return self.messages.popleft()
+
+            for message in self.messages:
+                if message_filter.filter(message):
+                    self.messages.remove(message)
+                    return message
+        return None
 
     def setup(self):
         ''' Executes the initial actions of the agent.
@@ -893,14 +896,12 @@ class Agent(Agent_):
         except ValueError:
             raise ValueError('the behaviour does not exists in scheduler.')
 
-                
     def has_messages(self):
         ''' A method to returns if this behaviour has messages in its
         received messages queue.
         '''
         with self.messages_lock:
             return len(self.messages) > 0
-
 
     def pause_agent(self):
         ''' Pauses the scheduler activities.
@@ -909,7 +910,6 @@ class Agent(Agent_):
         super().pause_agent()
         self.active = False
 
-
     def resume_agent(self):
         ''' Resumes the scheduler activities.
         '''
@@ -917,7 +917,6 @@ class Agent(Agent_):
         super().resume_agent()
         self.active = True
         self.scheduler.start()
-
 
     def send(self, message):
         ''' Sends a message for other agents.
@@ -945,7 +944,6 @@ class Agent(Agent_):
         for receiver in receivers:
             message.add_receiver(receiver)
         super().send(message)
-
 
     def receiver_available(self, receiver):
         ''' Checks if a receiver is availabe in the system
