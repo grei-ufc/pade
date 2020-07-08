@@ -33,7 +33,7 @@ class BaseBehaviour(Behaviour):
         '''
         pass
 
-    def wait(self, timeout):
+    def block(self, timeout):
         ''' This method sleeps a behaviour until occurs a timeout. The
         behaviour will execute normally afterwards.
         '''
