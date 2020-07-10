@@ -724,6 +724,9 @@ class Agent(Agent_):
         Messages received by the agent
     messages_lock : threading.Lock
         Lock the message stack during operations on the stack
+    message_event : threading.Event
+        The Event object that unblock the blocked behaviours when a message
+        arrives.
     """
     
     def __init__(self, aid, debug=False, ignore_ams=True, wait_time=300):
@@ -762,6 +765,8 @@ class Agent(Agent_):
         self.messages = deque()
         # The lock object to ensure thread-safe queue reading
         self.messages_lock = threading.Lock()
+        # An event handler to be launched when a message arrives
+        self.message_event = threading.Event()
 
     def update_ams(self, ams):
         """Summary
@@ -806,6 +811,36 @@ class Agent(Agent_):
         with self.messages_lock:
             if not self.ignore_ams or not message.system_message:
                 self.messages.appendleft(message)
+                self.message_event.set()
+        # Clears the message event in order to block the behaviours again
+        self.message_event.clear()
+
+
+    def receive(self, message_filter = None):
+        '''
+        Get the first message from the top of the message stack (left-side of
+        the deque) with match the filters provided.
+
+        If any filter was provided, return the message from the top of stack.
+        Parameters
+        ----------
+        messageFilters : Filter
+            filter to be applied at the messages
+        '''
+
+        with self.messages_lock:
+            # Checks if has message without launch another lock. This ensures
+            # that the method never will raise an 'empty queue' exception.
+            if len(self.messages) > 0:
+                if message_filter == None:
+                    return self.messages.popleft()
+
+                for message in self.messages:
+                    if message_filter.filter(message):
+                        self.messages.remove(message)
+                        return message
+        return None
+
 
     def receive(self, message_filter = None):
         '''

@@ -30,6 +30,10 @@ class SimpleBehaviour(BaseBehaviour):
         '''
         pass
 
+    def block(self):
+        ''' Blocks the behaviour until a new message arrive.
+        '''
+        self.agent.message_event.wait()
 
 class OneShotBehaviour(BaseBehaviour):
 
