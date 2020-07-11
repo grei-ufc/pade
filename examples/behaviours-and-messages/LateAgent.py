@@ -1,3 +1,7 @@
+''' This example shows how WakeUpBehaviour works. The agent
+prints a message in the screen.
+'''
+
 # Needed imports
 from pade.behaviours.types import WakeUpBehaviour
 from pade.core.agent import Agent
@@ -12,7 +16,7 @@ class LateAgent(Agent):
 		# the second is a time (in seconds) to behaviour
 		# waits.
 		behaviour = AmILate(self, 5)
-		# It adds a behaviour in the agent
+		# This adds a behaviour in the agent
 		self.add_behaviour(behaviour)
 
 
@@ -24,7 +28,7 @@ class AmILate(WakeUpBehaviour):
 		display_message(self.agent, 'Am I late?')
 
 
-# It starts the agents with PADE
+# This starts the agents with PADE
 if __name__ == '__main__':
 	# Defining a LateAgent object
 	lateagent = LateAgent('late')

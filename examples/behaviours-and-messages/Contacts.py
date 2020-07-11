@@ -1,3 +1,7 @@
+''' This example shows how the data serialization works. Users send
+requests to contact book about contacts information.
+'''
+
 from pade.acl.messages import ACLMessage
 from pade.acl.filters import Filter
 from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
@@ -9,45 +13,48 @@ import pickle
 
 # User Agent
 class User(Agent):
-	def __init__(self, aid, name, contact_book):
+	def __init__(self, aid, contact_name, contact_book):
 		super().__init__(aid)
-		self.name = name.lower() # The name to be searched in the ContactBook
+		self.contact_name = contact_name.lower() # The name to be searched in the ContactBook
 		self.contact_book = contact_book # Gets the AID of ContactBook
 
 	def setup(self):
 		self.add_behaviour(Search(self))
 		self.add_behaviour(ShowInfos(self))
 
+
 class Search(OneShotBehaviour):
 	def action(self):
 		message = ACLMessage(ACLMessage.REQUEST)
 		message.add_receiver(self.agent.contact_book)
-		message.set_content(self.agent.name)
-		self.send(message)
-		display(self.agent, "I requested for %s's contact." % self.agent.name)
+		message.set_content(self.agent.contact_name)
+		self.agent.send(message)
+		display(self.agent, "I requested for %s's contact." % self.agent.contact_name)
 
-class ShowInfos(OneShotBehaviour):
+
+class ShowInfos(CyclicBehaviour):
 	def action(self):
-		message = self.read()
-		# Deserializing the received information
-		contact = pickle.loads(message.content)
-		# Filtering the message
-		f = Filter()
-		f.set_performative(ACLMessage.INFORM)
-		if f.filter(message):
-			template = 'Contact info: \nName: {name}\nPhone: {phone}\nE-mail: {email}'
-			# Showing the deserialized data
-			display(self.agent, template.format(
-				name=contact['name'],
-				phone=contact['phone'],
-				email=contact['email'])
-			)
-		elif message.performative == ACLMessage.FAILURE:
-			# Showing the failure information
-			display(self.agent, '{id}: {desc}'.format(
-				id=contact['error'],
-				desc=contact['description'])
-			)
+		message = self.agent.receive()
+		if message != None:
+			# Deserializing the received information
+			contact = pickle.loads(message.content)
+			if message.get_performative() == ACLMessage.INFORM:
+				template = 'Contact info: \nName: {name}\nPhone: {phone}\nE-mail: {email}'
+				# Showing the deserialized data
+				display(self.agent, template.format(
+					name=contact['name'],
+					phone=contact['phone'],
+					email=contact['email'])
+				)
+			elif message.performative == ACLMessage.FAILURE:
+				# Showing the failure information
+				display(self.agent, '{id}: {desc}'.format(
+					id=contact['error'],
+					desc=contact['description'])
+				)
+		else:
+			self.block()
+
 
 
 # Contact Book Agent
@@ -66,15 +73,16 @@ class ContactBook(Agent):
 	def setup(self):
 		self.add_behaviour(SearchContact(self))
 
-# Behaviour that deal with contact requisitions
+
+# Behaviour that deal with the received contact requests
 class SearchContact(CyclicBehaviour):
 	def action(self):
-		f = Filter()
-		f.set_performative(ACLMessage.REQUEST)
-		message = self.read()
-		if f.filter(message):
-			reply = message.create_reply() # Creates a reply to sender
-			contact = self.search(message.content)
+		message_filter = Filter()
+		message_filter.set_performative(ACLMessage.REQUEST)
+		message = self.agent.receive(message_filter)
+		if message != None:
+			reply = message.create_reply() # Creates a reply to the sender
+			contact = self.search(message.get_content())
 			if contact != None: # If the searched contact exists
 				# Setting the performative of the reply to INFORM
 				reply.set_performative(ACLMessage.INFORM)
@@ -85,7 +93,10 @@ class SearchContact(CyclicBehaviour):
 				reply.set_performative(ACLMessage.FAILURE)
 				# Adding the reason of the FAILURE (using a dict)
 				reply.set_content(pickle.dumps({'error': 404, 'description': 'Contact not found.'}))
-			self.send(reply)
+			self.agent.send(reply)
+		else:
+			# Blocks the behaviour until the next message
+			self.block()
 
 	def search(self, name):
 		for contact in self.agent.contacts:

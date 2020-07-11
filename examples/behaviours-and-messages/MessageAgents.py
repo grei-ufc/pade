@@ -1,3 +1,7 @@
+''' This example shows how the message exchange works in PADE. The
+SenderAgent sends a message to ReceiverAgent.
+'''
+
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import OneShotBehaviour, CyclicBehaviour
 from pade.core.agent import Agent
@@ -28,6 +32,7 @@ class SendMessage(OneShotBehaviour):
 		self.agent.send(message)
 		display(self.agent, 'I sent a message to receiver.')
 
+
 # Receiver Agent
 class ReceiverAgent(Agent):
 	def setup(self):
@@ -36,11 +41,16 @@ class ReceiverAgent(Agent):
 
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
-		if self.agent.has_messages():
-			# Receives (reads) the message from queue
-			message = self.agent.read()
+		# Receives the message from queue
+		message = self.agent.receive()
+		# If there is messages to receive
+		if message != None:
 			# Shows the message content
 			display(self.agent, 'I received a message with the content: %s.' % message.content)
+		else:
+			# Blocks the behaviour until the next message arrives
+			self.block()
+
 
 if __name__ == '__main__':
 	agents = list()

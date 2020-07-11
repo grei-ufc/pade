@@ -1,3 +1,9 @@
+''' This example shows how TickerBehaviour works in PADE. Also, the
+example shows how the message delivery systems works in PADE. Note
+that no message is lost. A SenderAgent periodically sends messages to
+ReceiverAgent.
+'''
+
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import OneShotBehaviour, TickerBehaviour, WakeUpBehaviour, CyclicBehaviour
@@ -22,7 +28,7 @@ class SendMessage(TickerBehaviour):
 		message = ACLMessage(ACLMessage.INFORM)
 		message.add_receiver(self.agent.receiver)
 		message.set_content('Message #%d' % self.counter)
-		self.send(message)
+		self.agent.send(message)
 		self.counter += 1
 		display_message(self.agent, 'Message sent to receiver.')
 
@@ -32,16 +38,25 @@ class SendMessage(TickerBehaviour):
 class ReceiverAgent(Agent):
 	def __init__(self, name, sender):
 		super().__init__(name)
-		self.sender = sender # Gets the local name of sender
+		self.sender = sender # Gets the local name of the sender
 
 	def setup(self):
 		self.add_behaviour(ReceiveMessage(self))
 
 class ReceiveMessage(CyclicBehaviour):
 	def action(self):
-		message = self.read()
-		if message.sender.getLocalName() == self.agent.sender:
-			display_message(self.agent, 'This is:  %s.' % message.content)
+		# Attempt to receive a message
+		message = self.agent.receive()
+		# If was received any message...
+		if message != None:
+			# Confirming if the sender local name is the same of the provided
+			# sender name
+			if message.sender.getLocalName() == self.agent.sender:
+				display_message(self.agent, 'This is:  %s.' % message.content)
+		# ...otherwise
+		else:
+			# Blocks the behaviour until the next message arrives
+			self.block()
 
 
 

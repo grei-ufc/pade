@@ -1,3 +1,7 @@
+''' This example shows how the message exchange works in PADE. Two
+agents periodically exchange messages.
+'''
+
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.behaviours.types import CyclicBehaviour, OneShotBehaviour
@@ -24,19 +28,16 @@ class StartGame(OneShotBehaviour):
 		message.add_receiver(self.agent.pong)
 		message.set_content('PING')
 		# Sending the message
-		self.send(message)
+		self.agent.send(message)
 
 class PingTurn(CyclicBehaviour):
 	def action(self):
 		# Awaits for a message from 'pong'. The execution of this
 		# behaviour will stops until some message arrives at this
-		# agent. If you want to read a message without blocking the
-		# behaviour, use self.read(block = False) or 
-		# self.read_timeout(timeout). These methods returns None 
-		# if don't have messages to agent. See docs to more details.
-		if self.agent.has_messages():
-			message = self.agent.read()
-			if message.sender == self.agent.pong:
+		# agent. See docs to more details.
+		message = self.agent.receive()
+		if message != None:
+			if message.get_sender() == self.agent.pong:
 				# Preparing a reply to self.receiver
 				reply = message.create_reply()
 				reply.set_content('PING')
@@ -45,7 +46,11 @@ class PingTurn(CyclicBehaviour):
 				#(Do you want to see the results, don't you?)
 				self.wait(0.5)
 				# Sending the message
-				self.send(reply)
+				self.agent.send(reply)
+		else:
+			# If there is no messages to read, the behaviour will
+			# block until the next messages arrives.
+			self.block()
 
 
 # ==== Pong Agent ====
@@ -60,8 +65,8 @@ class PongAgent(Agent):
 
 class PongTurn(CyclicBehaviour):
 	def action(self):
-		if self.agent.has_messages():
-			message = self.agent.read()
+		message = self.agent.receive()
+		if message != None:
 			if message.sender == self.agent.ping:
 				# Preparing a reply to 'ping'
 				reply = message.create_reply()
@@ -69,7 +74,10 @@ class PongTurn(CyclicBehaviour):
 				display_message(self.agent, 'Turn: %s' % message.content)
 				self.wait(0.5)
 				# Sending the reply
-				self.send(reply)
+				self.agent.send(reply)
+		else:
+			# The same here.
+			self.block()
 
 
 # ==== Starting main loop of PADE ====
