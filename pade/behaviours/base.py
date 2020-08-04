@@ -36,168 +36,168 @@ from pade.acl.messages import ACLMessage
 import queue, time
 
 class BaseBehaviour(Behaviour):
-	''' The basic behaviour class.
+    ''' The basic behaviour class.
 
-	This class inherits from Behaviour class and implements the basic methods
-	for scheduled behaviours.
+    This class inherits from Behaviour class and implements the basic methods
+    for scheduled behaviours.
 
-	Attributes
-	----------
-	_messages : list
-		The behaviour local message queue.
-	'''
+    Attributes
+    ----------
+    _messages : list
+        The behaviour local message queue.
+    '''
 
-	def __init__(self, agent):
-		'''
-		Parameters
-		----------
-		agent : Agent
-			The agent which performs the behaviour.
-		'''
+    def __init__(self, agent):
+        '''
+        Parameters
+        ----------
+        agent : Agent
+            The agent which performs the behaviour.
+        '''
 
-		super().__init__(agent)
-		self._messages = queue.Queue()
-
-
-	def read(self, block = True):
-		''' Reads a message from the local queue.
-
-		It gets the first message in the local message queue. It waits (by
-		default) to receive a message, in case of the queue is empty.
-
-		Parameters
-		----------
-		block : bool, optional
-			Defines wheter the behaviour will block (block = True) or not
-			(block = False) when the local message queue is empty (default is
-			True).
-
-		Returns
-		-------
-		ACLMessage
-			The read message from the local queue.
-		'''
-
-		if block:
-			return self._messages.get()
-		else:
-			try:
-				return self._messages.get_nowait()
-			except queue.Empty:
-				return None
+        super().__init__(agent)
+        self._messages = queue.Queue()
 
 
-	def send(self, message):
-		''' Sends a message for other agents.
+    def read(self, block = True):
+        ''' Reads a message from the local queue.
 
-		This method gets a message and passes it to self.agent.send() method.
-		It was coded just to complement the pair read/send in the BaseBehaviour class.
-		The method self.agent.send() can still be used directly in the code.
+        It gets the first message in the local message queue. It waits (by
+        default) to receive a message, in case of the queue is empty.
 
-		Parameters
-		----------
-		message : ACLMessage
-			The message to be sent.
-		'''
+        Parameters
+        ----------
+        block : bool, optional
+            Defines wheter the behaviour will block (block = True) or not
+            (block = False) when the local message queue is empty (default is
+            True).
 
-		self.agent.send(message)
+        Returns
+        -------
+        ACLMessage
+            The read message from the local queue.
+        '''
 
-
-	def read_timeout(self, timeout):
-		''' Reads the local queue waiting for a defined timeout.
-
-		It tries to read the message queue twice until the end of timeout. In
-		case of no messages, this method returns None.
-
-		Parameters
-		----------
-		timeout : float
-			The max timeout to wait when reading the local message queue.
-
-		Returns
-		-------
-		ACLMessage
-			The read message from the local queue.
-		None
-			In case of no messages in queue at the end of the timeout.
-		'''
-
-		message = self.read(block = False)
-		if message != None:
-			return message
-		else:
-			time.sleep(timeout)
-			return self.read(block = False)
+        if block:
+            return self._messages.get()
+        else:
+            try:
+                return self._messages.get_nowait()
+            except queue.Empty:
+                return None
 
 
-	def receive(self, message):
-		''' Sets a new message in the local messages queue.
+    def send(self, message):
+        ''' Sends a message for other agents.
 
-		Parameters
-		----------
-		message : ACLMessage
-			The message to be put in the queue.
+        This method gets a message and passes it to self.agent.send() method.
+        It was coded just to complement the pair read/send in the BaseBehaviour class.
+        The method self.agent.send() can still be used directly in the code.
 
-		Raises
-		------
-		ValueError
-			If the passed object not is an ACLMessage object.
-		'''
+        Parameters
+        ----------
+        message : ACLMessage
+            The message to be sent.
+        '''
 
-		if isinstance(message, ACLMessage):
-			self._messages.put(message)
-		else:
-			raise ValueError('message object type must be ACLMessage!')
+        self.agent.send(message)
 
 
+    def read_timeout(self, timeout):
+        ''' Reads the local queue waiting for a defined timeout.
 
-	def action(self):
-		''' An abstract method that performs the actions of the behaviour.
+        It tries to read the message queue twice until the end of timeout. In
+        case of no messages, this method returns None.
 
-		This method must be overridden in the subclasses.
-		'''
+        Parameters
+        ----------
+        timeout : float
+            The max timeout to wait when reading the local message queue.
 
-		pass
+        Returns
+        -------
+        ACLMessage
+            The read message from the local queue.
+        None
+            In case of no messages in queue at the end of the timeout.
+        '''
 
-
-	def done(self):
-		''' Defines when the behaviour ends.
-
-		This method must be overridden in the subclasses.
-		'''
-
-		pass
-
-
-	def wait(self, timeout):
-		''' Sleeps a behaviour until occurs a timeout.
-
-		Parameters
-		----------
-		timeout : float
-			The time to be waited.
-		'''
-
-		time.sleep(timeout)
+        message = self.read(block = False)
+        if message != None:
+            return message
+        else:
+            time.sleep(timeout)
+            return self.read(block = False)
 
 
-	def on_end(self):
-		''' Executes the final actions of the behaviou.
+    def receive(self, message):
+        ''' Sets a new message in the local messages queue.
 
-		The scheduler will call this method after the behaviour ends. May be
-		overriden in subclasses.
-		'''
+        Parameters
+        ----------
+        message : ACLMessage
+            The message to be put in the queue.
 
-		pass
+        Raises
+        ------
+        ValueError
+            If the passed object not is an ACLMessage object.
+        '''
+
+        if isinstance(message, ACLMessage):
+            self._messages.put(message)
+        else:
+            raise ValueError('message object type must be ACLMessage!')
 
 
-	def has_messages(self):
-		''' Checks whether the behaviour has messages in its messages queue.
 
-		Returns
-		-------
-		bool
-			True if the queue has messages; False otherwise.
-		'''
+    def action(self):
+        ''' An abstract method that performs the actions of the behaviour.
 
-		return self._messages.qsize() != 0
+        This method must be overridden in the subclasses.
+        '''
+
+        pass
+
+
+    def done(self):
+        ''' Defines when the behaviour ends.
+
+        This method must be overridden in the subclasses.
+        '''
+
+        pass
+
+
+    def wait(self, timeout):
+        ''' Sleeps a behaviour until occurs a timeout.
+
+        Parameters
+        ----------
+        timeout : float
+            The time to be waited.
+        '''
+
+        time.sleep(timeout)
+
+
+    def on_end(self):
+        ''' Executes the final actions of the behaviou.
+
+        The scheduler will call this method after the behaviour ends. May be
+        overriden in subclasses.
+        '''
+
+        pass
+
+
+    def has_messages(self):
+        ''' Checks whether the behaviour has messages in its messages queue.
+
+        Returns
+        -------
+        bool
+            True if the queue has messages; False otherwise.
+        '''
+
+        return self._messages.qsize() != 0

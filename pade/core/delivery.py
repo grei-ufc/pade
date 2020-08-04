@@ -39,62 +39,62 @@ from queue import Queue
 from pade.misc.utility import display_message
 
 class MessageDelivery(CyclicBehaviour):
-	''' This class implements a default behaviour to ensure the messages
-	delivery.
+    ''' This class implements a default behaviour to ensure the messages
+    delivery.
 
-	MessageDelivery class executes the attempt to deliver a message to another
-	agent. The sent messages remains in a queue until the max_wait time is
-	reached.
+    MessageDelivery class executes the attempt to deliver a message to another
+    agent. The sent messages remains in a queue until the max_wait time is
+    reached.
 
-	Attributes
-	----------
-	queue : queue.Queue
-		The queue that saves the postponed messages.
-	max_wait : float
-		The max time to wait the receiver stay available.
-	'''
+    Attributes
+    ----------
+    queue : queue.Queue
+        The queue that saves the postponed messages.
+    max_wait : float
+        The max time to wait the receiver stay available.
+    '''
 
-	def __init__(self, agent, max_wait):
-		'''
-		Parameters
-		----------
-		agent : Agent
-			The agent that executes the behaviour.
-		max_wait : float
-			The max time to wait the receiver stay available.
-		'''
+    def __init__(self, agent, max_wait):
+        '''
+        Parameters
+        ----------
+        agent : Agent
+            The agent that executes the behaviour.
+        max_wait : float
+            The max time to wait the receiver stay available.
+        '''
 
-		super().__init__(agent)
-		self.queue = Queue()
-		self.max_wait = max_wait
-
-
-	def action(self):
-		''' Runs the actions of the message delivery service.
-		'''
-
-		self.wait(0.5)
-		package = self.queue.get()
-		elapsed_time = datetime.now() - package['time_stamp']
-		if elapsed_time.total_seconds() <= self.max_wait:
-			if not self.agent.receiver_available(package['message'].receivers[0]):
-				self.queue.put(package)
-			else:
-				self.agent.send(package['message'])
-		else:
-			display_message(self.agent, 'A message could not be delivered to the receiver %s.' % package['message'].receivers[0].getName())
+        super().__init__(agent)
+        self.queue = Queue()
+        self.max_wait = max_wait
 
 
-	def deliver(self, message):
-		''' Puts a message in the delivery queue.
+    def action(self):
+        ''' Runs the actions of the message delivery service.
+        '''
 
-		This method pack the passed message in a dict. This package allows the
-		message to be managed by the service with a timestamp.
+        self.wait(0.5)
+        package = self.queue.get()
+        elapsed_time = datetime.now() - package['time_stamp']
+        if elapsed_time.total_seconds() <= self.max_wait:
+            if not self.agent.receiver_available(package['message'].receivers[0]):
+                self.queue.put(package)
+            else:
+                self.agent.send(package['message'])
+        else:
+            display_message(self.agent, 'A message could not be delivered to the receiver %s.' % package['message'].receivers[0].getName())
 
-		Parameters
-		----------
-		message : ACLMessage
-			The postponed message to be delivered.
-		'''
 
-		self.queue.put({'message': message,	'time_stamp': datetime.now()})
+    def deliver(self, message):
+        ''' Puts a message in the delivery queue.
+
+        This method pack the passed message in a dict. This package allows the
+        message to be managed by the service with a timestamp.
+
+        Parameters
+        ----------
+        message : ACLMessage
+            The postponed message to be delivered.
+        '''
+
+        self.queue.put({'message': message,    'time_stamp': datetime.now()})

@@ -38,82 +38,82 @@ from pade.misc.utility import display
 from queue import Queue
 
 class Scheduler(Thread):
-	''' This class models behaviours scheduler of PADE.
+    ''' This class models behaviours scheduler of PADE.
 
-	Scheduler class basically envelopes each behaviour within a thread (under
-	BehaviourTask form, here called simply 'Task') and execute it.
+    Scheduler class basically envelopes each behaviour within a thread (under
+    BehaviourTask form, here called simply 'Task') and execute it.
 
-	Attributes
-	----------
-	agent : Agent
-		The agent that executes the behaviour.
-	active_tasks : list
-		The queue of the active behaviours (in the task form).
-	tasks : queue
-		The entire queue of tasks in the scheduler.
-	'''
+    Attributes
+    ----------
+    agent : Agent
+        The agent that executes the behaviour.
+    active_tasks : list
+        The queue of the active behaviours (in the task form).
+    tasks : queue
+        The entire queue of tasks in the scheduler.
+    '''
 
-	def __init__(self, agent):
-		'''
-		Parameters
-		----------
-		agent : Agent
-			The agent that executes the behaviour.
-		'''
+    def __init__(self, agent):
+        '''
+        Parameters
+        ----------
+        agent : Agent
+            The agent that executes the behaviour.
+        '''
 
-		super().__init__()
-		self.agent = agent
-		self.active_tasks = list()
-		self.tasks = Queue()
+        super().__init__()
+        self.agent = agent
+        self.active_tasks = list()
+        self.tasks = Queue()
 
 
-	def run(self):
-		''' Executes the scheduled tasks in the 'tasks' queue.
-		'''
+    def run(self):
+        ''' Executes the scheduled tasks in the 'tasks' queue.
+        '''
 
-		while self.agent.active:
-			task = self.tasks.get()
-			task.start()
+        while self.agent.active:
+            task = self.tasks.get()
+            task.start()
 
 
 class BehaviourTask(Thread):
-	''' This class encapsulates each behaviour in a thread.
+    ''' This class encapsulates each behaviour in a thread.
 
-	A Task is a separated thread that deals with the execution of each
-	important method of the behaviours.
+    A Task is a separated thread that deals with the execution of each
+    important method of the behaviours.
 
-	Attributes
-	----------
-	behaviour : BaseBehaviour
-		The behaviour encapsulated in the task.
-	scheduler : Scheduler
-		A reference to the scheduler in which this task is executed.
-	'''
+    Attributes
+    ----------
+    behaviour : BaseBehaviour
+        The behaviour encapsulated in the task.
+    scheduler : Scheduler
+        A reference to the scheduler in which this task is executed.
+    '''
 
-	def __init__(self, behaviour, scheduler):
-		'''
-		Parameters
-		----------
-		behaviour : BaseBehaviour
-			The behaviour encapsulated in the task.
-		scheduler : Scheduler
-			A reference to the scheduler in which this task is executed.
-		'''
+    def __init__(self, behaviour, scheduler):
+        '''
+        Parameters
+        ----------
+        behaviour : BaseBehaviour
+            The behaviour encapsulated in the task.
+        scheduler : Scheduler
+            A reference to the scheduler in which this task is executed.
+        '''
 
-		super().__init__()
-		self.behaviour = behaviour
-		self.scheduler = scheduler
+        super().__init__()
+        self.behaviour = behaviour
+        self.scheduler = scheduler
 
 
-	def run(self):
-		''' Runs the behaviour.
+    def run(self):
+        ''' Runs the behaviour.
 
-		This method will run the action methods (action() and on_end()) of the
-		BaseBehaviour class, controlled by the done() method.
-		'''
+        This method will run the action methods (action() and on_end()) of the
+        BaseBehaviour class, controlled by the done() method.
+        '''
 
-		self.behaviour.action() # Execute the action() method at least once.
-		while not self.behaviour.done():
-			self.behaviour.action() # Execute the behaviour actions
-		self.behaviour.on_end() # Lasts actions of the behaviour
-		self.scheduler.agent.remove_task(self) # Thread will die after its behaviour execution 
+        self.behaviour.action() # Execute the action() method at least once.
+        while not self.behaviour.done():
+            self.behaviour.action() # Execute the behaviour actions
+        self.behaviour.on_end() # Lasts actions of the behaviour
+        self.scheduler.agent.remove_task(self) # Thread will die after its behaviour execution 
