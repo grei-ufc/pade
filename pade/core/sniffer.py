@@ -123,6 +123,7 @@ class Sniffer(Agent):
                     messages.append(_message) 
 
                 if self.buffer_control:
+                    #reactor.callLater(0.0000001, self.handle_store_messages)
                     reactor.callLater(5.0, self.handle_store_messages)
                     self.buffer_control = False
 

@@ -33,6 +33,7 @@ import json
 import datetime
 import sys
 
+from click_default_group import DefaultGroup
 
 class FlaskServerProcess(multiprocessing.Process):
     """
@@ -144,10 +145,11 @@ def main(config):
     from pade.core import new_ams
 
     if pade_ams is None:
-        commands = 'python {} {} {} {} {}'.format(new_ams.__file__,
+        commands = 'python {} {} {} {} {} {}'.format(new_ams.__file__,
                                                session['username'],
                                                session['email'],
                                                session['password'],
+                                               'localhost',
                                                8000)
         if sys.platform == 'win32':
             commands = shlex.split(commands, posix=False)
@@ -157,10 +159,11 @@ def main(config):
         processes.append(p)
     else:
         if pade_ams['launch']:
-            commands = 'python {} {} {} {} {}'.format(new_ams.__file__,
+            commands = 'python {} {} {} {} {} {}'.format(new_ams.__file__,
                                                    session['username'],
                                                    session['email'],
                                                    session['password'],
+                                                   pade_ams['host'],
                                                    pade_ams['port'])
             if sys.platform == 'win32':
                 commands = shlex.split(commands, posix=False)
@@ -226,7 +229,7 @@ def main(config):
                 p.kill()
             break
 
-@click.group()
+@click.group(cls=DefaultGroup, default='start-runtime')
 def cmd():
     pass
 

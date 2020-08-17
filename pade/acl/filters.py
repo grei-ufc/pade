@@ -36,18 +36,33 @@ class Filter():
         self.sender = None
         self.performative = None
         self.protocol = None
+        self.ontology = None
+        self.language = None
+
     
     def set_sender(self, aid):
         self.sender = aid
-        
+
+
     def set_performative(self, performative):
         self.performative = performative
+
     
     def set_conversation_id(self, conversation_id):
         self.conversation_id = conversation_id
-    
+
+
     def set_protocol(self, protocol):
         self.protocol = protocol
+
+
+    def set_ontology(self, ontology):
+        self.ontology = ontology
+
+
+    def set_language(self, language):
+        self.language = language
+
     
     def filter(self, message):
         state = True
@@ -63,7 +78,13 @@ class Filter():
         
         if self.protocol != None and self.protocol != message.protocol:
             state = False
-            
+
+        if self.ontology != None and self.ontology != message.ontology:
+            state = False
+
+        if self.language != None and self.language != message.language:
+            state = False
+
         return state
 
 if __name__ == '__main__':
