@@ -413,6 +413,15 @@ class FipaContractNetProtocol(FipaProtocol):
         """
         pass
 
+    def handle_failure(self, message):
+        """This method should be overridden when implementing a protocol.
+            This method is always executed when the agent receives a 
+            FIPA_FAILURE type message 
+
+            :param message: FIPA-ACL message
+        """
+        pass
+
     def handle_reject_propose(self, message):
         """This method should be overridden when implementing a protocol.
             This method is always executed when the agent receives a 
@@ -573,6 +582,13 @@ class FipaSubscribeProtocol(FipaProtocol):
     def handle_inform(self, message):
         """
             handle_inform
+
+        """
+        pass
+
+    def handle_failure(self, message):
+        """
+            handle_failure
 
         """
         pass
