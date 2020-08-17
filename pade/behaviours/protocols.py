@@ -131,8 +131,8 @@ class FipaProtocol(Behaviour):
         self.is_initiator = is_initiator
         self.message = message
 
-        self.filter_not_undestood = Filter()
-        self.filter_not_undestood.set_performative(ACLMessage.NOT_UNDERSTOOD)
+        self.filter_not_understood = Filter()
+        self.filter_not_understood.set_performative(ACLMessage.NOT_UNDERSTOOD)
 
         if self.message is not None:
             self.filter_conversation_id = Filter()
@@ -158,7 +158,7 @@ class FipaProtocol(Behaviour):
 
         self.message = message
 
-        if self.filter_not_undestood.filter(self.message):
+        if self.filter_not_understood.filter(self.message):
             self.handle_not_understood(message)
 
 class FipaRequestProtocol(FipaProtocol):
@@ -249,8 +249,8 @@ class FipaRequestProtocol(FipaProtocol):
     def handle_inform(self, message):
         """
         This method should be overridden when implementing a protocol.
-            This method is always executed when the agent receives a
-            FIPA_IMFORM type message
+            This method is always executed when the agent receives a 
+            FIPA_INFORM type message 
 
             :param message: FIPA-ACL message
         """
