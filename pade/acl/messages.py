@@ -147,7 +147,7 @@ class ACLMessage(ET.Element):
         datetime_tag.append(microsecond)
 
         self.system_message = False
-        #self.datetime = None # It makes sense put None at this property? (see self.datetime attribution above)
+        #self.datetime = None # It's makes sense put None at this property? (see self.datetime attribution above)
         self.sender = None
         self.receivers = list()
         self.reply_to = list()
@@ -299,6 +299,9 @@ class ACLMessage(ET.Element):
     
     def get_sender(self):
         return self.sender
+    
+    def get_datetime(self):
+        return self.datetime
 
     def as_xml(self):
         domElement = minidom.parseString(ET.tostring(self))
