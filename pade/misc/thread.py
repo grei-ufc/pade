@@ -101,7 +101,7 @@ class SharedProperty(object):
         '''
 
         with self.lock:
-            return self.data
+            return self._data
     
 
     def write(self, data):
@@ -114,7 +114,7 @@ class SharedProperty(object):
         '''
 
         with self.lock:
-            self.data = data
+            self._data = data
     
 
     def __str__(self):
@@ -126,4 +126,4 @@ class SharedProperty(object):
             The formated string of the stored data.
         '''
 
-        return str(self.data)
+        return str(self._data)
