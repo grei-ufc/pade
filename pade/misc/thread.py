@@ -74,6 +74,21 @@ class SharedProperty(object):
         '''
 
         return self._lock
+    
+
+    @property
+    def data(self):
+        ''' Returns the data stored within the object
+        
+        Used only to manipulate the data within a lock context.
+
+        Returns
+        -------
+        object
+            The data stored within the object.
+        '''
+
+        return self._data
 
 
     def read(self):
@@ -86,7 +101,7 @@ class SharedProperty(object):
         '''
 
         with self.lock:
-            return self._data
+            return self.data
     
 
     def write(self, data):
@@ -99,7 +114,7 @@ class SharedProperty(object):
         '''
 
         with self.lock:
-            self._data = data
+            self.data = data
     
 
     def __str__(self):
@@ -111,4 +126,4 @@ class SharedProperty(object):
             The formated string of the stored data.
         '''
 
-        return str(self._data)
+        return str(self.data)
