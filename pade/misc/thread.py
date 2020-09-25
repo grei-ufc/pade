@@ -31,7 +31,7 @@ module depends on the default Python threading library.
 @author: Italo Campos
 """
 
-import threading
+import threading, copy
 
 class SharedProperty(object):
     ''' The basic class for properties shared between concurrent behaviours.
@@ -88,7 +88,7 @@ class SharedProperty(object):
             The data stored within the object.
         '''
 
-        return self._data
+        return copy.deepcopy(self._data)
     
 
     @data.setter
@@ -102,7 +102,8 @@ class SharedProperty(object):
         object
             The data to be added within the object.
         '''
-        self._data = data
+
+        self._data = copy.deepcopy(data)
 
 
     def read(self):
