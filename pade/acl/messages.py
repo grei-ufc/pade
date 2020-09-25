@@ -298,6 +298,9 @@ class ACLMessage(ET.Element):
     
     def get_datetime(self):
         return self.datetime
+    
+    def get_receivers(self):
+        return self.receivers
 
     def as_xml(self):
         domElement = minidom.parseString(ET.tostring(self))
