@@ -33,7 +33,7 @@ module depends on the default Python threading library.
 
 import threading, copy
 
-class SharedProperty(object):
+class SharedResource(object):
     ''' The basic class for properties shared between concurrent behaviours.
 
     This class models the properties that are shared between concurrent
