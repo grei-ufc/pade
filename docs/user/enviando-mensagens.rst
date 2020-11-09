@@ -82,7 +82,7 @@ Mas também é possível obter a mensagem no formato XML por meio do comando `pr
             <reply-to/>
             <content>Ola Agente</content>
             <language/>
-            <enconding/>
+            <encoding/>
             <ontology/>
             <protocol>fipa-request protocol</protocol>
             <conversationID>b2e806b8-50a0-11e5-b3b6-e8b1fc5c3cdf</conversationID>
