@@ -27,4 +27,4 @@ python mosaik_scenario_def.py
 
 If the co-simulation setup is correct you will see messages like this:
 
-<img src="" width="40">
+<img src="https://raw.githubusercontent.com/grei-ufc/pade/master/examples/mosaik_example/screencast.png" width="40">
