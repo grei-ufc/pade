@@ -392,7 +392,7 @@ class ACLMessage(ET.Element):
                                      microsecond=microsecond)
         except:
             pass
-        
+
         try:
             self.sender = AID(name = aclmsg.find('sender').text)
             self.find('sender').text = self.sender.name
