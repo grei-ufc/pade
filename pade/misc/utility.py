@@ -39,19 +39,36 @@ def display_message(name, data):
 
 
 def call_in_thread(method, *args):
+    """
+        Call blocking method in another thread
+    """
     reactor.callInThread(method, *args)
 
 
 def call_later(time, method, *args):
+    """
+        Call method in reactor thread after timeout
+    """
     return reactor.callLater(time, method, *args)
 
 
 def defer_to_thread(block_method, result_method, *args):
+    """
+        Call blocking method in another thread passing callback
+    """
     d = threads.deferToThread(block_method, *args)
     d.addCallback(result_method)
 
 
+def call_from_thread(method, *args):
+    """
+        Call reactor method (usually not thread safe) from thread
+    """
+    reactor.callFromThread(method, *args)
+
+
 def start_loop(agents):
+    """Start reactor thread main loop"""
     reactor.suggestThreadPoolSize(30)
     for agent in agents:
         agent.update_ams(agent.ams)
