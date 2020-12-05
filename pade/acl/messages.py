@@ -98,7 +98,7 @@ class ACLMessage(ET.Element):
         self.append(ET.Element('reply-to'))
         self.append(ET.Element('content'))
         self.append(ET.Element('language'))
-        self.append(ET.Element('enconding'))
+        self.append(ET.Element('encoding'))
         self.append(ET.Element('ontology'))
         self.append(ET.Element('protocol'))
         self.append(ET.Element('conversationID'))
@@ -517,7 +517,7 @@ class ACLMessage(ET.Element):
 if __name__ == '__main__':
 
     msg = ACLMessage()
-    msg.set_message('<?xml version="1.0" ?><ACLMessage"><performative>inform</performative><sender>Lucas@localhost:7352</sender><receivers><receiver>Allana@localhost:5851</receiver></receivers><reply-to/><content>51A Feeder 21I5</content><language/><enconding/><ontology/><protocol/><conversationID/><reply-with/><in-reply-to/><reply-by/></ACLMessage>')
+    msg.set_message('<?xml version="1.0" ?><ACLMessage"><performative>inform</performative><sender>Lucas@localhost:7352</sender><receivers><receiver>Allana@localhost:5851</receiver></receivers><reply-to/><content>51A Feeder 21I5</content><language/><encoding/><ontology/><protocol/><conversationID/><reply-with/><in-reply-to/><reply-by/></ACLMessage>')
     # msg.set_sender(AID(name='Lucas'))
     # msg.add_receiver(AID(name='Allana'))
     # msg.set_content('51A Feeder 21I5')

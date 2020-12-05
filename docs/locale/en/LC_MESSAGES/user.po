@@ -418,7 +418,7 @@ msgstr "*language:* language used in the message content;"
 
 #: ../../user/enviando-mensagens.rst:13
 msgid "*encoding:* codificação da mensagem;"
-msgstr "*enconding:* message codification;"
+msgstr "*encoding:* message codification;"
 
 #: ../../user/enviando-mensagens.rst:14
 msgid "*ontology:* ontologia utilizada;"
