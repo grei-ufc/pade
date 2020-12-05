@@ -14,8 +14,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
 from flask_login import UserMixin
 
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, validators
-from wtforms.validators import Required, Email, Length
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
+from wtforms.validators import DataRequired, Email, Length, EqualTo
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -142,18 +142,18 @@ class RemoteSession(db.Model):
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[Required(), Length(1, 64)])
-    password = PasswordField('Password', validators=[Required()])
+    username = StringField('Username', validators=[DataRequired(), Length(1, 64)])
+    password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Log In')
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Username', [validators.Length(min=4, max=25)])
-    email = StringField('Email Address', [validators.Length(min=6, max=35)])
+    username = StringField('Username', [Length(min=4, max=25)])
+    email = StringField('Email Address', [Length(min=6, max=35)])
     password = PasswordField('New Password', [
-        validators.DataRequired(),
-        validators.EqualTo('confirm', message='Passwords must match')
+        DataRequired(),
+        EqualTo('confirm', message='Passwords must match')
     ])
     confirm = PasswordField('Repeat Password')
     submit = SubmitField('Create')
