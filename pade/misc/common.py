@@ -204,18 +204,15 @@ class PadeSession(object):
             # 
             self._initialize_database()
 
-            i = 1.0
-            agents_process = list()
             for agent in self.agents:
-                a = AgentProcess(agent, self.ams, i)
-                # a.daemon = True
-                a.start()
-                agents_process.append(a)
-                i += 0.1
+                agent.update_ams(agent.ams)
+                agent.on_start()
+                ilp = reactor.listenTCP(agent.aid.port, agent.agentInstance)
+                agent.ILP = ilp
+
             print('-----')
             print(reactor)
             reactor.run()
-
 
     def __listen_agent(self, agent):
         reactor.callInThread(self._listen_agent, agent)

@@ -171,8 +171,9 @@ class PublisherBehaviour(FipaSubscribeProtocol):
             # prepares and sends the update message to
             # all registered agents.
             if self.STATE == 0:
-                reactor.callLater(10.0, self.notify)
                 self.STATE = 1
+                # Try to notify the agents with the new changes in the moment they are produced
+                self.notify()
 
     @inlineCallbacks
     def register_agent_in_db(self, sql_act):
@@ -246,6 +247,7 @@ class CompVerifyRegister(FipaRequestProtocol):
                                              'content': validation}))
                     self.agent.send(reply)
 
+
 class AMS(Agent_):
     """This is the class that implements the AMS agent."""
 
@@ -254,9 +256,15 @@ class AMS(Agent_):
     user_login = dict()
     ams_debug = False
 
-    def __init__(self, host='localhost', port=8000, main_ams=True, debug=False):
+    def __init__(self, host='localhost', session=None, port=8000, main_ams=True, debug=False):
 
-        self.session_name = str(uuid.uuid1())[:13]
+        # Added session parameter
+        if session is None:
+            self.session_name = str(uuid.uuid1())[:13]
+        else:
+            self.session_name = session.name
+            self.session = session
+
         self.ams = {'name': host, 'port': port}
 
         self.ams_aid = AID('ams@' + str(host) + ':' + str(port))
@@ -334,6 +342,7 @@ class AMS(Agent_):
         # in case there is a session with this name
         else:
             self._verify_user_in_session(self.session)
+
 
 if __name__ == '__main__':
 
