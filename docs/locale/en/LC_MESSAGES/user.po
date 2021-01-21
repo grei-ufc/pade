@@ -386,7 +386,7 @@ msgid ""
 "Para enviar uma mensagem com o PADE é muito simples! As mensagens "
 "enviadas pelos agentes desenvolvidos com PADE seguem o padrão FIPA-ACL e "
 "têm os seguintes campos:"
-msgstr "To send messages in PADE is very simple! The messages sended by PADE agents are in FIPA-ACL pattern and have the followinf fields:"
+msgstr "To send messages in PADE is very simple! The messages sended by PADE agents are in FIPA-ACL pattern and have the following fields:"
 
 #: ../../user/enviando-mensagens.rst:6
 msgid "*conversation-id:* identidade única de uma conversa;"
