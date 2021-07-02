@@ -74,32 +74,25 @@ class PeerProtocol(Protocol):
         # ------------------------------------
         header = int.from_bytes(self.message[:4], byteorder='big')
         if header == len(self.message[4:]):
-            # print(self.message)
             # get mosaik connection for assync
             if self.fact.agent_ref.mosaik_connection is None:
                 self.fact.agent_ref.mosaik_connection = self
 
-            message = None
-            gen = None
-            if not self.mosaik_msg_id:
-                # recebe o gerador retornado pelo método _process_message()
-                # print('recebe o gerador retornado pelo método _process_message()')
-                gen = self.fact.agent_ref.mosaik_sim._process_message(self.message,
-                                                                      self.mosaik_msg_id)
-                # ativa o gerador retornado pelo método _process_message()
-                try:
-                    message = next(gen)
-                except StopIteration as e:
-                    message = e.value
+            # recebe o gerador retornado pelo método _process_message()
+            gen = self.fact.agent_ref.mosaik_sim._process_message(self.message,
+                                                                  self.mosaik_msg_id)
+
+            # o gerador retornado por _process_message é ativado
+            try:
+                message = next(gen)
+            except StopIteration as e:
+                message = e.value
 
             # se o valor retornado pelo gerador for uma mensagem
-            # STEP no padrão Mosaik, isso é, não é nem um inteiro, nem
+            # no padrão Mosaik, isso é, não é nem um inteiro, nem
             # um valor None, então a mensagem é transmitida para 
-            # o Mosaik e o step atual é concluído 
-            if message != None and not isinstance(message, int):
-                # STEP NÃO ACIONOU NENHUMA CHAMADA ASSÍNCRONA
-                # PORTANTO O STEP ATUAL É CONCLUÍDO
-                # print('STEP NÃO ACIONOU NENHUMA CHAMADA ASSÍNCRONA')
+            # o Mosaik
+            if message is not None and not isinstance(message, int):
                 self.transport.write(message)
                 self.message = None
             else:
@@ -110,11 +103,8 @@ class PeerProtocol(Protocol):
                 # da mensagem assíncrona. Entrar neste if significa
                 # que a resposta da requisição assíncrona foi recebida
                 if self.mosaik_msg_id:
-                    # PROCESSA A MENSAGEM ASSÍNCRONA AGUARDADA
-                    # E CONCLUI O STEP ATUAL
-                    # print('PROCESSA A MENSAGEM ASSÍNCRONA AGUARDADA')
                     try:
-                        message = self.await_gen.send(self.message)
+                        message = next(self.await_gen)    
                     except StopIteration as e:
                         message = e.value
                     if message is not None:
@@ -129,9 +119,6 @@ class PeerProtocol(Protocol):
                     # da requisição assíncrona, esse valor é armazenado
                     # na variável self.mosaik_msg_id, e o gerador que retornou
                     # este valor é armazenado na variável self.await_gen
-
-                    # AGUARDA O RETORNO DA MENSAGEM ASSÍNCRONA SOLICITADA
-                    # print('AGUARDA O RETORNO DA MENSAGEM ASSÍNCRONA SOLICITADA')
                     self.mosaik_msg_id = message
                     self.await_gen = gen
                     self.message = None
