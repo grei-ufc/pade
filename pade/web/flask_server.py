@@ -2,7 +2,7 @@ import os
 import datetime
 import requests
 import json
-import pagan
+#import pagan
 from requests.exceptions import Timeout
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for, jsonify
@@ -15,7 +15,7 @@ from flask_script import Manager
 from flask_login import UserMixin
 
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, validators
-from wtforms.validators import Required, Email, Length
+from wtforms.validators import DataRequired, Email, Length
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -48,9 +48,6 @@ login_manager.login_view = 'login'
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
-
-manager = Manager(app)
-manager.add_command('db', MigrateCommand)
 
 bootstrap = Bootstrap(app)
 
@@ -142,8 +139,8 @@ class RemoteSession(db.Model):
 
 
 class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[Required(), Length(1, 64)])
-    password = PasswordField('Password', validators=[Required()])
+    username = StringField('Username', validators=[DataRequired(), Length(1, 64)])
+    password = PasswordField('Password', validators=[DataRequired()])
     remember_me = BooleanField('Keep me logged in')
     submit = SubmitField('Log In')
 
@@ -564,10 +561,11 @@ def generate_agent_avatars():
             # then nothing is necessary
             pass
         else:
+            pass
             # If no avatar image with the agent name was found
             # then one is created
-            img = pagan.Avatar(name, pagan.SHA512)
-            img.save(path, name)
+            #img = pagan.Avatar(name, pagan.SHA512)
+            #img.save(path, name)
 
 @app.route('/post',  methods=['POST', 'GET'])
 def my_post():
@@ -588,5 +586,5 @@ def run_server(secure):
 
 
 if __name__ == '__main__':
-    manager.run()
+    migrate.run()
     run_server(secure)
