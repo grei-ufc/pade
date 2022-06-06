@@ -11,7 +11,6 @@ from flask_login import LoginManager, login_required, login_user, logout_user, U
 from flask_wtf import FlaskForm
 from flask_migrate import Migrate, MigrateCommand
 from flask_sqlalchemy import SQLAlchemy
-from flask_script import Manager
 from flask_login import UserMixin
 
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, validators
