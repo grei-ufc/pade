@@ -36,4 +36,5 @@ class Simulator(object):
             self.instances.append(inst)
 
     def step(self, inputs):
-        self.results = [inst.send(input) for inst, input in zip(self.instances, inputs)]
+        self.results = [inst.send(input)
+                        for inst, input in zip(self.instances, inputs)]

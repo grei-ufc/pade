@@ -34,6 +34,7 @@ class MosaikCon(object):
         self.agent = agent
         self.sim_id = None
         self.msg_id = None
+        self.time_resolution = None
         self.time = 0
         self.inputs = dict()
         self.outputs = dict()
@@ -97,8 +98,9 @@ class MosaikCon(object):
             elif function == 'step':
                 self.time = func_args[0]
                 self.inputs = func_args[1]
+                self.max_advance = func_args[2]
                 self.msg_id_step = msg_id_respose
-                r = self.step(self.time, self.inputs)
+                r = self.step(self.time, self.inputs, self.max_advance)
 
                 '''
                     Aqui três casos são possíveis:
@@ -172,7 +174,7 @@ class MosaikCon(object):
     def setup_done(self):
         pass
 
-    def step(self, time, inputs):
+    def step(self, time, inputs, max_advance):
         return time + self.time_step
 
     def step_done(self):

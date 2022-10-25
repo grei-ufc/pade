@@ -15,7 +15,7 @@ MOSAIK_MODELS = {
     'models': {
         'D': {
             'public': True,
-            'params': ['init_val'],
+            'params': ['init_val', 'medium_val'],
             'attrs': ['val_in', 'val_out'],
         },
     },
@@ -27,38 +27,35 @@ class MosaikSim(MosaikCon):
         super(MosaikSim, self).__init__(MOSAIK_MODELS, agent)
         self.entities = list()
 
-    def create(self, num, model, init_val):
+    def create(self, num, model, init_val, medium_val):
         entities_info = list()
         for i in range(num):
             self.entities.append(init_val)
             display_message(self.agent.aid.localname, str(init_val))
+            display_message(self.agent.aid.localname, str(medium_val))
             entities_info.append(
                 {'eid': self.sim_id + '.' + str(i), 'type': model, 'rel': []})
         return entities_info
 
     def step(self, time, inputs):
-        if time % 1001 == 0 and time != 0:
+        if time % 501 == 0 and time != 0:
             display_message(self.agent.aid.localname, 'step: {:4d}'.format(time))
-            # display_message(self.agent.aid.localname, str(inputs))
-        if time % 1002 == 0 and time != 0:
-            # async call to get simulation progress
-            progress = yield self.get_progress()
-            display_message(self.agent.aid.localname, 'progress: {:2.2f}%'.format(progress))
-        if time % 1003 == 0 and time != 0:
-            # async call to get data from a simulator entity
+            #display_message(self.agent.aid.localname, str(inputs))
+        if time % 1001 == 0 and time != 0:
+            yield self.get_progress()
+        if time % 2001 == 0 and time != 0:
             data = {'ExampleSim-0.0.0': ['val_out']}
-            value = yield self.get_data_async(data)
-            display_message(self.agent.aid.localname, 'Asynchronous get data: {}'.format(value))
-        if time % 1004 == 0 and time != 0:
-            # async call to set data to a simulator entity
-            data = {"PadeSim-0.0": {
-                        "ExampleSim-0.0.0": {"val_in": 10}
-                        }
-                    }
-            yield self.set_data_async(data)
-            display_message(self.agent.aid.localname, 'Asynchronous set data: {}'.format(data))
-
+            yield self.get_data_async(data)
         return time + self.time_step
+
+    def handle_get_data(self, data):
+        display_message(self.agent.aid.localname, str(data))
+
+    def handle_set_data(self):
+        display_message(self.agent.aid.localname, 'sucess in set_data process')
+
+    def handle_get_progress(self, progress):
+        display_message(self.agent.aid.localname, 'progress: {:2.2f}%'.format(progress))
 
     def get_data(self, outputs):
         response = dict()
@@ -78,7 +75,7 @@ class AgenteHelloWorld(Agent):
 
 if __name__ == '__main__':
 
-    agents_per_process = 1
+    agents_per_process = 3
     c = 0
     agents = list()
     for i in range(agents_per_process):

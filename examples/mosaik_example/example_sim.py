@@ -9,7 +9,7 @@ import logging
 
 import mosaik_api
 
-import generic_python_simulator
+import simulator
 
 logger = logging.getLogger('example_sim')
 
@@ -25,7 +25,10 @@ example_sim_meta = {
             'public': True,
             'params': ['init_val'],
             'attrs': ['val_in', 'val_out', 'dummy_in'],
-        }
+        },
+        'C': {  # Doesn't acutally exist. Used for testing.
+            'public': False,
+        },
     },
     'extra_methods': [
         'example_method',
@@ -47,19 +50,16 @@ class ExampleSim(mosaik_api.Simulator):
 
     def create(self, num, model, init_val):
         sim_id = len(self.simulators)
-        sim = generic_python_simulator.Simulator(model, num, init_val)
+        sim = simulator.Simulator(model, num, init_val)
         self.simulators.append(sim)
-        return [{'eid': '{}.{}'.format(sim_id, eid), 'type': model, 'rel': []}
+        return [{'eid': '%s.%s' % (sim_id, eid), 'type': model, 'rel': []}
                 for eid, inst in enumerate(sim.instances)]
 
     def step(self, time, inputs):
-        if inputs:
-            print(inputs)
-
         for sid, sim in enumerate(self.simulators):
             sim_inputs = [None for i in sim.instances]
             for i, _ in enumerate(sim_inputs):
-                eid = '{}.{}'.format(sid, i)
+                eid = '%s.%s' % (sid, i)
                 if eid in inputs:
                     sim_inputs[i] = sum(inputs[eid]['val_in'].values())
 

@@ -2,7 +2,7 @@ import os
 import datetime
 import requests
 import json
-import pagan
+# import pagan
 from requests.exceptions import Timeout
 from flask import Flask
 from flask import request, render_template, flash, redirect, url_for, jsonify
@@ -566,8 +566,9 @@ def generate_agent_avatars():
         else:
             # If no avatar image with the agent name was found
             # then one is created
-            img = pagan.Avatar(name, pagan.SHA512)
-            img.save(path, name)
+            pass
+            # img = pagan.Avatar(name, pagan.SHA512)
+            # img.save(path, name)
 
 @app.route('/post',  methods=['POST', 'GET'])
 def my_post():
