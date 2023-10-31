@@ -276,6 +276,7 @@ class ValidadeUserAgent(Agent):
         message.set_system_message(is_system_message=True)
         self.comport_register_user = CompRegisterUser(self, message, self.session)
         self.system_behaviours.append(self.comport_register_user)
+        
     def react(self, message):
         super(ValidadeUserAgent, self).react(message)
 

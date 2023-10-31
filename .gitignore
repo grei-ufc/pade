@@ -58,6 +58,7 @@ target/
 
 # Database files
 *.sqlite
+pade/web/data.sqlite-journal
 
 # PyCharm IDE
 \.idea/

@@ -147,7 +147,7 @@ class ACLMessage(ET.Element):
         datetime_tag.append(microsecond)
 
         self.system_message = False
-        self.datetime = None
+        #self.datetime = None # It makes sense put None at this property? (see self.datetime attribution above)
         self.sender = None
         self.receivers = list()
         self.reply_to = list()
@@ -208,8 +208,14 @@ class ACLMessage(ET.Element):
             receiver = ET.Element('receiver')
             receiver.text = str(aid.name)
             receivers.append(receiver)
-        else:
-            self.add_receiver(AID(name=aid))
+        # Adicionando um novo objeto AID na mensagem, faz com que ela não
+        # seja entregue corretamente ao destinatário. Isso porque o código
+        # AID('name') gera um AID diferente do original. Dessa forma, esse
+        # código abaixo fará com que a mensagem nunca seja entregue ao 
+        # destinatário. Por isso, estou comentando o mesmo (o mesmo vale
+        # para o else no método add_repply_to())
+        #else:
+        #    self.add_reply_to(AID(name=aid))
 
     def add_reply_to(self, aid):
         """Method used to add the agents that should receive the answer of the message.
@@ -218,13 +224,13 @@ class ACLMessage(ET.Element):
 
         """
         if isinstance(aid, AID):
-            self.reply_to.append[aid]
-            reply_to = self.find('reply_to')
+            self.reply_to.append(aid)
+            reply_to = self.find('reply-to')
             receiver = ET.Element('receiver')
             receiver.text = str(aid.name)
             reply_to.append(receiver)
-        else:
-            self.add_reply_to(AID(name=aid))
+        #else:
+        #    self.add_reply_to(AID(name=aid))
 
     def set_content(self, data):
         if isinstance(data, ET.Element):
@@ -272,6 +278,27 @@ class ACLMessage(ET.Element):
 
     def get_message(self):
         return ET.tostring(self)
+
+    def get_conversation_id(self):
+        return self.conversation_id
+
+    def get_content(self):
+        return self.content
+
+    def get_language(self):
+        return self.language
+
+    def get_ontology(self):
+        return self.ontology
+
+    def get_protocol(self):
+        return self.protocol
+
+    def get_performative(self):
+        return self.performative
+    
+    def get_sender(self):
+        return self.sender
 
     def as_xml(self):
         domElement = minidom.parseString(ET.tostring(self))
@@ -513,6 +540,48 @@ class ACLMessage(ET.Element):
         state = self.__dict__.copy()
         # Remove the unpicklable entries.
         return state
+
+    def clone(self):
+        ''' Returns a new ACLMessage object cloned from this class
+        '''
+        clone = ACLMessage()
+        clone.datetime = self.datetime.replace()
+        if self.performative != None:
+            clone.set_performative(self.performative)
+        if self.system_message != None:
+            clone.set_system_message(self.system_message)
+        if self.sender != None:
+            clone.set_sender(self.sender)
+        if self.receivers != []:
+            for receiver in self.receivers:
+                clone.add_receiver(receiver)
+        if self.reply_to != []:
+            for name in self.reply_to:
+                clone.add_reply_to(name)
+        if self.content != None:
+            clone.set_content(self.content)
+        if self.language != None:
+            clone.set_language(self.language)
+        if self.encoding != None:
+            clone.set_encoding(self.encoding)
+        if self.ontology != None:
+            clone.set_ontology(self.ontology)
+        if self.protocol != None:
+            clone.set_protocol(self.protocol)
+        if self.conversation_id != None:
+            clone.set_conversation_id(self.conversation_id)
+        # Is possible to clone self.message_id? I'm skipping it.
+        if self.reply_with != None:
+            clone.set_reply_with(self.reply_with)
+        if self.reply_to != None:
+            clone.set_in_reply_to(self.in_reply_to)
+        if self.reply_by != None:
+            clone.set_reply_by(self.reply_by)
+        
+        return clone
+
+    def reset_receivers(self):
+        self.receivers = list()
 
 if __name__ == '__main__':
 
