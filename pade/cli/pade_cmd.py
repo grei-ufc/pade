@@ -286,7 +286,7 @@ def start_web_interface():
     create_tables()
     click.echo(click.style('[...] Starting Flask web interface.', fg='red'))
     
-    p = FlaskServerProcess()
+    p = FlaskServerProcess(None)
     p.daemon = True
     p.start()
 
