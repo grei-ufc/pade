@@ -1,16 +1,18 @@
 Seleção de Mensagens
 ====================
 
-Com PADE é possível implementar filtros de mensagens de maneira simples e direta, por meio da classe Filtro:
+Com o PADE é possível implementar filtros de mensagens de forma simples
+por meio da classe ``Filter``. Isso é especialmente útil quando o método
+``react()`` precisa tratar apenas um subconjunto das ACLs recebidas.
 
 ::
 
     from pade.acl.filters import Filter
 
-Filtrando mensagens com o módulo filters
-----------------------------------------
+Filtrando mensagens
+-------------------
 
-Por exemplo para a seguinte mensagem:
+Considere a seguinte mensagem:
 
 ::
 
@@ -19,37 +21,38 @@ Por exemplo para a seguinte mensagem:
 
     message = ACLMessage(ACLMessage.INFORM)
     message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
-    message.set_sender(AID('remetente'))
-    message.add_receiver(AID('destinatario'))
+    message.set_sender(AID(name='remetente'))
+    message.add_receiver(AID(name='destinatario'))
 
-
-Podemos criar o seguinte filtro:
+Agora crie um filtro:
 
 ::
 
     from pade.acl.filters import Filter
 
+    f = Filter()
     f.performative = ACLMessage.REQUEST
 
-
-Em uma sessão do interpretador Python é possível observar o efeito da aplicação do filtro sobre a mensagem:
+Ao aplicar o filtro:
 
 .. code-block:: python
 
     >> f.filter(message)
     False
 
-
-Ajustando agora o filtro para outra condição:
+Se ajustarmos o critério para coincidir com a mensagem:
 
 .. code-block:: python
 
     f.performative = ACLMessage.INFORM
 
-E aplicando o filtro novamente sobre a mensagem, obtemos um novo resultado:
+E filtrarmos novamente:
 
 .. code-block:: python
 
     >> f.filter(message)
     True
-     
+
+Esse mecanismo pode ser combinado com ``protocol``, ``sender`` e outros
+campos da ACL para criar regras mais específicas de roteamento dentro do
+agente.

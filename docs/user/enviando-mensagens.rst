@@ -1,92 +1,133 @@
 Enviando Mensagens
 ==================
 
-Para enviar uma mensagem com o PADE é muito simples! As mensagens enviadas pelos agentes desenvolvidos com PADE seguem o padrão FIPA-ACL e têm os seguintes campos:
+Enviar uma mensagem com o PADE é simples: os agentes trocam mensagens no
+padrão FIPA-ACL, representadas pela classe ``ACLMessage``.
 
-* *conversation-id:* identidade única de uma conversa;
-* *performative:* rótulo da mensagem;
-* *sender:* remetente da mensagem;
-* *receivers:* destinatários da mensagem;
-* *content:* conteúdo da mensagem;
-* *protocol:* protocolo da mensagem;
-* *language:* linguagem utilizada;
-* *encoding:* codificação da mensagem;
-* *ontology:* ontologia utilizada;
-* *reply-with:* Expressão utilizada pelo agente de resposta a identificar a mensagem;
-* *reply-by:* A referência a uma ação anterior em que a mensagem é uma resposta;
-* *in-reply-to:* Data/hora indicando quando uma resposta deve ser recebida..
+Os campos mais utilizados são:
 
-Mensagens FIPA-ACL no PADE
---------------------------
+* ``conversation-id``: identificador único da conversa;
+* ``performative``: rótulo da mensagem, como ``INFORM`` ou ``REQUEST``;
+* ``sender``: remetente da mensagem;
+* ``receivers``: destinatários da mensagem;
+* ``content``: conteúdo transmitido;
+* ``protocol``: protocolo associado à conversa;
+* ``language``: linguagem utilizada;
+* ``encoding``: codificação declarada;
+* ``ontology``: ontologia da mensagem, muito útil para filtros e análise
+  em ``messages.csv``;
+* ``reply-with``: identificador criado pelo emissor para que a próxima
+  resposta possa referenciar a mensagem atual;
+* ``in-reply-to``: campo usado pelo receptor para apontar a qual
+  mensagem está respondendo;
+* ``reply-by``: prazo esperado para recebimento da resposta.
 
-Uma mensagem FIPA-ACL pode ser montada no pade da seguinte forma:
+Montando uma mensagem FIPA-ACL
+------------------------------
+
+Uma mensagem ACL pode ser criada assim:
 
 ::
 
-    from pade.acl.messages import ACLMessage, AID
+    from pade.acl.messages import ACLMessage
+    from pade.acl.aid import AID
+
     message = ACLMessage(ACLMessage.INFORM)
     message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
-    message.add_receiver(AID('agente_destino'))
+    message.add_receiver(AID(name='agente_destino@localhost:20001'))
+    message.set_ontology('saudacao')
     message.set_content('Ola Agente')
 
+Se necessário, você também pode preencher campos de correlação:
 
-Enviando uma mensagem com PADE
-------------------------------
+::
 
-Uma vez que se está dentro de uma instância da classe `Agent()` a mensagem pode ser enviada, simplesmente utilizando o comando:
+    message.set_reply_with('msg-001')
+    message.set_reply_by('2026-03-27T18:00:00')
+
+Enviando a mensagem
+-------------------
+
+Uma vez dentro de uma instância de ``Agent``, a mensagem é enviada com:
 
 ::
 
     self.send(message)
 
+Esse é o mesmo mecanismo utilizado nos exemplos de ``FIPA-Request``,
+``FIPA-Contract-Net`` e ``FIPA-Subscribe``.
 
-Mensagem no padrão FIPA-ACL
----------------------------
+Representação ACL em texto
+--------------------------
 
-Realizando o comando `print message` a mensagem no padão FIPA ACL será impressa na tela:
+O objeto ``ACLMessage`` ainda implementa a representação textual no
+formato ACL. Basta imprimir a mensagem:
+
+::
+
+    print(message)
+
+Saída típica:
 
 ::
 
     (inform
-        :conversationID b2e806b8-50a0-11e5-b3b6-e8b1fc5c3cdf
-        :receiver
-            (set
-                (agent-identifier
-                    :name agente_destino@localhost:51645
-                    :addresses 
-                        (sequence
-                        localhost:51645
-                        )
-                )
-
-            )
-        :content "Ola Agente"
-        :protocol fipa-request protocol
+    :conversationID 6f2f6e24-5c7f-11ef-a9f6-0242ac120002
+    :receiver
+     (set
+    (agent-identifier
+    :name agente_destino@localhost:20001
+    :addresses
+    (sequence
+    localhost:20001
+    )
+    )
+    )
+    :content "Ola Agente"
+    :protocol fipa-request protocol
+    :ontology saudacao
     )
 
+Representação XML
+-----------------
 
-Mensagem no padrão XML
-----------------------
+Também é possível obter a mensagem em XML:
 
-Mas também é possível obter a mensagem no formato XML por meio do comando `print message.as_xml()`
+::
+
+    print(message.as_xml())
+
+Exemplo de saída:
 
 .. code-block:: xml
 
     <?xml version="1.0" ?>
-    <ACLMessage date="01/09/2015 as 08:58:03:113891">
-            <performative>inform</performative>
-            <sender/>
-            <receivers>
-                    <receiver>agente_destino@localhost:51645</receiver>
-            </receivers>
-            <reply-to/>
-            <content>Ola Agente</content>
-            <language/>
-            <encoding/>
-            <ontology/>
-            <protocol>fipa-request protocol</protocol>
-            <conversationID>b2e806b8-50a0-11e5-b3b6-e8b1fc5c3cdf</conversationID>
-            <reply-with/>
-            <in-reply-to/>
-            <reply-by/>
+    <ACLMessage>
+      <performative>inform</performative>
+      <sender />
+      <receivers>
+        <receiver>agente_destino@localhost:20001</receiver>
+      </receivers>
+      <content>Ola Agente</content>
+      <ontology>saudacao</ontology>
+      <protocol>fipa-request protocol</protocol>
+      <conversationID>6f2f6e24-5c7f-11ef-a9f6-0242ac120002</conversationID>
     </ACLMessage>
+
+Mensagens nos logs CSV
+----------------------
+
+Quando o Sniffer está ativo, as mensagens trocadas passam a ser gravadas
+em ``logs/messages.csv``. Ali você encontrará, entre outras colunas:
+
+* ``message_id``;
+* ``conversation_id``;
+* ``performative``;
+* ``protocol``;
+* ``sender``;
+* ``receivers``;
+* ``content``;
+* ``ontology``.
+
+Isso torna muito mais simples filtrar interações por protocolo,
+ontologia ou agente com ferramentas como Pandas, Excel ou Power BI.

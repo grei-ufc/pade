@@ -1,24 +1,23 @@
-.. Pade documentation master file, created by
-   sphinx-quickstart on Sat Sep 12 19:30:28 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. Pade documentation master file
 
 Python Agent DEvelopment framework
 ==================================
 
-Sistemas Multiagentes para Python!
-----------------------------------
+Sistemas Multiagentes em Python 3.12+
+-------------------------------------
 
-PADE é um framework para desenvolvimento, execução e gerenciamento de sistemas multiagentes em ambientes de computação distribuída.
+O PADE é um framework para desenvolvimento, execução e gerenciamento de sistemas multiagentes em ambientes de computação distribuída.
 
-PADE é escrito 100% em Python e utiliza as bibliotecas do projeto `Twisted <http://twistedmatrix.com/>`_ para implementar a comunicação entre os nós da rede.
+PADE é escrito 100% em Python e utiliza as bibliotecas do projeto `Twisted <http://twistedmatrix.com/>`_ para implementar a comunicação assíncrona entre os nós da rede.
 
-PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido pelo Grupo de Redes Elétricas Inteligentes (GREI) do Departamento de Engenharia Elétrica da Universidade Federal do Ceará.
+O PADE é software livre, licenciado sob os termos da licença MIT, desenvolvido pelo Grupo de Redes Elétricas Inteligentes (GREI) do Departamento de Engenharia Elétrica da Universidade Federal do Ceará. 
 
-Qualquer um que queira contribuir com o projeto é convidado a baixar, executar, testar e enviar feedback a respeito das impressões tiradas da plataforma. 
+Qualquer um que queira contribuir com o projeto é convidado a baixar, executar, testar e enviar feedback a respeito das impressões tiradas da plataforma.
 
 PADE é simples!
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~
+
+O desenvolvimento e a execução de agentes no PADE moderno (Python 3.12+) foram simplificados. Os agentes agora são instanciados diretamente via código Python, sem a necessidade de comandos CLI complexos.
 
 ::
 
@@ -28,86 +27,93 @@ PADE é simples!
     from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
     from pade.acl.aid import AID
+    from pade.misc.data_logger import logger
     from sys import argv
+    from datetime import datetime
 
     class AgenteHelloWorld(Agent):
         def __init__(self, aid):
-            super(AgenteHelloWorld, self).__init__(aid=aid)
+            super().__init__(aid=aid)
+            
+        def on_start(self):
+            super().on_start()
             display_message(self.aid.localname, 'Hello World!')
 
-
     if __name__ == '__main__':
+        # 1. Configuracao do AMS
+        ams_config = {'name': 'localhost', 'port': 8000}
+        
+        # 2. Inicializacao do Log (CSV)
+        session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        logger.log_session(session_id=session_id, name="Hello_World", state="Started")
+
         agents_per_process = 3
         c = 0
         agents = list()
+        
+        # 3. Porta Base
+        base_port = int(argv[1]) if len(argv) > 1 else 20000
+        
         for i in range(agents_per_process):
-            port = int(argv[1]) + c
-            agent_name = 'agent_hello_{}@localhost:{}'.format(port, port)
+            port = base_port + c
+            agent_name = f'agent_hello_{port}@localhost:{port}'
+            
             agente_hello = AgenteHelloWorld(AID(name=agent_name))
+            agente_hello.update_ams(ams_config)
+            
             agents.append(agente_hello)
             c += 1000
         
+        # 4. Iniciar Loop do Twisted
         start_loop(agents)
 
-Neste arquivo exemplo (que está na pasta de exemplos no repositório PADE) é possível visualizar três sessões bem definidas.
+Se você quiser saber o passo a passo de como rodar este exemplo (iniciando o AMS e o Sniffer em terminais separados), siga a documentação aqui: :ref:`hello-world-page`. 
 
-A primeira contém as importações necessárias de classes que se encontram nos módulos do pade.
-
-Na segunda uma classe que herda da classe pade Agent é definida com as pricipais atribuições do agente.
-
-Na terceira parte que está encapsulada em uma estrutura if são realizados os procedimentos para lançar os agentes.
-
-Se você quiser saber mais basta seguir a documentação aqui: :ref:`hello-world-page`. 
-
-E fácil de instalar!
+É fácil de instalar!
 ~~~~~~~~~~~~~~~~~~~~
 
-Para instalar o PADE basta executar o seguinte comando em um terminal linux: 
+Para instalar a versão estável do PADE via PyPI, execute: 
 
-::
+.. code-block:: console
 
     $ pip install pade
-    $ pade start-runtime --port 20000 agent_example_1.py
 
-Veja mais aqui: :ref:`installation-page`.
+Para desenvolvedores e pesquisadores (recomendado), instale a versão mais recente clonando o repositório do GREI:
 
-Funcionalidades
-~~~~~~~~~~~~~~~
+.. code-block:: console
 
-O PADE foi desenvolvido tendo em vista os requisitos para sistema de automação. PADE oferece os seguintes recursos em sua biblioteca para desenvolvimento de sistemas multiagentes:
+    $ git clone https://github.com/grei-ufc/pade
+    $ cd pade
+    $ python setup.py install
 
+Veja mais detalhes aqui: :ref:`installation-page`.
+
+Principais Funcionalidades
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+O PADE foi desenvolvido tendo em vista os rígidos requisitos de sistemas de automação e co-simulação de redes elétricas (ex: Mosaik). O framework oferece:
 
 **Orientação a Objetos**
-  Abstração para construção de agentes e seus comportamentos utilizando conceitos de orientação a objetos;
+  Abstração total para construção de agentes e de seus comportamentos;
 
-**Ambiente de execução**
-  Módulo para inicialização do ambiente de execução de agentes, inteiramente em código Python;
+**Mensagens FIPA-ACL**
+  Módulo avançado para construção, envio e tratamento de mensagens no padrão internacional FIPA-ACL;
 
-**Mensagens no padrão FIPA-ACL**
-  Módulo para construção e tratamento de mensagens no padrão FIPA-ACL;
+**Protocolos FIPA Nativos**
+  Classes prontas para os protocolos Request, Contract-Net e Subscribe;
 
-**Filtragem de Mensagens**
-  Módulo para filtragem de mensagens;
+**Logging em CSV de Alta Performance**
+  Substituição completa de bancos de dados legados por um sistema de I/O otimizado. O PADE registra sessões, agentes, eventos e todas as mensagens trafegadas diretamente em arquivos `.csv` (prontos para leitura com Pandas);
 
-**Protocolos FIPA**
-  Módulo para a implementação dos protocolos definidos pela FIPA;
+**Envio de Objetos Binários (Pickle)**
+  Suporte robusto para encapsulamento e envio de dados complexos (como matrizes Numpy e dataframes) no corpo das mensagens;
 
-**Comportamentos Cíclicos e Temporais**
-  Módulo para implementação de comportamentos cíclicos e temporais;
-
-**Banco de Dados**
-  Módulo para interação com banco de dados;
-
-**Envio de Objetos Serializados**
-  Possibilidade de envio de objetos serializados como conteúdo das mensagens FIPA-ACL.
-
-
-Além dessas funcionalidades, o PADE é de fácil instalação e configuração, multiplataforma, podendo ser instalado e utilizado em hardwares embarcados que executam sistema operacional Linux, como Raspberry Pi e BeagleBone Black, bem como sistema operacional Windows.
-
+**Co-Simulação Assíncrona**
+  Gerenciadores assíncronos que permitem integração sem deadlocks com orquestradores de tempo discreto.
 
 
 Guia do Usuário
-----------------
+---------------
 
 .. toctree::
    :maxdepth: 2
@@ -124,15 +130,3 @@ Guia do Usuário
    user/interface-grafica
    user/protocolos
    user/desenvolvedores
-
-
-
-.. Referência da API do PADE 
-.. -------------------------
-
-.. .. toctree::
-..    :maxdepth: 2
-
-..    api
-
-

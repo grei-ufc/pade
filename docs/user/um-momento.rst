@@ -1,40 +1,81 @@
 Um momento Por Favor!
 =====================
 
-Com PADE é possível adiar a execução de um determinado trecho de código de forma bem simples! É só utilizar o método *call_later()* disponível na classe *Agent()*. 
+Com o PADE é possível adiar a execução de um trecho de código de forma
+assíncrona e não bloqueante usando o método ``call_later()`` herdado
+pela classe ``Agent``.
 
-Como utilizar o método call_later()
------------------------------------
+Como utilizar ``call_later()``
+------------------------------
 
-Para utilizar *call_later()*, os seguintes parâmetros devem ser especificados: tempo de atraso, metodo que deve ser chamado após este tempo e argumento do metodo utilizado, *call_later(tempo, metodo, *args)*. 
+O método recebe:
 
-No código a seguir o *call_later()* é utilizado na classe *HelloAgent()* no método *on_start()* chamando o método *say_hello()* 10,0 segundos após a inicialização do agente:
+* o tempo de atraso em segundos;
+* o método que deve ser chamado depois desse atraso;
+* opcionalmente os argumentos desse método.
+
+Em outras palavras:
 
 ::
 
-    from pade.misc.utility import display_message, start_loop, call_later
+    self.call_later(tempo_em_segundos, metodo, *args)
+
+Exemplo prático
+---------------
+
+No exemplo abaixo, o agente agenda ``say_hello()`` para ser executado
+10 segundos após a inicialização:
+
+::
+
+    from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
-    from pade.acl.messages import ACLMessage
     from pade.acl.aid import AID
+    from pade.misc.data_logger import get_shared_session_id, logger
     from sys import argv
+
 
     class HelloAgent(Agent):
         def __init__(self, aid):
-            super(HelloAgent, self).__init__(aid=aid, debug=False)
+            super().__init__(aid=aid, debug=False)
 
         def on_start(self):
             super().on_start()
             self.call_later(10.0, self.say_hello)
 
         def say_hello(self):
-            display_message(self.aid.localname, "Hello, I\'m an agent!")
+            display_message(self.aid.localname, "Hello, I'm an agent from the future!")
 
 
     if __name__ == '__main__':
+        ams_config = {'name': 'localhost', 'port': 8000}
+        session_id = get_shared_session_id()
 
-        agents = list()
+        logger.log_session(
+            session_id=session_id,
+            name=f"CallLater_{session_id}",
+            state='Started'
+        )
 
-        hello_agent = HelloAgent(AID(name='hello_agent'))
-        agents.append(hello_agent)
+        port = int(argv[1]) if len(argv) > 1 else 20000
+        hello_agent = HelloAgent(AID(name=f'hello_agent@localhost:{port}'))
+        hello_agent.update_ams(ams_config)
 
-        start_loop(agents)
+        start_loop([hello_agent])
+
+Esse agendamento não trava o reactor do Twisted. O agente continua
+respondendo à infraestrutura do PADE enquanto aguarda o momento de
+executar ``say_hello()``.
+
+``call_later()`` x ``call_in_thread()``
+---------------------------------------
+
+Use ``call_later()`` quando a função a ser chamada for rápida e não
+bloqueante.
+
+Se a função fizer algo bloqueante, como ``time.sleep()``, acesso pesado
+ao disco ou uma rotina demorada de cálculo, prefira ``call_in_thread()``.
+Esse padrão aparece no
+``pade/tests/agent_example_6/agent_example_6_updated.py``, onde a
+função bloqueante roda em paralelo sem interromper as publicações do
+protocolo ``FIPA-Subscribe``.

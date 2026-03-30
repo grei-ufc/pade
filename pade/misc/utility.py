@@ -30,7 +30,7 @@ import click
 
 def display_message(name, data):
     """
-        Method do displsy message in the console.
+        Method to display message in the console.
     """
     date = datetime.now()
     date = date.strftime('%d/%m/%Y %H:%M:%S.%f')[:-3]
@@ -98,3 +98,75 @@ def print_progress_bar(iteration, total, prefix='', suffix='', decimals=1, lengt
     # Print New Line on Complete
     # if iteration == total:
     #     print()
+
+def format_message_content(content, max_len=100):
+    """
+    Enhanced version that ensures ALL binary data is safely formatted for display.
+    """
+    # If it is None
+    if content is None:
+        return "[None]"
+    
+    # If it is a string
+    if isinstance(content, str):
+        # Checks if it looks like binary data encoded as a string
+        if any(ord(c) > 127 for c in content[:50]):
+            return "[Binary data encoded as string]"
+        if len(content) > max_len:
+            return content[:max_len] + "..."
+        return content
+    
+    # If it is bytes (binary data like pickle)
+    if isinstance(content, bytes):
+        try:
+            # Tries to decode as UTF-8 first
+            decoded = content.decode('utf-8', errors='replace')
+            # If it has many control characters, it's likely a pickle object
+            control_chars = sum(1 for c in decoded[:50] if ord(c) < 32 and c not in '\n\r\t')
+            if control_chars > 10:
+                # It is likely a pickle
+                try:
+                    import pickle
+                    data = pickle.loads(content)
+                    if isinstance(data, dict):
+                        if 'ams' in str(data) or len(data) > 1:
+                            return f"[Agent Table: {len(data)} agents]"
+                        return f"[Dictionary: {len(data)} keys]"
+                    elif isinstance(data, list):
+                        return f"[Serialized list: {len(data)} items]"
+                    else:
+                        return f"[Serialized data: {type(data).__name__}]"
+                except:
+                    return f"[Bytes: {len(content)} bytes]"
+            else:
+                # It is valid UTF-8 text
+                return decoded[:max_len] + "..." if len(decoded) > max_len else decoded
+        except:
+            # If decoding fails, tries to identify if it's a pickle
+            try:
+                import pickle
+                data = pickle.loads(content)
+                if isinstance(data, dict):
+                    if 'ams' in str(data):
+                        return f"[Agent Table: {len(data)} agents]"
+                    return f"[Dictionary: {len(data)} keys]"
+                elif isinstance(data, list):
+                    return f"[Serialized list: {len(data)} items]"
+                else:
+                    return f"[Serialized data: {type(data).__name__}]"
+            except:
+                # If it's not a pickle, shows generic info
+                return f"[Bytes: {len(content)} bytes]"
+    
+    # If it is a dictionary (already deserialized)
+    if isinstance(content, dict):
+        if 'ams' in str(content):
+            return f"[Agent Table: {len(content)} agents]"
+        return f"[Dictionary: {len(content)} keys]"
+    
+    # If it is a list
+    if isinstance(content, (list, tuple)):
+        return f"[{type(content).__name__}: {len(content)} items]"
+    
+    # Other types
+    return f"[{type(content).__name__}]"

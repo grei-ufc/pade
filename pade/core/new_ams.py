@@ -27,23 +27,17 @@ from pade.acl.messages import ACLMessage
 from pade.acl.aid import AID
 from pade.behaviours.protocols import TimedBehaviour, FipaRequestProtocol, FipaSubscribeProtocol
 from pade.misc.utility import display_message
-
-from pade.web import flask_server
-from pade.web.flask_server import db, Session, User, basedir
+from pade.misc.data_logger import get_shared_session_id, logger
 
 from pickle import dumps, loads
 from datetime import datetime
 import uuid
 from terminaltables import AsciiTable
 
-from alchimia import wrap_engine
-from sqlalchemy import create_engine, Table, MetaData
-
 from twisted.internet.defer import inlineCallbacks
 from twisted.internet import reactor
 
 import random
-import os
 import sys
 
 # Behaviour that sends the connection verification messages.
@@ -99,25 +93,22 @@ class CompConnectionVerify(FipaRequestProtocol):
         
 
     def handle_inform(self, message):
-        # if self.agent.debug:
-        #     display_message(self.agent.aid.localname, message.content)
         date = datetime.now()
         self.agent.agents_conn_time[message.sender.name] = date
+        # Log da conexão
+        logger.log_event(
+            event_type="agent_connection_verified",
+            agent_id=message.sender.name,
+            data={"timestamp": date.isoformat()}
+        )
 
 
 class PublisherBehaviour(FipaSubscribeProtocol):
     """
     FipaSubscribe behaviour of Publisher type that implements
     a publisher-subscriber communication, which has the AMS agent
-    as the publisher and the agents of the plataform as subscribers.
-    Two procedures are implemented in this behaviour:
-        - The first one is the identification procedure, which
-          verifies the availability in the database and stores it
-          if positive.
-        - The second one is the updating procedure, which updates the
-          distributed tables that contain the adresses of the agents 
-          in the pleteform. It is updated every time that an agent 
-          enters or leaves the network."""
+    as the publisher and the agents of the platform as subscribers.
+    """
 
     STATE = 0
 
@@ -127,10 +118,13 @@ class PublisherBehaviour(FipaSubscribeProtocol):
                                                  is_initiator=False)
 
     def handle_subscribe(self, message):
-
         sender = message.sender
-
-        if sender in self.agent.agentInstance.table.values():
+        
+        # New agent registration
+        display_message(self.agent.aid.name, f'🔍 [AMS] NEW SUBSCRIBER: {sender.name}')
+        
+        # Check by name, not by object
+        if sender.name in self.agent.agentInstance.table:
             display_message(self.agent.aid.name,
                             'Failure when Identifying agent ' + sender.name)
 
@@ -140,134 +134,152 @@ class PublisherBehaviour(FipaSubscribeProtocol):
                 'There is already an agent with this identifier. Please, choose another one.')
             # sends the message
             self.agent.send(reply)
+            
+            # Error Log
+            logger.log_event(
+                event_type="agent_registration_failed",
+                agent_id=sender.name,
+                data={"reason": "duplicate_identifier"}
+            )
         else:
-            # registers the agent in the database.
-
-            insert_obj = AGENTS.insert()
-            sql_act = insert_obj.values(name=sender.name,
-                                        session_id=self.agent.session.id,
-                                        date=datetime.now(),
-                                        state='Active')
-
-            reactor.callLater(random.uniform(0.1, 0.5), self.register_agent_in_db, sql_act)
-
-            # registers the agent in the table of agents
+            display_message(self.agent.aid.name, f'🔍 [AMS] Registering new agent: {sender.name}')
+            
+            # Registers the agent in the table of agents
             self.agent.agentInstance.table[sender.name] = sender
-            # registers the agent as a subscriber in the protocol.
+            # Registers the agent as a subscriber in the protocol.
             self.register(message.sender)
-            # registers the agent in the table of time.
-            self.agent.agents_conn_time[message.sender.name] = datetime.now()
+            # Registers the agent in the table of time.
+            self.agent.agents_conn_time[sender.name] = datetime.now()
 
+            # Current table log
+            display_message(self.agent.aid.name, f'🔍 [AMS] Table NOW contains: {list(self.agent.agentInstance.table.keys())}')
+
+            # Registered agent log
+            logger.log_agent(
+                agent_id=sender.name,
+                session_id=self.agent.session_id,
+                name=sender.name,
+                state="Active"
+            )
+            
             display_message(
                 self.agent.aid.name, 'Agent ' + sender.name + ' successfully identified.')
 
             # prepares and sends answer messages to the agent
             reply = message.create_reply()
             reply.set_performative(ACLMessage.AGREE)
-            reply.set_content(
-                'Agent successfully identified.')
+            reply.set_content('Agent successfully identified.')
             self.agent.send(reply)
 
-            # prepares and sends the update message to
-            # all registered agents.
+            # FORCES IMMEDIATE table notification
+            display_message(self.agent.aid.name, f'🔍 [AMS] Forcing table notification NOW!')
+            self.notify()
+
+            # prepares and sends the update message to all registered agents.
             if self.STATE == 0:
+                display_message(self.agent.aid.name, f'🔍 [AMS] Scheduling periodic notification in 10s')
                 reactor.callLater(10.0, self.notify)
                 self.STATE = 1
-
-    @inlineCallbacks
-    def register_agent_in_db(self, sql_act):
-        yield TWISTED_ENGINE.execute(sql_act)
 
     def handle_cancel(self, message):
         self.deregister(self, message.sender)
         display_message(self.agent.aid.name, message.content)
+        
+        # Cancellation Log
+        logger.log_event(
+            event_type="agent_subscription_cancelled",
+            agent_id=message.sender.name
+        )
 
     def notify(self):
-        message = ACLMessage(ACLMessage.INFORM)
-        message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
-        message.set_content(dumps(self.agent.agentInstance.table))
-        message.set_system_message(is_system_message=True)
-        self.STATE = 0
-        super(PublisherBehaviour, self).notify(message)
-
+        """Sends table update to all agents."""
+        from pade.misc.utility import display_message
+        
+        table_size = len(self.agent.agentInstance.table)
+        display_message(self.agent.aid.name, f'🔍 [AMS] NOTIFY called! Sending table with {table_size} agents')
+        
+        if table_size == 0:
+            display_message(self.agent.aid.name, f'🔍 [AMS] ⚠️ Empty table, nothing to send!')
+            return
+        
+        agent_list = list(self.agent.agentInstance.table.keys())
+        display_message(self.agent.aid.name, f'🔍 [AMS] Agents in table: {agent_list}')
+        
+        subscriber_count = len(self.subscribers)
+        display_message(self.agent.aid.name, f'🔍 [AMS] Sending to {subscriber_count} subscribers: {[sub.name for sub in self.subscribers]}')
+        
+        # Serialize the table only once
+        serialized = dumps(self.agent.agentInstance.table)
+        display_message(self.agent.aid.name, f'🔍 [AMS] Serialized message size: {len(serialized)} bytes')
+        
+        # Sends to each subscriber individually
+        for sub in self.subscribers:
+            display_message(self.agent.aid.name, f'🔍 [AMS] Sending to {sub.name}')
+            
+            # Creates a NEW message for each receiver (instead of trying to copy)
+            msg = ACLMessage(ACLMessage.INFORM)
+            msg.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
+            msg.set_content(serialized)
+            msg.set_system_message(is_system_message=True)
+            msg.add_receiver(sub)
+            
+            self.agent.send(msg)
 
 class CompVerifyRegister(FipaRequestProtocol):
     def __init__(self, agent):
-        """FIPA Request Behaviour to verify the user 
-        registration"""
+        """FIPA Request Behaviour to verify the user registration"""
         super(CompVerifyRegister, self).__init__(agent=agent,
                                                  message=None,
                                                  is_initiator=False)
 
     def handle_request(self, message):
         super(CompVerifyRegister, self).handle_request(message)
-        content = loads(message.content)
+        
+        # CRITICAL FIX FOR PYTHON 3.12: Convert str to bytes before loads
+        raw_content = message.content
+        if isinstance(raw_content, str):
+            raw_content = raw_content.encode('utf-8', errors='ignore')
+            
+        try:
+            content = loads(raw_content)
+        except Exception as e:
+            display_message(self.agent.aid.name, f'Error decoding validation request: {e}')
+            content = {} # Fallback
+            
         display_message(self.agent.aid.name,
                         'Validating agent ' + message.sender.name + ' session.')
-        if type(content) == dict:
-            if content['ref'] == "REGISTER":
-                user_login = content['content']['user_login']
-                session_name = content['content']['session_name']
 
-                # procedure to verify session user and data
-                # of the requested session.
-
-                # searches in the database if there is a session with this name.
-                session = Session.query.filter_by(name=session_name).first()
-                if session is None:
-                    reply = message.create_reply()
-                    reply.set_performative(ACLMessage.INFORM)
-                    reply.set_content(dumps({'ref': 'REGISTER',
-                                             'content': False}))
-                    self.agent.call_later(1.0, self.agent.send, reply)
-                else:
-                    # verifies if the user is logged in the session.
-                    users = session.users
-                    for user in users:
-                        if user.username == user_login['username']:
-                            if user.verify_password(user_login['password']):
-                                validation = True
-                                display_message(self.agent.aid.name,
-                                                'Session successfully validated.')
-                                break
-                            else:
-                                validation = False
-                                display_message(self.agent.aid.name,
-                                                'Session not validated -> Incorrect password.')
-                                break
-                    else:
-                        display_message(self.agent.aid.name,
-                                        'Session not validated -> Incorrect password.')
-                        validation = False
-
-                    reply = message.create_reply()
-                    reply.set_performative(ACLMessage.INFORM)
-                    reply.set_content(dumps({'ref': 'REGISTER',
-                                             'content': validation}))
-                    self.agent.send(reply)
 
 class AMS(Agent_):
     """This is the class that implements the AMS agent."""
 
     agents = list()
-    users = list()
-    user_login = dict()
     ams_debug = False
 
     def __init__(self, host='localhost', port=8000, main_ams=True, debug=False):
-
-        self.session_name = str(uuid.uuid1())[:13]
+        self.session_id = get_shared_session_id()
         self.ams = {'name': host, 'port': port}
-
         self.ams_aid = AID('ams@' + str(host) + ':' + str(port))
+        
         super(AMS, self).__init__(self.ams_aid, debug=debug)
-        self.ams = {'name':str(host),'port':str(port)}
-        super(AMS, self).update_ams(self.ams)      
+        self.ams = {'name': str(host), 'port': str(port)}
+        super(AMS, self).update_ams(self.ams)
+        
         self.host = host
         self.port = port
         self.main_ams = main_ams
-
         self.agents_conn_time = dict()
+        
+        # AMS Initialization Log
+        logger.log_event(
+            event_type="ams_initialized",
+            data={
+                "host": host,
+                "port": port,
+                "session_id": self.session_id
+            }
+        )
+
         self.comport_ident = PublisherBehaviour(self)
 
         # message to check the connection.
@@ -292,73 +304,58 @@ class AMS(Agent_):
     def react(self, message):
         super(AMS, self).react(message)
 
-    def register_user(self, username, email, password):
-        self.users.append(
-            {'username': username, 'email': email, 'password': password})
+    def _initialize_session(self):
+        """Inicializa a sessão sem banco de dados."""
+        display_message('AMS', f'Initializing session: {self.session_id}')
+        
+        # Session Log
+        logger.log_session(
+            session_id=self.session_id,
+            name=f"AMS_Session_{self.session_id}",
+            state="Active"
+        )
+        
+        # Starts the Twisted server
+        reactor.listenTCP(self.aid.port, self.agentInstance)
+        
+        display_message('AMS', f'AMS service running on {self.host}:{self.port}')
 
-    def _initialize_database(self):
-        db.create_all()
-        # searches in the database if there is a session with 
-        # this name
-        self.session = Session.query.filter_by(name=self.session_name).first()
+    def on_agent_registered(self, agent_name):
+        """Callback when an agent is registered."""
+        logger.log_event(
+            event_type="agent_registered",
+            agent_id=agent_name,
+            data={"session_id": self.session_id}
+        )
 
-        # in case there is not a session with this name
-        if self.session is None:
-            # clear out the database and creates new registers
-            db.drop_all()
-            db.create_all()
-
-            # registers a new session in the database
-            self.session = Session(name=self.session_name,
-                                 date=datetime.now(),
-                                 state='Active')
-            db.session.add(self.session)
-            db.session.commit()
-
-            reactor.listenTCP(self.aid.port, self.agentInstance)
-
-            # registers the users, in case they exist, in the database
-
-            if len(self.users) != 0:
-                users_db = list()
-                for user in self.users:
-                    u = User(username=user['username'],
-                             email=user['email'],
-                             password=user['password'],
-                             session_id=self.session.id)
-                    users_db.append(u)
-
-                db.session.add_all(users_db)
-                db.session.commit()
-
-        # in case there is a session with this name
-        else:
-            self._verify_user_in_session(self.session)
 
 if __name__ == '__main__':
-
-    display_message('AMS', 'creating tables in database...')
-    db.create_all()
-    display_message('AMS', 'tables created in database.')
-
-    ENGINE = create_engine('sqlite:///' + os.path.join(basedir, 'data.sqlite'))
-    TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
-    TWISTED_ENGINE.run_callable = ENGINE.run_callable
-
-    METADATA = MetaData()
-    METADATA.bind = ENGINE
-    AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
+    if len(sys.argv) < 4:
+        print("Usage: python new_ams.py <username> <email> <password> <port>")
+        print("Note: username, email, password are kept for compatibility but not used in webless version")
+        sys.exit(1)
     
-    ams = AMS(port=int(sys.argv[4]))
-    # instantiates AMS agent and calls listenTCP method
-    # from Twisted to launch the agent
-    ams_agent = AMS() # TODO: precisa implementar a passagem de parametros
-    ams.register_user(username=sys.argv[1],
-                      email=sys.argv[2],
-                      password=sys.argv[3])
-    ams._initialize_database()
+    display_message('AMS', 'Initializing PADE AMS service...')
+    
+    port = int(sys.argv[4])
+    ams = AMS(port=port)
+    
+    # Initializes the session (without database)
+    ams._initialize_session()
+    
     reactor.callLater(0.1,
                       display_message,
-                      'ams@{}:{}'.format(ams.ams['name'], ams.ams['port']),
+                      f'ams@{ams.host}:{ams.port}',
                       'PADE AMS service running right now....')
+    
+    # Service Start Log
+    logger.log_event(
+        event_type="ams_service_started",
+        data={
+            "host": ams.host,
+            "port": ams.port,
+            "session_id": ams.session_id
+        }
+    )
+    
     reactor.run()

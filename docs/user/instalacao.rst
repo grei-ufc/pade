@@ -1,68 +1,82 @@
-
 .. _installation-page:
 
 Instalação
 ==========
 
-Instalar o PADE em seu computador, ou dispositivo embarcado é bem simples, basta que ele esteja conectado à internet!
+Instalar o PADE é simples. A versão atual do projeto é mantida para
+Python 3.12 ou superior.
 
-Instalação via PIP
-------------------
+Instalação via PyPI
+-------------------
 
-Para instalar o PADE via PIP basta digitar em um terminal:
+Para instalar o PADE a partir do PyPI:
 
 .. code-block:: console
 
-    $ pip install pade
+    $ python -m pip install pade
 
+Pronto: o comando ``pade`` já estará disponível no ambiente.
 
-Pronto! O Pade está instalado!
+Instalação a partir do repositório
+----------------------------------
 
-Instalação via GitHub
----------------------
-
-Se você quiser ter acesso ao fonte do PADE e instala-lo a partir do repositório oficial, basta digitar os seguintes comandos no terminal:
+Se você quiser trabalhar com o código-fonte, documentação e exemplos
+adaptados, clone o repositório oficial:
 
 .. code-block:: console
 
     $ git clone https://github.com/grei-ufc/pade
     $ cd pade
-    $ python setup.py install
+    $ python -m pip install -e .
 
-Pronto o PADE está pronto para ser utilizado, faça um teste entrando na pasta de exemplos e digitando na linha de comandos:
+Essa forma é a mais indicada para desenvolvimento e revisão dos
+exemplos em ``pade/tests/``.
 
-::
+Teste rápido após a instalação
+------------------------------
 
-    pade start-runtime --port 20000 agent_example_1.py
-
-Instalando o PADE em um ambiente virtual
-----------------------------------------
-
-Quando se trabalha com módulos Python é importante saber criar e manipular ambientes virtuais para gerenciar as dependências do projeto de uma maneira mais organizada. Aqui iremos mostrar como criar um ambiente virtual python, ativá-lo e utilizar o pip para instalar o PADE. Para uma visão mais detalhada sobre ambientes virtuais Python, acesse: `Python Guide <http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_.
-
-Primeiro você irá precisar ter o pacote virtualenv instalado em seu PC, instale-o digitando o comando:
+Um teste simples consiste em executar o primeiro exemplo adaptado:
 
 .. code-block:: console
 
-	$ pip install virtualenv
+    $ pade start-runtime --port 20000 pade/tests/agent_example_1/agent_example_1_updated.py
 
-Após instalado o virtualenv é hora de criar um ambiente virtual, por meio do seguinte comando:
+Se o ambiente estiver correto, o runtime abrirá AMS, Sniffer e os
+agentes do exemplo, além de criar a pasta ``logs/`` no diretório atual.
 
-.. code-block:: console
-	
-	$ cd my_project_folder 
-	$ virtualenv venv
+Usando ambiente virtual
+-----------------------
 
-Para ativar o ambiente virtual criado, digite o comando:
-
-.. code-block:: console
-	
-	$ source venv/bin/activate
-
-Agora basta instalar o pade, por meio do pip:
+Em Python 3.12+, o caminho mais simples é usar ``venv``:
 
 .. code-block:: console
 
-	$ pip install pade
+    $ python -m venv .venv
 
-.. note:: Você pode utilizar também a excelente distribuição python para computação científica Anaconda. Veja como aqui: `AnacondaInc <https://www.anaconda.com/distribution/>`_.
+Ativação do ambiente virtual:
+
+.. code-block:: console
+
+    # Linux / macOS
+    $ source .venv/bin/activate
+
+.. code-block:: console
+
+    # Windows
+    > .venv\Scripts\activate
+
+Depois disso, instale o PADE normalmente:
+
+.. code-block:: console
+
+    $ python -m pip install pade
+
+Observações importantes
+-----------------------
+
+Na versão atual:
+
+* não é necessário criar banco de dados antes de executar o framework;
+* os dados de simulação são gravados automaticamente em CSV;
+* o fluxo recomendado voltou a ser o integrado, usando
+  ``pade start-runtime``.

@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Teste de comunicação PING-PONG entre agentes PADE
+Versão para Python 3.12+ com logging CSV
+"""
+
+from pade.misc.utility import display_message, start_loop
+from pade.core.agent import Agent
+from pade.acl.aid import AID
+from pade.acl.messages import ACLMessage
+import sys
+import time
+
+class PingAgent(Agent):
+    """Agente que envia mensagens PING periódicas"""
+    
+    def __init__(self, aid, pong_port):
+        super().__init__(aid=aid, debug=True)
+        self.pong_port = pong_port
+        self.ping_count = 0
+        self.pong_received = 0
+        
+    def on_start(self):
+        super().on_start()
+        display_message(self.aid.name, '=' * 50)
+        display_message(self.aid.name, '🏓 AGENTE PING INICIADO')
+        display_message(self.aid.name, f'📡 Enviando PINGs para porta: {self.pong_port}')
+        display_message(self.aid.name, '=' * 50)
+        
+        # Agenda primeiro PING após 10 segundos
+        self.call_later(10.0, self.send_ping)
+    
+    def send_ping(self):
+        """Envia uma mensagem PING para o agente PONG"""
+        self.ping_count += 1
+        
+        # Constrói nome do agente PONG
+        pong_name = f'pong_{self.pong_port}@localhost:{self.pong_port}'
+        
+        display_message(self.aid.name, f'🚀 Enviando PING #{self.ping_count}')
+        display_message(self.aid.name, f'   ➡️ Destino: {pong_name}')
+        
+        # Cria mensagem
+        message = ACLMessage(ACLMessage.INFORM)
+        message.add_receiver(AID(name=pong_name))
+        message.set_content(f'PING #{self.ping_count} from {self.aid.name}')
+        message.set_conversation_id(f'ping_conversation_{self.ping_count}')
+        
+        # Envia
+        self.send(message)
+        display_message(self.aid.name, f'   ✅ PING #{self.ping_count} enviado!')
+        
+        # Agenda próximo PING em 30 segundos
+        self.call_later(30.0, self.send_ping)
+    
+    def react(self, message):
+        """Processa mensagens recebidas"""
+        super().react(message)
+        
+        # Verifica se é uma resposta PONG
+        if message.performative == ACLMessage.INFORM and 'PONG' in str(message.content):
+            self.pong_received += 1
+            display_message(self.aid.name, '🎉 PONG RECEBIDO!')
+            display_message(self.aid.name, f'   📨 De: {message.sender.name}')
+            display_message(self.aid.name, f'   📝 Conteúdo: {message.content}')
+            display_message(self.aid.name, f'   📊 Estatísticas: PONGs recebidos: {self.pong_received}/{self.ping_count}')
+        
+        # Mensagens de sistema (tabela de agentes, etc)
+        elif message.system_message:
+            display_message(self.aid.name, f'📋 Mensagem de sistema: {message.performative}')
+
+
+class PongAgent(Agent):
+    """Agente que responde mensagens PING com PONG"""
+    
+    def __init__(self, aid):
+        super().__init__(aid=aid, debug=True)
+        self.pongs_sent = 0
+        self.pings_received = 0
+        
+    def on_start(self):
+        super().on_start()
+        display_message(self.aid.name, '=' * 50)
+        display_message(self.aid.name, '🏸 AGENTE PONG INICIADO')
+        display_message(self.aid.name, f'📡 Aguardando PINGs na porta {self.aid.port}')
+        display_message(self.aid.name, '=' * 50)
+    
+    def react(self, message):
+        """Processa mensagens recebidas e responde com PONG"""
+        super().react(message)
+        
+        # Verifica se é um PING
+        if message.performative == ACLMessage.INFORM and 'PING' in str(message.content):
+            self.pings_received += 1
+            display_message(self.aid.name, '🏓 PING RECEBIDO!')
+            display_message(self.aid.name, f'   📨 De: {message.sender.name}')
+            display_message(self.aid.name, f'   📝 Conteúdo: {message.content}')
+            
+            # Prepara resposta PONG
+            reply = message.create_reply()
+            reply.set_performative(ACLMessage.INFORM)
+            reply.set_content(f'PONG #{self.pings_received} from {self.aid.name}')
+            
+            # Envia resposta
+            self.pongs_sent += 1
+            self.send(reply)
+            display_message(self.aid.name, f'   📤 PONG #{self.pongs_sent} enviado!')
+            display_message(self.aid.name, f'   📊 Estatísticas: PONGs enviados: {self.pongs_sent}')
+        
+        # Mensagens de sistema
+        elif message.system_message:
+            display_message(self.aid.name, f'📋 Mensagem de sistema: {message.performative}')
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 4:
+        print("\n" + "="*60)
+        print("🏓 TESTE DE COMUNICAÇÃO PING-PONG - PADE 3.12+")
+        print("="*60)
+        print("\nUso: python test_pingpong.py <tipo> <porta> [porta_alvo]")
+        print("\nTipos:")
+        print("  ping    : Inicia agente PING (precisa da porta do PONG)")
+        print("  pong    : Inicia agente PONG")
+        print("\nExemplos:")
+        print("  Terminal 1 (PONG): python test_pingpong.py pong 37001")
+        print("  Terminal 2 (PING): python test_pingpong.py ping 37000 37001")
+        print("="*60 + "\n")
+        sys.exit(1)
+    
+    agent_type = sys.argv[1]
+    port = int(sys.argv[2])
+    
+    if agent_type == 'ping':
+        if len(sys.argv) < 4:
+            print("❌ Erro: Agente PING precisa da porta do PONG")
+            sys.exit(1)
+        pong_port = int(sys.argv[3])
+        agent_name = f'ping_{port}@localhost:{port}'
+        agent = PingAgent(AID(name=agent_name), pong_port)
+        print(f"\n🚀 Iniciando PING agent na porta {port} -> PONG na porta {pong_port}")
+        
+    elif agent_type == 'pong':
+        agent_name = f'pong_{port}@localhost:{port}'
+        agent = PongAgent(AID(name=agent_name))
+        print(f"\n🏸 Iniciando PONG agent na porta {port}")
+        
+    else:
+        print(f"❌ Tipo desconhecido: {agent_type}. Use 'ping' ou 'pong'")
+        sys.exit(1)
+    
+    # Configura AMS
+    agent.update_ams({'name': 'localhost', 'port': 8000})
+    
+    # Inicia o agente
+    print("-" * 50)
+    start_loop([agent])

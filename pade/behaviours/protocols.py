@@ -39,6 +39,7 @@ from pade.acl.messages import ACLMessage
 from pade.acl.filters import Filter
 from pade.misc.utility import print_progress_bar
 from time import time
+from pickle import loads, dumps  
 
 
 class Behaviour(object):
@@ -581,10 +582,37 @@ class FipaSubscribeProtocol(FipaProtocol):
 
     def handle_inform(self, message):
         """
-            handle_inform
-
+            handle_inform - DEBUG version to investigate table propagation
         """
-        pass
+        from pade.misc.utility import display_message
+        
+        # 🔍 LOG 1: Message received
+        display_message(self.agent.aid.name, f'🔍 [SUBSCRIBE] handle_inform CALLED!')
+        
+        # 🔍 LOG 2: Check content
+        if message.content:
+            content_type = type(message.content).__name__
+            content_len = len(message.content) if hasattr(message.content, '__len__') else 'N/A'
+            display_message(self.agent.aid.name, f'🔍 [SUBSCRIBE] Content: type={content_type}, size={content_len}')
+        
+        try:
+            # 🔍 LOG 3: Deserialization attempt
+            display_message(self.agent.aid.name, f'🔍 [SUBSCRIBE] Attempting to deserialize table...')
+            
+            # CRITICAL FIX FOR PYTHON 3.12: 
+            # Ensure the content is treated as bytes before using loads()
+            raw_content = message.content
+            if isinstance(raw_content, str):
+                # If it arrived as a string (e.g., via utf-8 socket), convert it to bytes.
+                # ast.literal_eval does not work for pickle, so we fetch the raw bytes.
+                raw_content = raw_content.encode('utf-8', errors='ignore')
+                
+            table = loads(raw_content)
+            
+        except Exception as e:
+            display_message(self.agent.aid.name, f'🔍 [SUBSCRIBE] ERROR during deserialization: {e}')
+            import traceback
+            traceback.print_exc()
 
     def handle_failure(self, message):
         """
