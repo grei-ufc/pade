@@ -78,30 +78,27 @@ class PeerProtocol(Protocol):
             if self.fact.agent_ref.mosaik_connection is None:
                 self.fact.agent_ref.mosaik_connection = self
 
-            # recebe o gerador retornado pelo método _process_message()
+            # Receive the generator returned by _process_message().
             gen = self.fact.agent_ref.mosaik_sim._process_message(self.message,
                                                                   self.mosaik_msg_id)
 
-            # o gerador retornado por _process_message é ativado
+            # Advance the generator returned by _process_message().
             try:
                 message = next(gen)
             except StopIteration as e:
                 message = e.value
 
-            # se o valor retornado pelo gerador for uma mensagem
-            # no padrão Mosaik, isso é, não é nem um inteiro, nem
-            # um valor None, então a mensagem é transmitida para 
-            # o Mosaik
+            # If the yielded value is a Mosaik message, meaning it is
+            # neither an integer nor None, transmit it back to Mosaik.
             if message is not None and not isinstance(message, int):
                 self.transport.write(message)
                 self.message = None
             else:
-                # Caso a variável self.mosaik_msg_id não tenha o valor
-                # None, significa que ela está armazenando o ID da 
-                # mensagem step que originou a requisição assíncrona
-                # e que o método step() está aguardando a finalização
-                # da mensagem assíncrona. Entrar neste if significa
-                # que a resposta da requisição assíncrona foi recebida
+                # If self.mosaik_msg_id is not None, it stores the ID
+                # of the step message that originated the asynchronous
+                # request and whose step() call is waiting for the
+                # async response to finish. Entering this branch means
+                # that the async request response has now been received.
                 if self.mosaik_msg_id:
                     try:
                         message = next(self.await_gen)    
@@ -113,12 +110,11 @@ class PeerProtocol(Protocol):
                         self.mosaik_msg_id = None
                         self.await_gen = None
                 else:
-                    # Caso o valor retornado por _process_message()
-                    # seja um inteiro, representando o ID da mensagem
-                    # Mosaik que está pausada aguardando o resultado
-                    # da requisição assíncrona, esse valor é armazenado
-                    # na variável self.mosaik_msg_id, e o gerador que retornou
-                    # este valor é armazenado na variável self.await_gen
+                    # If the value returned by _process_message() is an
+                    # integer representing the paused Mosaik message ID
+                    # waiting for the async request result, store that
+                    # ID in self.mosaik_msg_id and keep the generator in
+                    # self.await_gen.
                     self.mosaik_msg_id = message
                     self.await_gen = gen
                     self.message = None

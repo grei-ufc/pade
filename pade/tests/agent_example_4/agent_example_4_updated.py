@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Exemplo de Protocolo FIPA-ContractNet - Versão Python 3.12.11 com logging CSV
-Adaptado por Douglas Barros em 04 de março de 2026
+FIPA-ContractNet protocol example - Python 3.12.11 version with CSV logging
+Adapted by Douglas Barros on March 4, 2026
 
-Este exemplo demonstra o protocolo FIPA-ContractNet (leilão):
-- AgentInitiator: envia CFP e escolhe a melhor proposta
-- AgentParticipant: responde com propostas (potência disponível)
-- O vencedor é aquele com maior potência
+This example demonstrates the FIPA-ContractNet protocol (auction):
+- AgentInitiator: sends a CFP and chooses the best proposal
+- AgentParticipant: replies with proposals (available power)
+- The winner is the one with the highest power
 """
 
 from pade.misc.utility import display_message, start_loop
@@ -21,8 +21,8 @@ from random import uniform
 
 class CompContNet1(FipaContractNetProtocol):
     """
-    Comportamento do Iniciador (Initiator) no protocolo ContractNet.
-    Envia CFP, coleta propostas, seleciona a melhor e responde.
+    Initiator-side behaviour in the ContractNet protocol.
+    Sends the CFP, collects proposals, selects the best one, and replies.
     """
     
     def __init__(self, agent, message):
@@ -31,7 +31,7 @@ class CompContNet1(FipaContractNetProtocol):
         self.cfp = message
         self.proposals_received = []
         
-        # Log do início do protocolo
+        # Log the protocol start.
         logger.log_event(
             event_type="contractnet_started",
             agent_id=self.agent.aid.name,
@@ -43,8 +43,8 @@ class CompContNet1(FipaContractNetProtocol):
 
     def handle_all_proposes(self, proposes):
         """
-        Analisa todas as propostas recebidas e seleciona a melhor
-        (maior potência disponível).
+        Analyze all received proposals and select the best one
+        (highest available power).
         """
         super().handle_all_proposes(proposes)
 
@@ -54,7 +54,7 @@ class CompContNet1(FipaContractNetProtocol):
         
         display_message(self.agent.aid.name, 'Analyzing proposals...')
         
-        # Log do número de propostas recebidas
+        # Log how many proposals were received.
         logger.log_event(
             event_type="proposals_analysis",
             agent_id=self.agent.aid.name,
@@ -70,7 +70,7 @@ class CompContNet1(FipaContractNetProtocol):
                 display_message(self.agent.aid.name,
                                 'Power Offered: {pot}'.format(pot=power))
                 
-                # Log de cada proposta
+                # Log each individual proposal.
                 logger.log_event(
                     event_type="proposal_analyzed",
                     agent_id=self.agent.aid.name,
@@ -105,7 +105,7 @@ class CompContNet1(FipaContractNetProtocol):
             }
         )
 
-        # Envia REJECT_PROPOSAL para os perdedores
+        # Send REJECT_PROPOSAL to the losing participants.
         if other_proposers:
             display_message(self.agent.aid.name,
                             'Sending REJECT_PROPOSAL answers...')
@@ -122,7 +122,7 @@ class CompContNet1(FipaContractNetProtocol):
                 data={"rejected_count": len(other_proposers)}
             )
 
-        # Envia ACCEPT_PROPOSAL para o vencedor
+        # Send ACCEPT_PROPOSAL to the winner.
         if best_proposer is not None:
             display_message(self.agent.aid.name,
                             'Sending ACCEPT_PROPOSAL answer...')
@@ -139,7 +139,7 @@ class CompContNet1(FipaContractNetProtocol):
             )
 
     def handle_inform(self, message):
-        """Recebe confirmação do vencedor."""
+        """Handle the winner confirmation."""
         super().handle_inform(message)
         display_message(self.agent.aid.name, 'INFORM message received')
         
@@ -153,7 +153,7 @@ class CompContNet1(FipaContractNetProtocol):
         )
 
     def handle_refuse(self, message):
-        """Recebe recusa de participante."""
+        """Handle a participant refusal."""
         super().handle_refuse(message)
         display_message(self.agent.aid.name, 'REFUSE message received')
         
@@ -164,7 +164,7 @@ class CompContNet1(FipaContractNetProtocol):
         )
 
     def handle_propose(self, message):
-        """Recebe proposta de participante."""
+        """Handle a participant proposal."""
         super().handle_propose(message)
         display_message(self.agent.aid.name, 'PROPOSE message received')
         
@@ -180,15 +180,15 @@ class CompContNet1(FipaContractNetProtocol):
 
 class CompContNet2(FipaContractNetProtocol):
     """
-    Comportamento do Participante (Participant) no protocolo ContractNet.
-    Recebe CFP, envia proposta e aguarda resultado.
+    Participant-side behaviour in the ContractNet protocol.
+    Receives the CFP, sends a proposal, and waits for the result.
     """
     
     def __init__(self, agent):
         super().__init__(agent=agent, message=None, is_initiator=False)
 
     def handle_cfp(self, message):
-        """Recebe chamada de proposta e prepara resposta."""
+        """Handle the call for proposal and prepare a reply."""
         self.agent.call_later(1.0, self._handle_cfp, message)
 
     def _handle_cfp(self, message):
@@ -207,7 +207,7 @@ class CompContNet2(FipaContractNetProtocol):
             }
         )
 
-        # Envia proposta
+        # Send the proposal.
         answer = self.message.create_reply()
         answer.set_performative(ACLMessage.PROPOSE)
         answer.set_content(str(self.agent.pot_disp))
@@ -223,7 +223,7 @@ class CompContNet2(FipaContractNetProtocol):
         )
 
     def handle_reject_propose(self, message):
-        """Recebe rejeição (não foi o vencedor)."""
+        """Handle rejection (not the winner)."""
         super().handle_reject_propose(message)
         display_message(self.agent.aid.name,
                         'REJECT_PROPOSAL message received')
@@ -235,7 +235,7 @@ class CompContNet2(FipaContractNetProtocol):
         )
 
     def handle_accept_propose(self, message):
-        """Recebe aceitação (foi o vencedor!)."""
+        """Handle acceptance (the winner was selected)."""
         super().handle_accept_propose(message)
         display_message(self.agent.aid.name,
                         'ACCEPT_PROPOSE message received')
@@ -246,7 +246,7 @@ class CompContNet2(FipaContractNetProtocol):
             data={"from": message.sender.name}
         )
 
-        # Confirma com INFORM
+        # Confirm the result with an INFORM reply.
         answer = message.create_reply()
         answer.set_performative(ACLMessage.INFORM)
         answer.set_content('OK')
@@ -260,13 +260,13 @@ class CompContNet2(FipaContractNetProtocol):
 
 
 class AgentInitiator(Agent):
-    """Agente Iniciador do protocolo ContractNet."""
+    """Initiator agent for the ContractNet protocol."""
     
     def __init__(self, aid, participants):
         super().__init__(aid=aid, debug=False)
         self.participants = participants
         
-        # Log da criação
+        # Log agent creation.
         logger.log_agent(
             agent_id=self.aid.name,
             session_id=get_shared_session_id(),
@@ -274,15 +274,15 @@ class AgentInitiator(Agent):
             state="Created"
         )
 
-        # Cria mensagem CFP
+        # Create the CFP message.
         self.message = ACLMessage(ACLMessage.CFP)
         self.message.set_protocol(ACLMessage.FIPA_CONTRACT_NET_PROTOCOL)
-        self.message.set_content('60.0')  # Potência necessária
+        self.message.set_content('60.0')  # Required power.
 
         for participant in participants:
             self.message.add_receiver(AID(name=participant))
 
-        # Agenda início do protocolo
+        # Schedule protocol start.
         self.call_later(8.0, self.launch_contract_net_protocol)
         
         logger.log_event(
@@ -295,7 +295,7 @@ class AgentInitiator(Agent):
         )
 
     def on_start(self):
-        """Registro no AMS."""
+        """Register the agent in the AMS."""
         super().on_start()
         
         logger.log_agent(
@@ -306,23 +306,23 @@ class AgentInitiator(Agent):
         )
 
     def launch_contract_net_protocol(self):
-        """Inicia o protocolo ContractNet."""
+        """Start the ContractNet protocol."""
         comp = CompContNet1(self, self.message)
         self.behaviours.append(comp)
         comp.on_start()
 
 
 class AgentParticipant(Agent):
-    """Agente Participante do protocolo ContractNet."""
+    """Participant agent for the ContractNet protocol."""
     
     def __init__(self, aid, pot_disp):
         super().__init__(aid=aid, debug=False)
-        self.pot_disp = pot_disp  # Potência disponível (entre 100 e 500 VA)
+        self.pot_disp = pot_disp  # Available power (between 100 and 500 VA).
 
         comp = CompContNet2(self)
         self.behaviours.append(comp)
         
-        # Log da criação
+        # Log agent creation.
         logger.log_agent(
             agent_id=self.aid.name,
             session_id=get_shared_session_id(),
@@ -337,7 +337,7 @@ class AgentParticipant(Agent):
         )
 
     def on_start(self):
-        """Registro no AMS."""
+        """Register the agent in the AMS."""
         super().on_start()
         
         logger.log_agent(
@@ -350,16 +350,16 @@ class AgentParticipant(Agent):
 
 if __name__ == "__main__":
     if len(argv) < 2:
-        print("Uso: python agent_example_4_updated.py <porta_base>")
-        print("Exemplo: python agent_example_4_updated.py 20000")
+        print("Usage: python agent_example_4_updated.py <base_port>")
+        print("Example: python agent_example_4_updated.py 20000")
         exit(1)
 
     agents = list()
     
-    # Configuração do AMS
+    # AMS configuration.
     ams_config = {'name': 'localhost', 'port': 8000}
-    
-    # Sessão única
+
+    # Shared session.
     session_id = get_shared_session_id()
     
     logger.log_session(
@@ -368,14 +368,14 @@ if __name__ == "__main__":
         state="Started"
     )
     
-    # Porta base
+    # Base port.
     base_port = int(argv[1])
-    
-    # Lista de participantes
+
+    # Participant list.
     participants = []
-    k = 10000  # Offset para portas dos participantes
-    
-    # Participante 1 (porta base - 10000)
+    k = 10000  # Port offset for participant agents.
+
+    # Participant 1 (base port - 10000).
     port_part1 = base_port - k
     agent_name_part1 = f'participant_1_{port_part1}@localhost:{port_part1}'
     pot_disp1 = uniform(100.0, 500.0)
@@ -384,7 +384,7 @@ if __name__ == "__main__":
     agents.append(agente_part1)
     participants.append(agent_name_part1)
 
-    # Participante 2 (porta base + 10000)
+    # Participant 2 (base port + 10000).
     port_part2 = base_port + k
     agent_name_part2 = f'participant_2_{port_part2}@localhost:{port_part2}'
     pot_disp2 = uniform(100.0, 500.0)
@@ -393,7 +393,7 @@ if __name__ == "__main__":
     agents.append(agente_part2)
     participants.append(agent_name_part2)
 
-    # Iniciador (porta base)
+    # Initiator (base port).
     agent_name_init = f'initiator_{base_port}@localhost:{base_port}'
     agente_init = AgentInitiator(AID(name=agent_name_init), participants)
     agente_init.update_ams(ams_config)

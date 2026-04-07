@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Exemplo de Requisição FIPA-Request - Versão Python 3.12.11 com logging CSV
-Adaptado por Douglas Barros em 04 de março de 2026
+FIPA-Request example - Python 3.12.11 version with CSV logging
+Adapted by Douglas Barros on March 4, 2026
 """
 
 from pade.misc.utility import display_message, start_loop
@@ -16,15 +16,15 @@ from sys import argv
 from pickle import loads
 
 class CompRequest(FipaRequestProtocol):
-    """FIPA Request Behaviour do TimeAgent (servidor)."""
+    """FIPA Request behaviour for the TimeAgent (server)."""
     
     def __init__(self, agent):
         super().__init__(agent=agent, message=None, is_initiator=False)
 
     def handle_request(self, message):
-        """Processa requisição recebida e responde com a hora atual."""
+        """Process an incoming request and reply with the current time."""
         super().handle_request(message)
-        display_message(self.agent.aid.localname, '✅ Requisição de hora recebida')
+        display_message(self.agent.aid.localname, '✅ Time request received')
         
         logger.log_event(
             event_type="request_received",
@@ -39,7 +39,7 @@ class CompRequest(FipaRequestProtocol):
         reply.set_content(current_time)
         
         self.agent.send(reply)
-        display_message(self.agent.aid.localname, f'📤 Resposta enviada: {current_time}')
+        display_message(self.agent.aid.localname, f'📤 Reply sent: {current_time}')
         
         logger.log_event(
             event_type="response_sent",
@@ -49,41 +49,41 @@ class CompRequest(FipaRequestProtocol):
 
 
 class TableMonitorBehaviour(FipaSubscribeProtocol):
-    """Comportamento para monitorar atualizações da tabela de agentes."""
+    """Behaviour that monitors agent table updates."""
     
     def __init__(self, agent):
         super().__init__(agent, message=None, is_initiator=False)
         self.target_agent = None
     
     def set_target(self, target_name):
-        """Define qual agente estamos procurando."""
+        """Define which agent should be detected in the table."""
         self.target_agent = target_name
     
     def handle_inform(self, message):
-        """Recebe atualização da tabela de agentes."""
+        """Receive an agent table update."""
         try:
             table = loads(message.content)
-            display_message(self.agent.aid.name, f'📋 Tabela atualizada com {len(table)} agentes')
+            display_message(self.agent.aid.name, f'📋 Table updated with {len(table)} agents')
             
-            # Verifica se o agente alvo está na tabela
+            # Check whether the target agent is already visible in the table.
             if self.target_agent and self.target_agent in table:
-                display_message(self.agent.aid.name, f'✅ Agente {self.target_agent} ENCONTRADO na tabela!')
+                display_message(self.agent.aid.name, f'✅ Agent {self.target_agent} FOUND in the table!')
                 
-                # Agenda o início das requisições
+                # Schedule the request cycle once the target is available.
                 self.agent.call_later(1.0, self.agent.start_requests)
         except Exception as e:
-            display_message(self.agent.aid.name, f'❌ Erro ao processar tabela: {e}')
+            display_message(self.agent.aid.name, f'❌ Error processing table: {e}')
 
 
 class CompRequest2(FipaRequestProtocol):
-    """FIPA Request Behaviour do ClockAgent (cliente)."""
+    """FIPA Request behaviour for the ClockAgent (client)."""
     
     def __init__(self, agent, message):
         super().__init__(agent=agent, message=message, is_initiator=True)
 
     def handle_inform(self, message):
-        """Processa a resposta recebida do TimeAgent."""
-        display_message(self.agent.aid.localname, f'🎯 Hora recebida: {message.content}')
+        """Process the reply received from the TimeAgent."""
+        display_message(self.agent.aid.localname, f'🎯 Time received: {message.content}')
         
         logger.log_event(
             event_type="inform_received",
@@ -96,7 +96,7 @@ class CompRequest2(FipaRequestProtocol):
 
 
 class ComportTemporal(TimedBehaviour):
-    """Comportamento temporizado do ClockAgent para enviar requisições periódicas."""
+    """Timed ClockAgent behaviour that sends periodic requests."""
     
     def __init__(self, agent, time, message):
         super().__init__(agent, time)
@@ -105,12 +105,12 @@ class ComportTemporal(TimedBehaviour):
         self.enabled = False
 
     def enable(self):
-        """Ativa o envio de requisições."""
+        """Enable periodic requests."""
         self.enabled = True
-        display_message(self.agent.aid.name, '▶️ Requisições ativadas!')
+        display_message(self.agent.aid.name, '▶️ Requests enabled!')
 
     def on_time(self):
-        """Método chamado a cada intervalo de tempo."""
+        """Run every time the behaviour interval elapses."""
         super().on_time()
         
         if not self.enabled:
@@ -121,7 +121,7 @@ class ComportTemporal(TimedBehaviour):
         target_name = self.message.receivers[0].name if self.message.receivers else None
         
         if target_name and target_name in self.agent.agentInstance.table:
-            display_message(self.agent.aid.localname, f'📤 Enviando requisição #{self.request_count} para {target_name}')
+            display_message(self.agent.aid.localname, f'📤 Sending request #{self.request_count} to {target_name}')
             
             logger.log_event(
                 event_type="request_sent",
@@ -134,11 +134,11 @@ class ComportTemporal(TimedBehaviour):
             
             self.agent.send(self.message)
         else:
-            display_message(self.agent.aid.localname, f'⏳ Destino {target_name} não disponível (requisição #{self.request_count} adiada)')
+            display_message(self.agent.aid.localname, f'⏳ Destination {target_name} not available (request #{self.request_count} postponed)')
 
 
 class TimeAgent(Agent):
-    """Agente servidor que fornece a hora atual."""
+    """Server agent that provides the current time."""
     
     def __init__(self, aid):
         super().__init__(aid=aid, debug=False)
@@ -155,7 +155,7 @@ class TimeAgent(Agent):
     
     def on_start(self):
         super().on_start()
-        display_message(self.aid.name, '⏰ TimeAgent pronto - aguardando requisições...')
+        display_message(self.aid.name, '⏰ TimeAgent ready - waiting for requests...')
         
         logger.log_agent(
             agent_id=self.aid.name,
@@ -172,20 +172,20 @@ class TimeAgent(Agent):
 
 
 class ClockAgent(Agent):
-    """Agente cliente que requisita a hora periodicamente."""
+    """Client agent that requests the time periodically."""
     
     def __init__(self, aid, time_agent_name):
         super().__init__(aid=aid, debug=False)
         self.time_agent_name = time_agent_name
         self.requests_enabled = False
 
-        # Mensagem que requisita hora do TimeAgent
+        # Message used to request the time from the TimeAgent.
         self.message = ACLMessage(ACLMessage.REQUEST)
         self.message.set_protocol(ACLMessage.FIPA_REQUEST_PROTOCOL)
         self.message.add_receiver(AID(name=time_agent_name))
         self.message.set_content('time')
 
-        # Comportamentos
+        # Behaviours
         self.comport_request = CompRequest2(self, self.message)
         self.comport_temp = ComportTemporal(self, 8.0, self.message)
         self.table_monitor = TableMonitorBehaviour(self)
@@ -204,7 +204,7 @@ class ClockAgent(Agent):
     
     def on_start(self):
         super().on_start()
-        display_message(self.aid.name, f'🕐 ClockAgent iniciado - aguardando tabela de agentes...')
+        display_message(self.aid.name, '🕐 ClockAgent started - waiting for the agent table...')
         
         logger.log_agent(
             agent_id=self.aid.name,
@@ -220,17 +220,17 @@ class ClockAgent(Agent):
         )
     
     def start_requests(self):
-        """Ativa o envio de requisições."""
+        """Enable periodic requests."""
         if not self.requests_enabled:
             self.requests_enabled = True
             self.comport_temp.enable()
-            display_message(self.aid.name, f'🚀 Iniciando requisições periódicas para {self.time_agent_name}')
+            display_message(self.aid.name, f'🚀 Starting periodic requests to {self.time_agent_name}')
 
 
 if __name__ == '__main__':
     if len(argv) < 2:
-        print("Uso: python agent_example_3_updated.py <porta_base>")
-        print("Exemplo: python agent_example_3_updated.py 20000")
+        print("Usage: python agent_example_3_updated.py <base_port>")
+        print("Example: python agent_example_3_updated.py 20000")
         exit(1)
 
     agents = list()
@@ -251,7 +251,7 @@ if __name__ == '__main__':
     time_agent = TimeAgent(AID(name=time_agent_name))
     time_agent.update_ams(ams_config)
     agents.append(time_agent)
-    display_message('Sistema', f'⏰ TimeAgent criado: {time_agent_name}')
+    display_message('System', f'⏰ TimeAgent created: {time_agent_name}')
     
     # ClockAgent
     clock_port = base_port + 1
@@ -259,10 +259,10 @@ if __name__ == '__main__':
     clock_agent = ClockAgent(AID(name=clock_agent_name), time_agent_name)
     clock_agent.update_ams(ams_config)
     agents.append(clock_agent)
-    display_message('Sistema', f'🕐 ClockAgent criado: {clock_agent_name}')
+    display_message('System', f'🕐 ClockAgent created: {clock_agent_name}')
 
-    display_message('Sistema', f'🚀 Iniciando {len(agents)} agentes...')
-    display_message('Sistema', f'📡 ClockAgent aguardando tabela para iniciar requisições')
+    display_message('System', f'🚀 Starting {len(agents)} agents...')
+    display_message('System', '📡 ClockAgent waiting for the table before starting requests')
     
     logger.log_event(
         event_type="test_started",

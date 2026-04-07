@@ -35,14 +35,29 @@ exemplos em ``pade/tests/``.
 Teste rápido após a instalação
 ------------------------------
 
-Um teste simples consiste em executar o primeiro exemplo adaptado:
+O teste mais simples consiste em executar o Hello World mínimo, que
+apenas imprime no terminal:
 
 .. code-block:: console
 
-    $ pade start-runtime --port 20000 pade/tests/agent_example_1/agent_example_1_updated.py
+    $ pade start-runtime --port 20000 pade/tests/hello_world/hello_world_minimal.py
 
 Se o ambiente estiver correto, o runtime abrirá AMS, Sniffer e os
 agentes do exemplo, além de criar a pasta ``logs/`` no diretório atual.
+Nesse caso, você verá ``sessions.csv``, ``agents.csv`` e ``events.csv``
+logo na primeira execução.
+
+Se você quiser um teste igualmente simples, mas que também valide o
+Sniffer e preencha ``messages.csv``, use a variante com logging:
+
+.. code-block:: console
+
+    $ pade start-runtime --port 20000 pade/tests/hello_world/hello_world.py
+
+Observe que você não precisa obrigatoriamente usar ``cd`` até a pasta do
+script. Se estiver na raiz do repositório, pode passar o caminho
+relativo completo. Se já estiver dentro da pasta do script, pode usar só
+o nome do arquivo.
 
 Usando ambiente virtual
 -----------------------

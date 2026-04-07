@@ -448,7 +448,7 @@ class Agent_(object):
         
         # Log the received message (only in debug mode)
         if self.debug:
-            display_message(self.aid.name, f'📨 Mensagem: {formatted_content}')
+            display_message(self.aid.name, f'📨 Message: {formatted_content}')
         
         # Normal message processing
         if is_system:
@@ -527,13 +527,16 @@ class Agent_(object):
         for receiver in receivers:
             found = False
             for name in self.agentInstance.table:
-                # "if" verifies if the receiver name is among the available agents
-                if receiver.localname in name and receiver.localname != self.aid.localname:
+                # Verify that the receiver name is among the available agents.
+                # Self-addressed delivery is also allowed so that local messages
+                # can be processed normally and mirrored to the Sniffer.
+                target_aid = self.agentInstance.table[name]
+                if receiver.name == name or receiver.localname == target_aid.localname:
                     found = True
                     # corrects the port and host parameters randomly generated when only a name
                     # is given as a identifier of a receiver.
-                    receiver.setPort(self.agentInstance.table[name].port)
-                    receiver.setHost(self.agentInstance.table[name].host)
+                    receiver.setPort(target_aid.port)
+                    receiver.setHost(target_aid.host)
                     # makes a connection to the agent and sends the message.
                     self.agentInstance.messages.append((receiver, message))
                     if self.debug:
@@ -544,8 +547,7 @@ class Agent_(object):
                                'TO',
                                receiver.name))
                     try:
-                        reactor.connectTCP(self.agentInstance.table[
-                                           name].host, self.agentInstance.table[name].port, self.agentInstance)
+                        reactor.connectTCP(target_aid.host, target_aid.port, self.agentInstance)
                     except Exception as e:
                         self.agentInstance.messages.pop()
                         display_message(self.aid.name, f'Error delivery message: {e}')
@@ -684,7 +686,7 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
             display_message(self.agent.aid.name, message.content)
 
     def handle_inform(self, message):
-        """Summary - Versão silenciosa para propagação da tabela
+        """Summary - silent version for table propagation
         
         Parameters
         ----------

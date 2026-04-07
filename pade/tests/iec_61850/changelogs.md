@@ -13,8 +13,9 @@
 ## Ajustes consolidados
 - A integracao foi portada para Python 3.12 com a biblioteca `pyiec61850`.
 - O registro em CSV substituiu o armazenamento legado em banco relacional.
-- O exemplo documenta que o retorno pode aparecer como `[Dados binarios codificados como string]` quando o dado original nao for textual.
-- Este script ainda usa uma sessao criada localmente com `datetime.now()` e nao esta totalmente alinhado ao padrao mais recente de `get_shared_session_id()`.
+- O exemplo agora usa `get_shared_session_id()` para alinhar a sessao do exemplo com a sessao do runtime integrado.
+- O script falha com uma mensagem clara quando `pyiec61850` nao estiver instalado no ambiente ativo.
+- A pasta agora inclui um `README.md` com o fluxo recomendado de execucao em dois terminais.
 
 ## Logs esperados
 - `sessions.csv`: sessao com nome `IEC61850_Integration`.
@@ -23,3 +24,4 @@
 
 ## Observacao
 - Este exemplo depende de um ambiente IEC 61850 disponivel. O foco da migracao aqui foi a compatibilidade do fluxo e da auditoria, nao a remocao dessa dependencia externa.
+- A dependencia `pyiec61850` nao faz parte do nucleo do PADE e deve ser instalada separadamente, ou via extra opcional `pade[iec61850]`.

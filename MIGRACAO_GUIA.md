@@ -14,6 +14,9 @@ Este documento resume o que foi efetivamente confirmado no codigo atual de `NOVO
 - O fluxo principal do PADE novo deixou de depender de Flask e SQLite.
 - O comando de uso diario e `pade start-runtime`, que orquestra AMS, Sniffer e scripts de agentes.
 - O runtime cria uma sessao compartilhada via variavel de ambiente `PADE_SESSION_ID`.
+- O onboarding agora ficou dividido em dois Hello Worlds na pasta `pade/tests/hello_world`:
+  - `hello_world_minimal.py` para terminal e logs basicos;
+  - `hello_world.py` para terminal + uma mensagem ACL real observavel em `messages.csv`.
 - Os exemplos mais recentes foram migrados para usar `get_shared_session_id()` e AIDs completos no formato `agente@localhost:porta`.
 - `messages.csv` e escrito pelo Sniffer, nao por `agent.py`.
 - `agent.py` registra eventos como `message_sent` e `message_received` em `events.csv`.
@@ -44,15 +47,18 @@ Leitura pratica:
 - O CLI chama `init_data_logger(config)` antes de subir os processos.
 - `init_data_logger(config)` cria a sessao inicial `Session_<id>`, registra `runtime_started` em `events.csv` e define `PADE_SESSION_ID`.
 - O CLI sobe AMS e Sniffer como subprocessos e depois executa os scripts de agentes, repassando a porta base como argumento.
-- Comandos utilitarios atuais: `show-logs`, `export-logs` e `version`.
+- O runtime integrado agora suporta `--detailed`, alem do alias `start-runtime-detailed`.
+- Comandos utilitarios atuais: `show-logs`, `export-logs`, `version` e `clean-logs`.
 
 Leitura pratica:
 - O `start-runtime` e o equivalente moderno do fluxo integrado que o usuario esperava do PADE legado.
+- `start-runtime --detailed` e `start-runtime-detailed` mantem o mesmo fluxo de execucao, mas recolocam no terminal os rastros tecnicos de AMS e Sniffer.
 - A arquitetura interna continua desacoplada, mas a experiencia de uso voltou a ser centralizada.
 
 ## `pade/misc/data_logger.py`
 
 - O modulo define `get_shared_session_id(default=None)`.
+- O diretorio de logs agora e resolvido em caminho absoluto para evitar falhas quando subprocessos mudam de contexto de execucao.
 - Se `PADE_SESSION_ID` existir, ela passa a ser a sessao dominante do runtime.
 - Sao mantidos quatro arquivos CSV:
   - `sessions.csv`
@@ -65,6 +71,9 @@ Leitura pratica:
 
 Leitura pratica:
 - Para alinhar exemplos ao runtime integrado, o padrao recomendado e chamar `get_shared_session_id()` ao criar a sessao do exemplo.
+- Isso tambem explica a diferenca entre os dois Hello Worlds:
+  - o minimal nao envia mensagem ACL, entao `messages.csv` fica vazio;
+  - o variante com logging envia um `INFORM` real, entao o Sniffer persiste a mensagem.
 
 ## `pade/core/new_ams.py`
 
@@ -73,6 +82,7 @@ Leitura pratica:
 - O AMS registra agentes em `agents.csv`.
 - A propagacao da tabela de agentes continua sendo parte essencial do funcionamento da plataforma.
 - O fluxo atual nao inicializa banco relacional nem sobe interface web.
+- A saida padrao no terminal ficou mais limpa; os rastros detalhados do AMS agora ficam atras do modo `--detailed`.
 
 Leitura pratica:
 - O AMS hoje e um servico de roteamento e coordenacao, nao um componente acoplado a SQLite/Flask.
@@ -156,13 +166,14 @@ Ja ficaram coerentes com o padrao novo:
 - `script_5`
 - `test_agent`
 - `test_pingpong`
+- `iec_61850`
+- `power_systems`
 
 Casos mais especializados, com alguma diferenca residual de estilo:
 
 - `mosaik_example`
-- `iec_61850`
 
-Nesses dois casos, o codigo ainda usa inicializacao de sessao local com `datetime.now()` e nao segue integralmente o mesmo padrao dos exemplos basicos mais recentes.
+No momento, `mosaik_example` e o caso especializado que ainda usa inicializacao de sessao local com `datetime.now()` em vez de seguir integralmente o mesmo padrao com `get_shared_session_id()` adotado pelos exemplos basicos mais recentes.
 
 ## Limites e cuidados ao interpretar os logs
 

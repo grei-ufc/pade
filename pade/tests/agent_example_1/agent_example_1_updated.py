@@ -1,8 +1,8 @@
-# Hello world in PADE - Versão Python 3.12.11
+# Hello world in PADE - Python 3.12.11 version
 #
-# Criado por Lucas S Melo em 21 de julho de 2015 - Fortaleza, Ceará - Brasil
+# Created by Lucas S Melo on July 21, 2015 - Fortaleza, Ceará - Brazil
 #
-# Adaptado por Douglas Barros em 04 de março de 2026 - Fortaleza, Ceará - Brasil
+# Adapted by Douglas Barros on March 4, 2026 - Fortaleza, Ceará - Brazil
 
 from pade.misc.utility import display_message, start_loop, format_message_content
 from pade.core.agent import Agent
@@ -13,14 +13,14 @@ from sys import argv
 
 class AgenteHelloWorld(Agent):
     def __init__(self, aid, peer_aid, session_id):
-        super().__init__(aid=aid, debug=False)  # debug=True para ver mensagens formatadas no react
+        super().__init__(aid=aid, debug=False)  # Use debug=True to inspect formatted react() messages.
         self.peer_aid = peer_aid
         self.session_id = session_id
         
-        # OPÇÃO 1: Exibição APENAS no terminal local (NÃO é interceptado pelo Sniffer/messages.csv)
-        display_message(self.aid.localname, 'Hello World! (Apenas Terminal)')
+        # OPTION 1: Terminal-only output (not intercepted by Sniffer/messages.csv)
+        display_message(self.aid.localname, 'Hello World! (Terminal Only)')
         
-        # Log da criação do agente no agents.csv
+        # Register agent creation in agents.csv
         logger.log_agent(
             agent_id=self.aid.name,
             session_id=self.session_id,
@@ -29,11 +29,11 @@ class AgenteHelloWorld(Agent):
         )
     
     def on_start(self):
-        """Método chamado quando o agente inicia e registra no AMS."""
+        """Called when the agent starts and registers with the AMS."""
         super().on_start()
-        display_message(self.aid.name, 'Agente pronto e registrado no AMS!')
+        display_message(self.aid.name, 'Agent ready and registered with the AMS!')
         
-        # Log do agente ativo
+        # Register the active agent state
         logger.log_agent(
             agent_id=self.aid.name,
             session_id=self.session_id,
@@ -41,55 +41,55 @@ class AgenteHelloWorld(Agent):
             state="Active"
         )
         
-        # Log do evento de inicialização no events.csv
+        # Register the startup event in events.csv
         logger.log_event(
             event_type="agent_started",
             agent_id=self.aid.name,
             data={"port": self.aid.port}
         )
 
-        # Envia para um agente vizinho em vez de autoenvio. Isso garante
-        # tráfego real de rede e mantém o messages.csv sob responsabilidade do Sniffer.
+        # Send to a neighboring agent instead of self-sending. This guarantees
+        # real network traffic and keeps messages.csv under the Sniffer's control.
         self.call_later(3.0, self.send_network_hello)
 
     def send_network_hello(self):
-        """Envia uma mensagem FIPA-ACL para um agente vizinho."""
-        mensagem = ACLMessage(ACLMessage.INFORM)
-        mensagem.add_receiver(self.peer_aid)
-        mensagem.set_ontology('hello_ontology')
-        mensagem.set_content('Hello World Message! (Via Rede)')
-        self.send(mensagem)
+        """Send a FIPA-ACL message to a neighboring agent."""
+        message = ACLMessage(ACLMessage.INFORM)
+        message.add_receiver(self.peer_aid)
+        message.set_ontology('hello_ontology')
+        message.set_content('Hello World Message! (Network)')
+        self.send(message)
     
     def react(self, message):
-        """Processa mensagens recebidas (para manter compatibilidade)."""
+        """Process incoming messages to keep compatibility with the legacy example."""
         super().react(message)
         
-        # Formata o conteúdo para exibição segura
+        # Safely format the message content for display.
         formatted_content = format_message_content(message.content)
         
-        # Se debug=True no __init__, ele vai printar a mensagem FIPA que acabou de receber dele mesmo
+        # If debug=True, show the received FIPA payload.
         if self.debug and message.content:
-            display_message(self.aid.name, f'📨 Mensagem recebida: {formatted_content}')
+            display_message(self.aid.name, f'Received message: {formatted_content}')
 
 
 if __name__ == '__main__':
-    # Verifica se a porta base foi fornecida
+    # Validate that the base port was provided.
     if len(argv) < 2:
-        print("Uso: python agent_example_1_updated.py <porta_base>")
-        print("Exemplo: python agent_example_1_updated.py 20000")
+        print("Usage: python agent_example_1_updated.py <base_port>")
+        print("Example: python agent_example_1_updated.py 20000")
         exit(1)
     
     agents_per_process = 3
     c = 0
     agents = list()
     
-    # Configuração do AMS
+    # AMS configuration
     ams_config = {'name': 'localhost', 'port': 8000}
     
-    # Sessão única para todos os agentes
+    # Shared session for all agents
     session_id = get_shared_session_id()
     
-    # Log da sessão no sessions.csv
+    # Register the example session in sessions.csv
     logger.log_session(
         session_id=session_id,
         name=f"HelloWorld_Session_{session_id}",
@@ -106,18 +106,18 @@ if __name__ == '__main__':
     for index, aid in enumerate(aids):
         peer_aid = aids[(index + 1) % len(aids)]
 
-        # Cria o agente
+        # Create the agent
         agente_hello = AgenteHelloWorld(aid, peer_aid, session_id)
 
-        # Configura o AMS para o agente
+        # Configure the agent AMS endpoint
         agente_hello.update_ams(ams_config)
 
         agents.append(agente_hello)
-        display_message('Sistema', f'Agente {aid.name} criado')
+        display_message('System', f'Agent {aid.name} created')
     
-    display_message('Sistema', f'Iniciando {len(agents)} agentes...')
+    display_message('System', f'Starting {len(agents)} agents...')
     
-    # Log do início da execução no events.csv
+    # Register the example startup event in events.csv
     logger.log_event(
         event_type="test_started",
         data={

@@ -95,7 +95,7 @@ class CompConnectionVerify(FipaRequestProtocol):
     def handle_inform(self, message):
         date = datetime.now()
         self.agent.agents_conn_time[message.sender.name] = date
-        # Log da conexão
+        # Connection log
         logger.log_event(
             event_type="agent_connection_verified",
             agent_id=message.sender.name,
@@ -117,11 +117,16 @@ class PublisherBehaviour(FipaSubscribeProtocol):
                                                  message=None,
                                                  is_initiator=False)
 
+    def _trace(self, text):
+        """Emit AMS trace output only when detailed runtime mode is enabled."""
+        if self.agent.debug:
+            display_message(self.agent.aid.name, text)
+
     def handle_subscribe(self, message):
         sender = message.sender
         
         # New agent registration
-        display_message(self.agent.aid.name, f'🔍 [AMS] NEW SUBSCRIBER: {sender.name}')
+        self._trace(f'🔍 [AMS] NEW SUBSCRIBER: {sender.name}')
         
         # Check by name, not by object
         if sender.name in self.agent.agentInstance.table:
@@ -142,7 +147,7 @@ class PublisherBehaviour(FipaSubscribeProtocol):
                 data={"reason": "duplicate_identifier"}
             )
         else:
-            display_message(self.agent.aid.name, f'🔍 [AMS] Registering new agent: {sender.name}')
+            self._trace(f'🔍 [AMS] Registering new agent: {sender.name}')
             
             # Registers the agent in the table of agents
             self.agent.agentInstance.table[sender.name] = sender
@@ -152,7 +157,7 @@ class PublisherBehaviour(FipaSubscribeProtocol):
             self.agent.agents_conn_time[sender.name] = datetime.now()
 
             # Current table log
-            display_message(self.agent.aid.name, f'🔍 [AMS] Table NOW contains: {list(self.agent.agentInstance.table.keys())}')
+            self._trace(f'🔍 [AMS] Table NOW contains: {list(self.agent.agentInstance.table.keys())}')
 
             # Registered agent log
             logger.log_agent(
@@ -162,8 +167,8 @@ class PublisherBehaviour(FipaSubscribeProtocol):
                 state="Active"
             )
             
-            display_message(
-                self.agent.aid.name, 'Agent ' + sender.name + ' successfully identified.')
+            self._trace(
+                'Agent ' + sender.name + ' successfully identified.')
 
             # prepares and sends answer messages to the agent
             reply = message.create_reply()
@@ -172,12 +177,12 @@ class PublisherBehaviour(FipaSubscribeProtocol):
             self.agent.send(reply)
 
             # FORCES IMMEDIATE table notification
-            display_message(self.agent.aid.name, f'🔍 [AMS] Forcing table notification NOW!')
+            self._trace(f'🔍 [AMS] Forcing table notification NOW!')
             self.notify()
 
             # prepares and sends the update message to all registered agents.
             if self.STATE == 0:
-                display_message(self.agent.aid.name, f'🔍 [AMS] Scheduling periodic notification in 10s')
+                self._trace(f'🔍 [AMS] Scheduling periodic notification in 10s')
                 reactor.callLater(10.0, self.notify)
                 self.STATE = 1
 
@@ -193,28 +198,26 @@ class PublisherBehaviour(FipaSubscribeProtocol):
 
     def notify(self):
         """Sends table update to all agents."""
-        from pade.misc.utility import display_message
-        
         table_size = len(self.agent.agentInstance.table)
-        display_message(self.agent.aid.name, f'🔍 [AMS] NOTIFY called! Sending table with {table_size} agents')
+        self._trace(f'🔍 [AMS] NOTIFY called! Sending table with {table_size} agents')
         
         if table_size == 0:
-            display_message(self.agent.aid.name, f'🔍 [AMS] ⚠️ Empty table, nothing to send!')
+            self._trace(f'🔍 [AMS] ⚠️ Empty table, nothing to send!')
             return
         
         agent_list = list(self.agent.agentInstance.table.keys())
-        display_message(self.agent.aid.name, f'🔍 [AMS] Agents in table: {agent_list}')
+        self._trace(f'🔍 [AMS] Agents in table: {agent_list}')
         
         subscriber_count = len(self.subscribers)
-        display_message(self.agent.aid.name, f'🔍 [AMS] Sending to {subscriber_count} subscribers: {[sub.name for sub in self.subscribers]}')
+        self._trace(f'🔍 [AMS] Sending to {subscriber_count} subscribers: {[sub.name for sub in self.subscribers]}')
         
         # Serialize the table only once
         serialized = dumps(self.agent.agentInstance.table)
-        display_message(self.agent.aid.name, f'🔍 [AMS] Serialized message size: {len(serialized)} bytes')
+        self._trace(f'🔍 [AMS] Serialized message size: {len(serialized)} bytes')
         
         # Sends to each subscriber individually
         for sub in self.subscribers:
-            display_message(self.agent.aid.name, f'🔍 [AMS] Sending to {sub.name}')
+            self._trace(f'🔍 [AMS] Sending to {sub.name}')
             
             # Creates a NEW message for each receiver (instead of trying to copy)
             msg = ACLMessage(ACLMessage.INFORM)
@@ -246,8 +249,9 @@ class CompVerifyRegister(FipaRequestProtocol):
             display_message(self.agent.aid.name, f'Error decoding validation request: {e}')
             content = {} # Fallback
             
-        display_message(self.agent.aid.name,
-                        'Validating agent ' + message.sender.name + ' session.')
+        if self.agent.debug:
+            display_message(self.agent.aid.name,
+                            'Validating agent ' + message.sender.name + ' session.')
 
 
 class AMS(Agent_):
@@ -305,7 +309,7 @@ class AMS(Agent_):
         super(AMS, self).react(message)
 
     def _initialize_session(self):
-        """Inicializa a sessão sem banco de dados."""
+        """Initialize the session without using a database."""
         display_message('AMS', f'Initializing session: {self.session_id}')
         
         # Session Log
@@ -330,15 +334,16 @@ class AMS(Agent_):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 4:
-        print("Usage: python new_ams.py <username> <email> <password> <port>")
+    if len(sys.argv) < 5:
+        print("Usage: python new_ams.py <username> <email> <password> <port> [debug]")
         print("Note: username, email, password are kept for compatibility but not used in webless version")
         sys.exit(1)
     
     display_message('AMS', 'Initializing PADE AMS service...')
     
     port = int(sys.argv[4])
-    ams = AMS(port=port)
+    debug = len(sys.argv) > 5 and sys.argv[5].lower() == 'debug'
+    ams = AMS(port=port, debug=debug)
     
     # Initializes the session (without database)
     ams._initialize_session()

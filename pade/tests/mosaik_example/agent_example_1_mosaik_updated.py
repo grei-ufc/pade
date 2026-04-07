@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Integração PADE + Mosaik Co-Simulation
-Módulo com Registro Nativo FIPA-ACL no Sniffer - GREI/UFC
+PADE + Mosaik co-simulation integration.
+Module with native FIPA-ACL registration through the Sniffer - GREI/UFC.
 """
 
 import json
@@ -12,9 +12,8 @@ from pade.core.agent import Agent
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
 from pade.drivers.mosaik_driver import MosaikCon
-from pade.misc.data_logger import logger
+from pade.misc.data_logger import get_shared_session_id, logger
 from sys import argv
-from datetime import datetime
 
 MOSAIK_MODELS = {
     'api_version': '3.0',
@@ -60,9 +59,9 @@ class MosaikSim(MosaikCon):
         return time + self.time_step
 
     def handle_get_data(self, data):
-        display_message(self.agent.aid.localname, f"Handle Data: {str(data)}")
-        # Em vez de apenas imprimir, manda o agente registrar no PADE!
-        self.agent.registrar_dados_mosaik(data)
+        display_message(self.agent.aid.localname, f"Handle data: {str(data)}")
+        # Instead of only printing, ask the agent to register the data in PADE.
+        self.agent.register_mosaik_data(data)
 
     def handle_set_data(self):
         display_message(self.agent.aid.localname, 'Success in set_data process')
@@ -78,34 +77,34 @@ class MosaikSim(MosaikCon):
                 response[model][value] = 1.0
         return response
 
-class AgenteHelloWorld(Agent):
+class HelloWorldAgent(Agent):
     def __init__(self, aid):
         super().__init__(aid=aid, debug=False)
         self.mosaik_sim = MosaikSim(self)
 
     def on_start(self):
         super().on_start()
-        display_message(self.aid.localname, '🌐 Agente Mosaik Online - GREI/UFC')
+        display_message(self.aid.localname, '🌐 Mosaik agent online - GREI/UFC')
 
-    def registrar_dados_mosaik(self, dados_mosaik):
+    def register_mosaik_data(self, mosaik_data):
         """
-        Empacota os dados do simulador em uma mensagem FIPA-ACL 
-        para que o Sniffer do PADE possa gravar no messages.csv
+        Pack simulator data into a FIPA-ACL message so the PADE
+        Sniffer can store it in `messages.csv`.
         """
-        mensagem = ACLMessage(ACLMessage.INFORM)
-        mensagem.set_sender(self.aid)
-        mensagem.add_receiver(self.aid) # Envia para si mesmo
-        mensagem.set_ontology('mosaik_data') # Facilita a filtragem depois
+        message = ACLMessage(ACLMessage.INFORM)
+        message.set_sender(self.aid)
+        message.add_receiver(self.aid)  # Send to the same agent for logging.
+        message.set_ontology('mosaik_data')  # Makes later filtering easier.
         
-        # Converte o dicionário do Mosaik para String JSON
-        mensagem.set_content(json.dumps(dados_mosaik))
+        # Convert the Mosaik dictionary to a JSON string.
+        message.set_content(json.dumps(mosaik_data))
         
-        # Dispara na rede do PADE
-        self.send(mensagem)
+        # Dispatch through the PADE network.
+        self.send(message)
 
 if __name__ == '__main__':
     ams_config = {'name': 'localhost', 'port': 8000}
-    session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    session_id = get_shared_session_id()
     logger.log_session(session_id=session_id, name="Mosaik_FIPA_Logging", state="Started")
 
     agents_per_process = 1 
@@ -115,9 +114,9 @@ if __name__ == '__main__':
         port = int(argv[1]) if len(argv) > 1 else 20000
         port += c
         agent_name = f'agent_example_{port}@localhost:{port}'
-        agente_hello = AgenteHelloWorld(AID(name=agent_name))
-        agente_hello.update_ams(ams_config)
-        agents.append(agente_hello)
+        hello_agent = HelloWorldAgent(AID(name=agent_name))
+        hello_agent.update_ams(ams_config)
+        agents.append(hello_agent)
         c += 500
 
     start_loop(agents)

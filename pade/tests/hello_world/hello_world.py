@@ -1,49 +1,79 @@
-from pade.misc.utility import display_message, start_loop
-from pade.core.agent import Agent
+from sys import argv
+
 from pade.acl.aid import AID
 from pade.acl.messages import ACLMessage
-from pade.misc.data_logger import logger
-from sys import argv
-from datetime import datetime
+from pade.core.agent import Agent
+from pade.misc.data_logger import get_shared_session_id, logger
+from pade.misc.utility import display_message, start_loop
 
-class AgenteHelloWorld(Agent):
+
+class HelloReceiverAgent(Agent):
     def __init__(self, aid):
-        super().__init__(aid=aid)
-        
+        super().__init__(aid=aid, debug=False)
+
     def on_start(self):
         super().on_start()
-        display_message(self.aid.localname, 'Hello World!')
-        
-        # Send a message to itself to trigger the PADE Sniffer and populate messages.csv
-        mensagem = ACLMessage(ACLMessage.INFORM)
-        mensagem.set_sender(self.aid)
-        mensagem.add_receiver(self.aid)
-        mensagem.set_content('Hello World Message!')
-        self.send(mensagem)
+        display_message(self.aid.localname, 'Hello World! Receiver online.')
+
+    def react(self, message):
+        super().react(message)
+
+        if message.ontology != 'hello_world_ontology':
+            return
+
+        display_message(
+            self.aid.localname,
+            f'Received message: {message.content}',
+        )
+
+
+class HelloSenderAgent(Agent):
+    def __init__(self, aid, receiver_aid):
+        super().__init__(aid=aid, debug=False)
+        self.receiver_aid = receiver_aid
+
+    def on_start(self):
+        super().on_start()
+        display_message(self.aid.localname, 'Hello World! Sender online.')
+
+        # Wait a moment so both agents are visible in the AMS before sending.
+        self.call_later(2.0, self.send_hello_world_message)
+
+    def send_hello_world_message(self):
+        display_message(
+            self.aid.localname,
+            f'Sending Hello World message to {self.receiver_aid.localname}',
+        )
+
+        message = ACLMessage(ACLMessage.INFORM)
+        message.add_receiver(self.receiver_aid)
+        message.set_ontology('hello_world_ontology')
+        message.set_content('Hello World Message!')
+        self.send(message)
+
 
 if __name__ == '__main__':
-    # Define the AMS configuration
     ams_config = {'name': 'localhost', 'port': 8000}
-    
-    # Initialize the session logger (CSV)
-    session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    logger.log_session(session_id=session_id, name="HelloWorld_Test", state="Started")
+    session_id = get_shared_session_id()
 
-    # Start 1 agent
-    agents_per_process = 1
-    c = 0
-    agents = list()
-    
-    # Define the base port via argument or use a default
+    logger.log_session(
+        session_id=session_id,
+        name=f'HelloWorld_{session_id}',
+        state='Started',
+    )
+
     base_port = int(argv[1]) if len(argv) > 1 else 20000
-    
-    for i in range(agents_per_process):
-        port = base_port + c
-        agent_name = f'agente_hello_{port}@localhost:{port}'
-        
-        agente_hello = AgenteHelloWorld(AID(name=agent_name))
-        agente_hello.update_ams(ams_config)
-        agents.append(agente_hello)
-        c += 1000
-    
-    start_loop(agents)
+
+    receiver_port = base_port
+    sender_port = base_port + 1000
+
+    receiver_aid = AID(name=f'hello_receiver_{receiver_port}@localhost:{receiver_port}')
+    sender_aid = AID(name=f'hello_sender_{sender_port}@localhost:{sender_port}')
+
+    receiver_agent = HelloReceiverAgent(receiver_aid)
+    sender_agent = HelloSenderAgent(sender_aid, receiver_aid)
+
+    for agent in (receiver_agent, sender_agent):
+        agent.update_ams(ams_config)
+
+    start_loop([receiver_agent, sender_agent])

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Hello World temporal in PADE - Versão Python 3.12.11 com logging CSV
-Adaptado por Douglas Barros em 04 de março de 2026
+Timed Hello World in PADE - Python 3.12.11 version with CSV logging
+Adapted by Douglas Barros on March 4, 2026
 
-Este exemplo demonstra o uso de TimedBehaviour para ações periódicas.
-Os agentes exibem "Hello World!" a cada 1 segundo.
+This example demonstrates the use of TimedBehaviour for periodic actions.
+Agents display "Hello World!" every 1 second.
 """
 
 from pade.misc.utility import display_message, start_loop
@@ -16,22 +16,22 @@ from pade.misc.data_logger import get_shared_session_id, logger
 from sys import argv
 
 class ComportTemporal(TimedBehaviour):
-    """Comportamento que executa ações em intervalos regulares."""
+    """Behaviour that executes actions at regular intervals."""
     
     def __init__(self, agent, time):
-        # Sintaxe moderna de super()
+        # Modern super() syntax.
         super().__init__(agent, time)
         self.execution_count = 0
 
     def on_time(self):
-        """Método chamado a cada intervalo de tempo definido."""
+        """Called at every configured interval."""
         super().on_time()
         self.execution_count += 1
         
-        # Mantém a saída alinhada ao exemplo legado.
+        # Keep terminal output aligned with the legacy example.
         display_message(self.agent.aid.localname, 'Hello World!')
         
-        # Log da execução do comportamento
+        # Register the timed behaviour execution
         logger.log_event(
             event_type="timed_behaviour_execution",
             agent_id=self.agent.aid.name,
@@ -43,17 +43,17 @@ class ComportTemporal(TimedBehaviour):
 
 
 class AgenteHelloWorld(Agent):
-    """Agente que utiliza comportamento temporizado para exibir mensagens."""
+    """Agent that uses a timed behaviour to display messages."""
     
     def __init__(self, aid, session_id):
         super().__init__(aid=aid, debug=False)
         self.session_id = session_id
 
-        # Cria o comportamento temporizado (executa a cada 1 segundo)
+        # Create the timed behaviour (every 1 second)
         comp_temp = ComportTemporal(self, 1.0)
         self.behaviours.append(comp_temp)
         
-        # Log da criação do agente
+        # Register agent creation
         logger.log_agent(
             agent_id=self.aid.name,
             session_id=self.session_id,
@@ -62,11 +62,11 @@ class AgenteHelloWorld(Agent):
         )
     
     def on_start(self):
-        """Método chamado quando o agente inicia e registra no AMS."""
+        """Called when the agent starts and registers with the AMS."""
         super().on_start()
-        display_message(self.aid.name, 'Agente registrado no AMS - Iniciando comportamentos temporizados...')
+        display_message(self.aid.name, 'Agent registered with the AMS - Starting timed behaviours...')
         
-        # Log do agente ativo
+        # Register the active agent state
         logger.log_agent(
             agent_id=self.aid.name,
             session_id=self.session_id,
@@ -74,7 +74,7 @@ class AgenteHelloWorld(Agent):
             state="Active"
         )
         
-        # Log do evento de inicialização
+        # Register the startup event
         logger.log_event(
             event_type="agent_started",
             agent_id=self.aid.name,
@@ -82,23 +82,23 @@ class AgenteHelloWorld(Agent):
         )
     
 if __name__ == '__main__':
-    # Verifica se a porta base foi fornecida
+    # Validate that the base port was provided.
     if len(argv) < 2:
-        print("Uso: python agent_example_2_updated.py <porta_base>")
-        print("Exemplo: python agent_example_2_updated.py 20000")
+        print("Usage: python agent_example_2_updated.py <base_port>")
+        print("Example: python agent_example_2_updated.py 20000")
         exit(1)
     
     agents_per_process = 2
     c = 0
     agents = list()
     
-    # Configuração do AMS
+    # AMS configuration
     ams_config = {'name': 'localhost', 'port': 8000}
     
-    # Sessão única para todos os agentes
+    # Shared session for all agents
     session_id = get_shared_session_id()
     
-    # Log da sessão
+    # Register the example session
     logger.log_session(
         session_id=session_id,
         name=f"TimedHelloWorld_Session_{session_id}",
@@ -109,19 +109,19 @@ if __name__ == '__main__':
         port = int(argv[1]) + c
         agent_name = f'agent_timed_{port}@localhost:{port}'
         
-        # Cria o agente
+        # Create the agent
         agente_hello = AgenteHelloWorld(AID(name=agent_name), session_id)
         
-        # Configura o AMS para o agente
+        # Configure the agent AMS endpoint
         agente_hello.update_ams(ams_config)
         
         agents.append(agente_hello)
-        display_message('Sistema', f'Agente {agent_name} criado')
+        display_message('System', f'Agent {agent_name} created')
         c += 1000
     
-    display_message('Sistema', f'Iniciando {len(agents)} agentes com comportamentos temporizados...')
+    display_message('System', f'Starting {len(agents)} agents with timed behaviours...')
     
-    # Log do início da execução
+    # Register the startup event
     logger.log_event(
         event_type="test_started",
         data={

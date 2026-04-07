@@ -1,0 +1,105 @@
+POWER_SYSTEMS: DIDACTIC OVERVIEW
+================================
+
+1. EXAMPLE GOAL
+
+This example shows how PADE can be used to supervise a three-phase
+electrical network.
+
+The general flow is:
+
+- a supervisor agent sends a REQUEST;
+- a calculation agent receives the request;
+- the load at node 675 is changed to simulate operating variation;
+- the IEEE-13 power flow is recalculated;
+- the resulting voltage at node 675 returns in an INFORM;
+- the terminal displays the result and the Sniffer stores the
+  conversation in CSV files.
+
+
+2. WHAT EACH FILE DOES
+
+agent_example_power_system_1_updated.py
+- Defines the PADE agents used in the example.
+- Creates the FIPA Request behaviours.
+- Triggers new calculations periodically.
+- Converts the node 675 voltage to JSON before sending the reply.
+
+ieee_13_bus_system.py
+- Defines the IEEE-13 network topology used in the test.
+- Creates nodes, lines, transformers, capacitors, and switches.
+- Builds the ``grid_elements`` object used by the solver.
+
+mygrid/grid.py
+- Implements the minimum electrical models required by the example.
+- Defines classes such as ``LoadNode``, ``Section``, ``LineModel``,
+  ``TransformerModel``, and ``GridElements``.
+- Organizes the topology as a navigable radial tree.
+
+mygrid/power_flow/backward_forward_sweep_3p.py
+- Implements the three-phase load-flow solver.
+- Computes currents in the backward sweep.
+- Updates voltages in the forward sweep.
+- Writes the final result to ``vp`` for each node.
+
+mygrid/util.py
+- Provides simple phasor utilities, such as polar/rectangular
+  conversion.
+
+README.md
+- Summarizes the correct way to run the example.
+
+changelogs.md and changelogs_en.md
+- Record what changed during the migration.
+
+
+3. HOW TO INTERPRET THE TERMINAL
+
+When you see:
+
+Node 675 (V):
+  Phase A: ...
+  Phase B: ...
+  Phase C: ...
+
+it represents the three-phase voltage at node 675.
+
+Each line shows:
+- the observed phase;
+- the voltage magnitude;
+- the phasor angle in degrees;
+- the complex rectangular form (real and imaginary parts).
+
+Values change because the load at node 675 is perturbed with a random
+factor at each new REQUEST.
+
+
+4. HOW TO INTERPRET THE LOGS
+
+sessions.csv
+- Shows when the execution started.
+
+agents.csv
+- Shows which agents participated in the run.
+
+messages.csv
+- Stores the REQUEST and INFORM messages exchanged by the agents.
+- The INFORM payload contains the node 675 voltage in readable JSON.
+
+events.csv
+- Stores the technical message-delivery flow, such as:
+  message_sent
+  message_received
+  message_stored
+
+
+5. FINAL SUMMARY
+
+This example is not only about "solving a network".
+It demonstrates the integration of:
+
+- electrical network modeling;
+- three-phase load flow;
+- PADE agents;
+- the FIPA Request protocol;
+- full traceability through CSV logs.

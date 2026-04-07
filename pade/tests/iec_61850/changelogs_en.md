@@ -13,8 +13,9 @@
 ## Consolidated migration changes
 - The integration was ported to Python 3.12 with the `pyiec61850` library.
 - CSV logging replaced the legacy relational database storage.
-- The example documents that the response may appear as `[Dados binarios codificados como string]` when the original data is not textual.
-- This script still creates its own session with `datetime.now()` and is not yet fully aligned with the more recent `get_shared_session_id()` pattern.
+- The example now uses `get_shared_session_id()` so its session is aligned with the integrated runtime session.
+- The script now fails with a clear message when `pyiec61850` is missing from the active environment.
+- The folder now includes a `README.md` with the recommended two-terminal execution flow.
 
 ## Expected logs
 - `sessions.csv`: a session named `IEC61850_Integration`.
@@ -23,3 +24,4 @@
 
 ## Note
 - This example depends on an available IEC 61850 environment. The migration work here focused on flow compatibility and auditability, not on removing that external dependency.
+- The `pyiec61850` dependency is not part of the PADE core and must be installed separately, or through the optional `pade[iec61850]` extra.

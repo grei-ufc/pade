@@ -1,9 +1,9 @@
 """
 Mosaik interface for the example simulator.
-Migrado para API 3.0+ com Filtro de Nulos (GREI/UFC)
+Migrated to API 3.0+ with None-value filtering (GREI/UFC).
 """
 import logging
-import mosaik_api
+import mosaik_api_v3 as mosaik_api
 import simulator
 
 logger = logging.getLogger('example_sim')
@@ -53,10 +53,10 @@ class ExampleSim(mosaik_api.Simulator):
             for i, _ in enumerate(sim_inputs):
                 eid = '%s.%s' % (sid, i)
                 if eid in inputs:
-                    # --- CORREÇÃO: Tratamento de valores None ---
+                    # --- Fix: filter out None values before summing inputs. ---
                     val_list = [v for v in inputs[eid]['val_in'].values() if v is not None]
                     sim_inputs[i] = sum(val_list) if val_list else 0
-                    # --------------------------------------------
+                    # ----------------------------------------------------------
 
             for i in range(self.step_size):
                 sim.step(sim_inputs)

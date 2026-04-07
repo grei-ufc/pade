@@ -65,6 +65,39 @@ def _launch_process(processes, args):
     return process
 
 
+def _context_requests_detailed(ctx):
+    """Infer detailed runtime mode from the current command invocation."""
+    raw_args = sys.argv[1:]
+    command_name = getattr(getattr(ctx, "command", None), "name", "")
+    detailed_flag = "--detailed" in raw_args and "--no-detailed" not in raw_args
+    return detailed_flag or command_name in {"start-runtime-detailed", "start-runtimedetailed"}
+
+
+def _build_runtime_config(num, agent_files, port, secure, pade_ams, pade_sniffer, username, password, detailed=False):
+    """Build the integrated runtime configuration dictionary."""
+    config = dict()
+    config['agent_files'] = agent_files
+    config['num'] = num
+    config['port'] = port
+    config['secure'] = secure
+    config['detailed'] = detailed
+    config['session'] = dict()
+    config['session']['username'] = username
+    config['session']['email'] = 'pade_user@pade.com'
+    config['session']['password'] = password
+    config['pade_ams'] = dict()
+    config['pade_ams']['launch'] = pade_ams
+    config['pade_ams']['host'] = 'localhost'
+    config['pade_ams']['port'] = 8000
+    config['pade_ams']['debug'] = detailed
+    config['pade_sniffer'] = dict()
+    config['pade_sniffer']['active'] = pade_sniffer
+    config['pade_sniffer']['host'] = 'localhost'
+    config['pade_sniffer']['port'] = 8001
+    config['pade_sniffer']['debug'] = detailed
+    return config
+
+
 def run_config_file(ctx, param, value):
 
     if not value or ctx.resilient_parsing:
@@ -75,6 +108,8 @@ def run_config_file(ctx, param, value):
     except FileNotFoundError:
         click.echo(click.style('PADE configuration file not found!', fg='red'))
         ctx.exit()
+
+    config['detailed'] = bool(config.get('detailed', False) or _context_requests_detailed(ctx))
 
     main(config)
     ctx.exit()
@@ -119,10 +154,13 @@ def main(config):
         port = 2000
 
     secure = config.get('secure')
+    detailed = bool(config.get('detailed', False))
 
     processes = list()
     python_exec = _resolve_python_executable()
     click.echo(click.style('[info] Starting integrated runtime (AMS + Sniffer + agents)', fg='cyan'))
+    if detailed:
+        click.echo(click.style('[info] Detailed runtime traces enabled', fg='yellow'))
 
     # Initialize the CSV data logger before launching services so the runtime has a root session.
     init_data_logger(config)
@@ -137,30 +175,36 @@ def main(config):
 
     if pade_ams is None:
         click.echo(click.style('[info] Starting AMS on localhost:8000', fg='blue'))
+        ams_args = [
+            python_exec,
+            str(Path(new_ams.__file__).resolve()),
+            session['username'],
+            session['email'],
+            session['password'],
+            '8000',
+        ]
+        if detailed:
+            ams_args.append('debug')
         _launch_process(
             processes,
-            [
+            ams_args,
+        )
+    else:
+        if pade_ams['launch']:
+            click.echo(click.style(f"[info] Starting AMS on {pade_ams['host']}:{pade_ams['port']}", fg='blue'))
+            ams_args = [
                 python_exec,
                 str(Path(new_ams.__file__).resolve()),
                 session['username'],
                 session['email'],
                 session['password'],
-                '8000',
-            ],
-        )
-    else:
-        if pade_ams['launch']:
-            click.echo(click.style(f"[info] Starting AMS on {pade_ams['host']}:{pade_ams['port']}", fg='blue'))
+                str(pade_ams['port']),
+            ]
+            if detailed:
+                ams_args.append('debug')
             _launch_process(
                 processes,
-                [
-                    python_exec,
-                    str(Path(new_ams.__file__).resolve()),
-                    session['username'],
-                    session['email'],
-                    session['password'],
-                    str(pade_ams['port']),
-                ],
+                ams_args,
             )
 
     # -------------------------------------------------------------
@@ -173,25 +217,31 @@ def main(config):
     if pade_sniffer is None:
         time.sleep(2.0)
         click.echo(click.style('[info] Starting Sniffer on localhost:8001', fg='blue'))
+        sniffer_args = [
+            python_exec,
+            str(Path(sniffer.__file__).resolve()),
+            '8001',
+        ]
+        if detailed:
+            sniffer_args.append('debug')
         _launch_process(
             processes,
-            [
-                python_exec,
-                str(Path(sniffer.__file__).resolve()),
-                '8001',
-            ],
+            sniffer_args,
         )
     else:
         if pade_sniffer['active']:
             time.sleep(2.0)
             click.echo(click.style(f"[info] Starting Sniffer on {pade_sniffer['host']}:{pade_sniffer['port']}", fg='blue'))
+            sniffer_args = [
+                python_exec,
+                str(Path(sniffer.__file__).resolve()),
+                str(pade_sniffer['port']),
+            ]
+            if detailed:
+                sniffer_args.append('debug')
             _launch_process(
                 processes,
-                [
-                    python_exec,
-                    str(Path(sniffer.__file__).resolve()),
-                    str(pade_sniffer['port']),
-                ],
+                sniffer_args,
             )
         else:
             click.echo(click.style('[info] Sniffer disabled for this runtime', fg='yellow'))
@@ -264,29 +314,75 @@ def cmd():
 @click.option('--secure', is_flag=True)
 @click.option('--pade_ams/--no_pade_ams', default=True)
 @click.option('--pade_sniffer/--no_pade_sniffer', default=True)
+@click.option('--detailed/--no-detailed', default=False, help='Show detailed AMS and Sniffer traces in the terminal.')
 @click.option('--username', prompt='please enter a username', default='pade_user')
 @click.option('--password', prompt=True, hide_input=True, default='12345')
 @click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
-def start_runtime(num, agent_files, port, secure, pade_ams, pade_sniffer, username, password):
+def start_runtime(num, agent_files, port, secure, pade_ams, pade_sniffer, detailed, username, password):
     """Start AMS, Sniffer, and agent scripts in a single integrated runtime."""
-    config = dict()
-    config['agent_files'] = agent_files
-    config['num'] = num
-    config['port'] = port
-    config['secure'] = secure
-    config['session'] = dict()
-    config['session']['username'] = username
-    config['session']['email'] = 'pade_user@pade.com'
-    config['session']['password'] = password
-    config['pade_ams'] = dict()
-    config['pade_ams']['launch'] = pade_ams
-    config['pade_ams']['host'] = 'localhost'
-    config['pade_ams']['port'] = 8000
-    config['pade_sniffer'] = dict()
-    config['pade_sniffer']['active'] = pade_sniffer
-    config['pade_sniffer']['host'] = 'localhost'
-    config['pade_sniffer']['port'] = 8001
+    config = _build_runtime_config(
+        num=num,
+        agent_files=agent_files,
+        port=port,
+        secure=secure,
+        pade_ams=pade_ams,
+        pade_sniffer=pade_sniffer,
+        username=username,
+        password=password,
+        detailed=detailed,
+    )
+    main(config)
 
+
+@cmd.command(name='start-runtime-detailed')
+@click.argument('agent_files', nargs=-1)
+@click.option('--num', default=1)
+@click.option('--port', default=2000)
+@click.option('--secure', is_flag=True)
+@click.option('--pade_ams/--no_pade_ams', default=True)
+@click.option('--pade_sniffer/--no_pade_sniffer', default=True)
+@click.option('--username', prompt='please enter a username', default='pade_user')
+@click.option('--password', prompt=True, hide_input=True, default='12345')
+@click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
+def start_runtime_detailed(num, agent_files, port, secure, pade_ams, pade_sniffer, username, password):
+    """Start the integrated runtime with detailed AMS and Sniffer traces."""
+    config = _build_runtime_config(
+        num=num,
+        agent_files=agent_files,
+        port=port,
+        secure=secure,
+        pade_ams=pade_ams,
+        pade_sniffer=pade_sniffer,
+        username=username,
+        password=password,
+        detailed=True,
+    )
+    main(config)
+
+
+@cmd.command(name='start-runtimedetailed', hidden=True)
+@click.argument('agent_files', nargs=-1)
+@click.option('--num', default=1)
+@click.option('--port', default=2000)
+@click.option('--secure', is_flag=True)
+@click.option('--pade_ams/--no_pade_ams', default=True)
+@click.option('--pade_sniffer/--no_pade_sniffer', default=True)
+@click.option('--username', prompt='please enter a username', default='pade_user')
+@click.option('--password', prompt=True, hide_input=True, default='12345')
+@click.option('--config_file', is_eager=True, expose_value=False, callback=run_config_file)
+def start_runtime_detailed_legacy_alias(num, agent_files, port, secure, pade_ams, pade_sniffer, username, password):
+    """Backward-compatible alias for the detailed integrated runtime."""
+    config = _build_runtime_config(
+        num=num,
+        agent_files=agent_files,
+        port=port,
+        secure=secure,
+        pade_ams=pade_ams,
+        pade_sniffer=pade_sniffer,
+        username=username,
+        password=password,
+        detailed=True,
+    )
     main(config)
 
 

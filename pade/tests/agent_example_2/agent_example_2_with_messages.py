@@ -69,7 +69,7 @@ class TimedHelloAgent(Agent):
 
     def on_start(self):
         super().on_start()
-        display_message(self.aid.name, "Agente registrado no AMS - Iniciando comportamentos temporizados...")
+        display_message(self.aid.name, "Agent registered with the AMS - Starting timed behaviours...")
 
         logger.log_agent(
             agent_id=self.aid.name,
@@ -91,14 +91,14 @@ class TimedHelloAgent(Agent):
 
         display_message(
             self.aid.localname,
-            f"Mensagem recebida de {message.sender.localname}: {format_message_content(message.content)}",
+            f"Message received from {message.sender.localname}: {format_message_content(message.content)}",
         )
 
 
 if __name__ == "__main__":
     if len(argv) < 2:
-        print("Uso: python agent_example_2_with_messages.py <porta_base>")
-        print("Exemplo: python agent_example_2_with_messages.py 20000")
+        print("Usage: python agent_example_2_with_messages.py <base_port>")
+        print("Example: python agent_example_2_with_messages.py 20000")
         exit(1)
 
     base_port = int(argv[1])
@@ -125,11 +125,11 @@ if __name__ == "__main__":
 
     agents = [first_agent, second_agent]
 
-    display_message("Sistema", f"Agente {first_aid.name} criado")
-    display_message("Sistema", f"Agente {second_aid.name} criado")
+    display_message("System", f"Agent {first_aid.name} created")
+    display_message("System", f"Agent {second_aid.name} created")
     display_message(
-        "Sistema",
-        "Iniciando 2 agentes com comportamentos temporizados e troca de mensagens...",
+        "System",
+        "Starting 2 agents with timed behaviours and message exchange...",
     )
 
     logger.log_event(
