@@ -9,14 +9,11 @@ Aqui estão todos os módulos que são de interesse para utilização do PADE, t
 .. automodule:: pade.core.new_ams
     :members:
 
-
 .. automodule:: pade.core.sniffer
     :members:
 
-
 .. automodule:: pade.acl.messages
     :members:
-
 
 .. automodule:: pade.behaviours.protocols
     :members:

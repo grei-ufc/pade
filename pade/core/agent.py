@@ -325,7 +325,7 @@ class Agent_(object):
             try:
                 self.__ams['name'] = value['name']
                 self.__ams['port'] = value['port']
-            except (Exception, e):
+            except Exception as e:
                 raise e
 
     @property
@@ -346,22 +346,9 @@ class Agent_(object):
             try:
                 self.__sniffer['name'] = value['name']
                 self.__sniffer['port'] = value['port']
-            except (Exception, e):
+            except Exception as e:
                 raise e
-    """
-    #agentInstance will only be created after the session is created, not in the agent instantiation
-    @property
-    def agentInstance(self):
-        return self.__agentInstance
 
-    @agentInstance.setter
-    def agentInstance(self, value):
-        if isinstance(value, AgentFactory):
-            self.__agentInstance = value
-        else:
-            raise ValueError(
-                'agentInstance object type must be AgentFactory')
-    """
     @property
     def behaviours(self):
         """Summary
@@ -427,48 +414,101 @@ class Agent_(object):
             self.__system_behaviours = value
 
     def react(self, message):
-        """This method should be overriden and will
-        be executed all the times the agent receives
-        any kind of message.
-                
-        Parameters
-        ----------
-        message : ACLMessage
-            receive message 
         """
-
-        if message.system_message:
+        Processes messages received by the agent.
+        """
+        from pade.misc.utility import format_message_content, display_message
+        from pade.misc.data_logger import logger
+        from pickle import dumps
+        
+        # Safe sender extraction
+        sender_obj = getattr(message, 'sender', None)
+        sender_name = getattr(sender_obj, 'name', '') if sender_obj else ""
+        
+        # Keep message-level telemetry in events.csv only. The Sniffer is the
+        # single source of truth for messages.csv to avoid duplicate rows.
+        is_system = getattr(message, 'system_message', False)
+        if not is_system and 'ams' not in sender_name:
+            try:
+                logger.log_event(
+                    event_type="message_received",
+                    agent_id=self.aid.name,
+                    data={
+                        "message_id": str(getattr(message, 'messageID', '') or ""),
+                        "conversation_id": str(getattr(message, 'conversation_id', '') or ""),
+                        "performative": str(getattr(message, 'performative', '') or ""),
+                        "sender": str(sender_name),
+                    },
+                )
+            except Exception as e:
+                display_message(self.aid.name, f'⚠️ LOGGER ERROR (REACT): {e}')
+        
+        # Formats the content for safe terminal display
+        formatted_content = format_message_content(getattr(message, 'content', ''))
+        
+        # Log the received message (only in debug mode)
+        if self.debug:
+            display_message(self.aid.name, f'📨 Message: {formatted_content}')
+        
+        # Normal message processing
+        if is_system:
             for system_behaviour in self.system_behaviours:
                 system_behaviour.execute(message)
         else:
             for behaviour in self.behaviours:
                 behaviour.execute(message)
 
+        if 'ams' not in sender_name and 'sniffer' not in self.aid.name:
+            _message = ACLMessage(ACLMessage.INFORM)
+            sniffer_aid = AID('sniffer@' + self.sniffer['name'] + ':' + str(self.sniffer['port']))
+            _message.add_receiver(sniffer_aid)
+            _message.set_content(dumps({'ref' : 'MESSAGE', 'message' : message}))
+            _message.set_system_message(is_system_message=True)
+            self.send(_message)
+
     def send(self, message):
         """This method calls the method self._send to sends 
         an ACL message to the agents specified in the receivers
-        parameter of the ACL message.
-
-        If the number of receivers is greater than 20, than a split
-        will be done. 
-        
-        Parameters
-        ----------
-        message : ACLMessage
-            Message to be sent
         """
         message.set_sender(self.aid)
-        message.set_message_id()
-        message.set_datetime_now()
+        
+        # Shielding against the absence of functions in the message object
+        if hasattr(message, 'set_message_id'):
+            message.set_message_id()
+        if hasattr(message, 'set_datetime_now'):
+            message.set_datetime_now()
+
+        from pade.misc.data_logger import logger
+        from twisted.internet import reactor
+        
+        sender_obj = getattr(message, 'sender', None)
+        sender_name = getattr(sender_obj, 'name', '') if sender_obj else ""
+        
+        # Keep outbound telemetry in events.csv only. The Sniffer writes the
+        # canonical rows to messages.csv after intercepting delivered messages.
+        is_system = getattr(message, 'system_message', False)
+        if not is_system and 'ams' not in sender_name:
+            recvs_list = getattr(message, 'receivers', [])
+            logger.log_event(
+                event_type="message_sent",
+                agent_id=self.aid.name,
+                data={
+                    "message_id": str(getattr(message, 'messageID', '') or ""),
+                    "conversation_id": str(getattr(message, 'conversation_id', '') or ""),
+                    "performative": str(getattr(message, 'performative', '') or ""),
+                    "receivers": [getattr(r, 'name', str(r)) for r in recvs_list],
+                },
+            )
 
         c = 0.0
-        if len(message.receivers) >= 20:
-            receivers = [message.receivers[i:i+20] for i in range(0, len(message.receivers), 20)]
-            for r in receivers:
+        receivers_list = getattr(message, 'receivers', [])
+        if len(receivers_list) >= 20:
+            receivers_chunks = [receivers_list[i:i+20] for i in range(0, len(receivers_list), 20)]
+            for r in receivers_chunks:
                 reactor.callLater(c, self._send, message, r)
                 c += 0.5
         else:
-            self._send(message, message.receivers)
+            self._send(message, receivers_list)
 
     def _send(self, message, receivers):
         """This method effectively sends the message to receivers
@@ -481,15 +521,22 @@ class Agent_(object):
         receivers : list
             List of receivers agents
         """
+        from pade.misc.utility import display_message
+        
         # "for" iterates on the message receivers
         for receiver in receivers:
+            found = False
             for name in self.agentInstance.table:
-                # "if" verifies if the receiver name is among the available agents
-                if receiver.localname in name and receiver.localname != self.aid.localname:
+                # Verify that the receiver name is among the available agents.
+                # Self-addressed delivery is also allowed so that local messages
+                # can be processed normally and mirrored to the Sniffer.
+                target_aid = self.agentInstance.table[name]
+                if receiver.name == name or receiver.localname == target_aid.localname:
+                    found = True
                     # corrects the port and host parameters randomly generated when only a name
                     # is given as a identifier of a receiver.
-                    receiver.setPort(self.agentInstance.table[name].port)
-                    receiver.setHost(self.agentInstance.table[name].host)
+                    receiver.setPort(target_aid.port)
+                    receiver.setHost(target_aid.host)
                     # makes a connection to the agent and sends the message.
                     self.agentInstance.messages.append((receiver, message))
                     if self.debug:
@@ -500,18 +547,15 @@ class Agent_(object):
                                'TO',
                                receiver.name))
                     try:
-                        reactor.connectTCP(self.agentInstance.table[
-                                           name].host, self.agentInstance.table[name].port, self.agentInstance)
-                    except:
+                        reactor.connectTCP(target_aid.host, target_aid.port, self.agentInstance)
+                    except Exception as e:
                         self.agentInstance.messages.pop()
-                        display_message(self.aid.name, 'Error delivery message!')
+                        display_message(self.aid.name, f'Error delivery message: {e}')
                     break
-            else:
+            
+            if not found:
                 if self.debug:
-                    display_message(
-                        self.aid.localname, 'Agent ' + receiver.name + ' is not active')
-                else:
-                    pass
+                    display_message(self.aid.localname, 'Agent ' + receiver.name + ' is not active')
 
     def call_later(self, time, method, *args):
         """Call a method after some time delay
@@ -627,7 +671,8 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
         message : TYPE
             Description
         """
-        display_message(self.agent.aid.name, 'Identification process done.')
+        # display_message(self.agent.aid.name, 'Identification process done.')
+        pass
 
     def handle_refuse(self, message):
         """Summary
@@ -641,16 +686,23 @@ class SubscribeBehaviour(FipaSubscribeProtocol):
             display_message(self.agent.aid.name, message.content)
 
     def handle_inform(self, message):
-        """Summary
+        """Summary - silent version for table propagation
         
         Parameters
         ----------
         message : TYPE
             Description
         """
-        if self.agent.debug:
-            display_message(self.agent.aid.name, 'Table update')
-        self.agent.agentInstance.table = loads(message.content)
+        from pade.misc.utility import display_message
+        
+        try:
+            table = loads(message.content)
+            # Updates the local table
+            self.agent.agentInstance.table = table
+        except Exception as e:
+            display_message(self.agent.aid.name, f'🔍 [SUBSCRIBE_AGENT] ERROR deserializing: {e}')
+            import traceback
+            traceback.print_exc()
 
 
 class CompConnection(FipaRequestProtocol):
@@ -680,8 +732,6 @@ class CompConnection(FipaRequestProtocol):
             Description
         """
         super(CompConnection, self).handle_request(message)
-        if self.agent.debug:
-            display_message(self.agent.aid.localname, 'request message received')
         reply = message.create_reply()
         reply.set_performative(ACLMessage.INFORM)
         reply.set_content('Im Live')
@@ -716,6 +766,7 @@ class Agent(Agent_):
         
         self.comport_connection = CompConnection(self)        
         self.system_behaviours.append(self.comport_connection)
+        self._identification_sent = False  # Flag to prevent duplicate identification
 
     def update_ams(self, ams):
         """Summary
@@ -725,7 +776,11 @@ class Agent(Agent_):
         ams : TYPE
             Description
         """
-        super(Agent,self).update_ams(ams)
+        # FIX: Prevents duplicate identification sending
+        if hasattr(self, '_identification_sent') and self._identification_sent:
+            return
+        
+        super(Agent, self).update_ams(ams)
         message = ACLMessage(ACLMessage.SUBSCRIBE)
         message.set_protocol(ACLMessage.FIPA_SUBSCRIBE_PROTOCOL)
         ams_aid = AID('ams@' + self.ams['name'] + ':' + str(self.ams['port']))
@@ -734,25 +789,10 @@ class Agent(Agent_):
         message.set_system_message(is_system_message=True)
         self.comport_ident = SubscribeBehaviour(self, message)
         self.system_behaviours.append(self.comport_ident)
+        self._identification_sent = True  # Marca como enviado
 
     def react(self, message):
-        """Summary
-        
-        Parameters
-        ----------
-        message : TYPE
-            Description
+        """
+        Processes messages received by the agent.
         """
         super(Agent, self).react(message)
-
-        if 'ams' not in message.sender.name and 'sniffer' not in self.aid.name:
-            # sends the received message to Sniffer
-            # building of the message to be sent to Sniffer.
-            _message = ACLMessage(ACLMessage.INFORM)
-            sniffer_aid = AID('sniffer@' + self.sniffer['name'] + ':' + str(self.sniffer['port']))
-            _message.add_receiver(sniffer_aid)
-            _message.set_content(dumps({
-            'ref' : 'MESSAGE',
-            'message' : message}))
-            _message.set_system_message(is_system_message=True)
-            self.send(_message)

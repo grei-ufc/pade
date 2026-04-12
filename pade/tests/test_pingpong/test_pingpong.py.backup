@@ -1,0 +1,157 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+PADE ping-pong communication test
+Python 3.12+ version with CSV logging
+"""
+
+from pade.misc.utility import display_message, start_loop
+from pade.core.agent import Agent
+from pade.acl.aid import AID
+from pade.acl.messages import ACLMessage
+import sys
+import time
+
+class PingAgent(Agent):
+    """Agent that periodically sends PING messages."""
+    
+    def __init__(self, aid, pong_port):
+        super().__init__(aid=aid, debug=True)
+        self.pong_port = pong_port
+        self.ping_count = 0
+        self.pong_received = 0
+        
+    def on_start(self):
+        super().on_start()
+        display_message(self.aid.name, '=' * 50)
+        display_message(self.aid.name, '🏓 PING AGENT STARTED')
+        display_message(self.aid.name, f'📡 Sending PINGs to port: {self.pong_port}')
+        display_message(self.aid.name, '=' * 50)
+        
+        # Schedule the first PING after 10 seconds.
+        self.call_later(10.0, self.send_ping)
+    
+    def send_ping(self):
+        """Send a PING message to the PONG agent."""
+        self.ping_count += 1
+        
+        # Build the PONG agent name.
+        pong_name = f'pong_{self.pong_port}@localhost:{self.pong_port}'
+        
+        display_message(self.aid.name, f'🚀 Sending PING #{self.ping_count}')
+        display_message(self.aid.name, f'   ➡️ Target: {pong_name}')
+        
+        # Create the message.
+        message = ACLMessage(ACLMessage.INFORM)
+        message.add_receiver(AID(name=pong_name))
+        message.set_content(f'PING #{self.ping_count} from {self.aid.name}')
+        message.set_conversation_id(f'ping_conversation_{self.ping_count}')
+        
+        # Send it.
+        self.send(message)
+        display_message(self.aid.name, f'   ✅ PING #{self.ping_count} sent!')
+        
+        # Schedule the next PING in 30 seconds.
+        self.call_later(30.0, self.send_ping)
+    
+    def react(self, message):
+        """Process received messages."""
+        super().react(message)
+        
+        # Check whether this is a PONG reply.
+        if message.performative == ACLMessage.INFORM and 'PONG' in str(message.content):
+            self.pong_received += 1
+            display_message(self.aid.name, '🎉 PONG RECEIVED!')
+            display_message(self.aid.name, f'   📨 From: {message.sender.name}')
+            display_message(self.aid.name, f'   📝 Content: {message.content}')
+            display_message(self.aid.name, f'   📊 Stats: PONGs received: {self.pong_received}/{self.ping_count}')
+        
+        # System messages (agent table updates, etc.)
+        elif message.system_message:
+            display_message(self.aid.name, f'📋 System message: {message.performative}')
+
+
+class PongAgent(Agent):
+    """Agent that replies to PING messages with PONG."""
+    
+    def __init__(self, aid):
+        super().__init__(aid=aid, debug=True)
+        self.pongs_sent = 0
+        self.pings_received = 0
+        
+    def on_start(self):
+        super().on_start()
+        display_message(self.aid.name, '=' * 50)
+        display_message(self.aid.name, '🏸 PONG AGENT STARTED')
+        display_message(self.aid.name, f'📡 Waiting for PINGs on port {self.aid.port}')
+        display_message(self.aid.name, '=' * 50)
+    
+    def react(self, message):
+        """Process received messages and reply with PONG."""
+        super().react(message)
+        
+        # Check whether this is a PING.
+        if message.performative == ACLMessage.INFORM and 'PING' in str(message.content):
+            self.pings_received += 1
+            display_message(self.aid.name, '🏓 PING RECEIVED!')
+            display_message(self.aid.name, f'   📨 From: {message.sender.name}')
+            display_message(self.aid.name, f'   📝 Content: {message.content}')
+            
+            # Build the PONG reply.
+            reply = message.create_reply()
+            reply.set_performative(ACLMessage.INFORM)
+            reply.set_content(f'PONG #{self.pings_received} from {self.aid.name}')
+            
+            # Send the reply.
+            self.pongs_sent += 1
+            self.send(reply)
+            display_message(self.aid.name, f'   📤 PONG #{self.pongs_sent} sent!')
+            display_message(self.aid.name, f'   📊 Stats: PONGs sent: {self.pongs_sent}')
+        
+        # System messages
+        elif message.system_message:
+            display_message(self.aid.name, f'📋 System message: {message.performative}')
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 4:
+        print("\n" + "="*60)
+        print("🏓 PING-PONG COMMUNICATION TEST - PADE 3.12+")
+        print("="*60)
+        print("\nUsage: python test_pingpong.py <type> <port> [target_port]")
+        print("\nTypes:")
+        print("  ping    : Start the PING agent (requires the PONG port)")
+        print("  pong    : Start the PONG agent")
+        print("\nExamples:")
+        print("  Terminal 1 (PONG): python test_pingpong.py pong 37001")
+        print("  Terminal 2 (PING): python test_pingpong.py ping 37000 37001")
+        print("="*60 + "\n")
+        sys.exit(1)
+    
+    agent_type = sys.argv[1]
+    port = int(sys.argv[2])
+    
+    if agent_type == 'ping':
+        if len(sys.argv) < 4:
+            print("❌ Error: The PING agent requires the PONG port")
+            sys.exit(1)
+        pong_port = int(sys.argv[3])
+        agent_name = f'ping_{port}@localhost:{port}'
+        agent = PingAgent(AID(name=agent_name), pong_port)
+        print(f"\n🚀 Starting PING agent on port {port} -> PONG on port {pong_port}")
+        
+    elif agent_type == 'pong':
+        agent_name = f'pong_{port}@localhost:{port}'
+        agent = PongAgent(AID(name=agent_name))
+        print(f"\n🏸 Starting PONG agent on port {port}")
+        
+    else:
+        print(f"❌ Unknown type: {agent_type}. Use 'ping' or 'pong'")
+        sys.exit(1)
+    
+    # Configure AMS
+    agent.update_ams({'name': 'localhost', 'port': 8000})
+    
+    # Start the agent
+    print("-" * 50)
+    start_loop([agent])

@@ -1,37 +1,57 @@
 Enviando Objetos
 ================
 
-Nem sempre o que é preciso enviar para outros agentes pode ser representado por texto simpes não é mesmo!
+Nem sempre o conteúdo de uma mensagem pode ser representado apenas por
+texto simples. Em aplicações científicas, por exemplo, é comum trafegar
+dicionários, listas ou estruturas numéricas serializadas.
 
-Para enviar objetos encapsulados no content de mensagens FIPA-ACL com PADE basta utilizar o módulo nativo do Python *pickle*.
+No PADE, uma forma prática de fazer isso é usar o módulo nativo
+``pickle``.
 
-Enviando objetos serializados com pickle
-----------------------------------------
+Serializando objetos com ``pickle``
+-----------------------------------
 
-Para enviar um objeto serializado com piclke basta seguir os passos:
+Primeiro, importe o módulo:
 
 ::
 
     import pickle
 
-*pickle* é uma biblioteca para serialização de objetos, assim, para serializar um objeto qualquer, utilize `pickle.dumps()`, veja:
+Depois serialize o objeto desejado com ``pickle.dumps()``:
 
 ::
 
-    dados = {'nome' : 'agente_consumidor', 'porta' : 2004}
-    dados_serial = pickle.dumps(dados)
-    message.set_content(dados_serial)
+    dados = {'nome': 'agente_consumidor', 'porta': 2004}
+    dados_serializados = pickle.dumps(dados)
+    message.set_content(dados_serializados)
 
-Pronto! O objeto já pode ser enviado no conteúdo da mensagem. 
+Pronto: o objeto já pode ser enviado no campo ``content`` da mensagem
+ACL.
 
-Recebendo objetos serializados com pickle
-----------------------------------------
+Recebendo o objeto
+------------------
 
-Agora para receber o objeto, basta carregá-lo utilizando o comando:
+Do lado receptor, basta desserializar com ``pickle.loads()``:
 
 ::
 
-    dados_serial = message.content
-    dados = pickle.loads(dados_serial)
+    import pickle
 
-Simples assim ;)
+    dados_serializados = message.content
+    dados = pickle.loads(dados_serializados)
+
+    print(dados['nome'])
+
+Observações sobre logs e depuração
+----------------------------------
+
+Quando conteúdos binários trafegam pela rede:
+
+* o agente receptor continua recebendo os bytes corretos em
+  ``message.content``;
+* a visualização no terminal pode mostrar uma representação resumida do
+  conteúdo;
+* os logs CSV preservam o registro da mensagem sem depender de SQLite.
+
+Esse padrão é especialmente útil quando o PADE é usado em integração com
+co-simulações ou estruturas matemáticas mais complexas.

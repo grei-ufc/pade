@@ -26,106 +26,191 @@ THE SOFTWARE.
 from pade.core.agent import Agent
 from pade.acl.aid import AID
 from pade.misc.utility import display_message, start_loop
-
-from pade.web import flask_server
-from pade.web.flask_server import AgentModel, basedir
-
-
-from alchimia import wrap_engine
-from twisted.internet.defer import inlineCallbacks
+from pade.misc.data_logger import get_shared_session_id, logger
 from twisted.internet import reactor
-from sqlalchemy import create_engine, MetaData, Table
 
 from pickle import loads, dumps
 import xml.etree.ElementTree as ET
 import random
-import os
 import sys
+from datetime import datetime
 
-ENGINE = create_engine('sqlite:///' + os.path.join(basedir, 'data.sqlite'))
-TWISTED_ENGINE = wrap_engine(reactor, ENGINE)
-TWISTED_ENGINE.run_callable = ENGINE.run_callable
-
-METADATA = MetaData()
-METADATA.bind = ENGINE
-MESSAGES = Table('messages', METADATA, autoload=True, autoload_with=ENGINE)
-AGENTS = Table('agents', METADATA, autoload=True, autoload_with=ENGINE)
 
 class Sniffer(Agent):
-    """This is the class that implements the AMS agent."""
+    """This is the class that implements the Sniffer agent."""
 
     def __init__(self, host='localhost', port=8001, debug=False):
         self.sniffer_aid = AID('sniffer@' + str(host) + ':' + str(port))
         super(Sniffer, self).__init__(self.sniffer_aid, debug=debug)
-        self.sniffer = {'name':str(host),'port':str(port)}      
+        self.sniffer = {'name': str(host), 'port': str(port)}      
         self.host = host
         self.port = port
+        self.session_id = get_shared_session_id()
         self.messages_buffer = dict()
         self.buffer_control = True
-        self.agent_db_id = dict()
+        self.agent_ids = dict()  # Maps agent names to IDs (in memory)
+        self.next_agent_id = 1
+        
+        # Sniffer initialization log
+        logger.log_event(
+            event_type="sniffer_initialized",
+            data={
+                "host": host,
+                "port": port,
+                "timestamp": datetime.now().isoformat(),
+                "session_id": self.session_id,
+            }
+        )
+
+    def _get_or_create_agent_id(self, agent_name):
+        """Gets or creates an ID for an agent (in memory)."""
+        if agent_name not in self.agent_ids:
+            self.agent_ids[agent_name] = self.next_agent_id
+            self.next_agent_id += 1
+            
+            # Log of newly detected agent
+            logger.log_event(
+                event_type="agent_detected_by_sniffer",
+                agent_id=agent_name,
+                data={"assigned_id": self.agent_ids[agent_name]}
+            )
+        
+        return self.agent_ids[agent_name]
 
     def handle_store_messages(self):
+        """Processes and stores buffered messages in CSV."""
         for sender, messages in self.messages_buffer.items():
-            if self.agent_db_id.get(sender) == None:
-                r = ENGINE.execute(AGENTS.select(AGENTS.c.name.is_(sender)))
-                a = r.fetchall()
-                if a != []:
-                    agent_id = a[0][0]
-                    self.agent_db_id[sender] = agent_id
-                else:
-                    print('Agent does not exist in database: {}'.format(sender))
-                r.close()
-            else:
-                pass
-
+            self._get_or_create_agent_id(sender)
+            
             for message in messages:
-                receivers = ';'.join([i.localname for i in message.receivers])
+                # Store canonical agent names so messages.csv stays stable and queryable.
+                receivers = ';'.join(
+                    [getattr(receiver, 'name', str(receiver)) for receiver in message.receivers]
+                )
+                
+                # Processes the content
                 content = message.content
                 if isinstance(content, ET.Element):
-                    content = ET.tostring(content)
-
-                insert_obj = MESSAGES.insert()
-                sql_act = insert_obj.values(agent_id=self.agent_db_id[sender],
-                                            sender=message.sender.name,
-                                            date=message.datetime,
-                                            performative=message.performative,
-                                            protocol=message.protocol,
-                                            content=content,
-                                            conversation_id=message.conversation_id,
-                                            message_id=message.messageID,
-                                            ontology=message.ontology,
-                                            language=message.language,
-                                            receivers=receivers)
-
-                #reactor.callInThread(ENGINE.execute, sql_act)
-                reactor.callLater(random.uniform(0.1, 0.5), self.register_message_in_db, sql_act)
-
+                    content = ET.tostring(content).decode('utf-8', errors='ignore')
+                elif not isinstance(content, str):
+                    content = str(content)
+                
+                # Log the message in CSV
+                logger.log_message(
+                    message_id=message.messageID if hasattr(message, 'messageID') else f"msg_{datetime.now().timestamp()}",
+                    conversation_id=message.conversation_id if hasattr(message, 'conversation_id') else "",
+                    agent_id=sender,
+                    performative=message.performative if hasattr(message, 'performative') else "",
+                    protocol=message.protocol if hasattr(message, 'protocol') else "",
+                    sender=message.sender.name if hasattr(message.sender, 'name') else str(message.sender),
+                    receivers=receivers,
+                    content=content[:500],  # Limits size for CSV
+                    ontology=message.ontology if hasattr(message, 'ontology') else "",
+                    language=message.language if hasattr(message, 'language') else ""
+                )
+                
+                # Event log (optional, for tracking)
+                logger.log_event(
+                    event_type="message_stored",
+                    agent_id=sender,
+                    data={
+                        "message_id": message.messageID if hasattr(message, 'messageID') else "unknown",
+                        "performative": message.performative if hasattr(message, 'performative') else "",
+                        "conversation_id": message.conversation_id if hasattr(message, 'conversation_id') else ""
+                    }
+                )
+                
                 if self.debug:
-                    display_message(self.aid.name, 'Message stored')
+                    display_message(self.aid.name, f'Message from {sender} stored in CSV')
 
+        # Clears the buffer after processing
         self.messages_buffer = dict()
         self.buffer_control = True
 
-    @inlineCallbacks
-    def register_message_in_db(self, sql_act):
-        yield TWISTED_ENGINE.execute(sql_act)
-
     def react(self, message):
+        """Processes messages received by the Sniffer."""
         super(Sniffer, self).react(message)
+        
+        # Ignores messages from AMS
         if 'ams' not in message.sender.name:
-            content = loads(message.content)
-            if content['ref'] == 'MESSAGE':
-                _message = content['message']
-                if self.messages_buffer.get(message.sender.name) == None:
-                    self.messages_buffer[message.sender.name] = [_message]
-                else:
-                    messages = self.messages_buffer[message.sender.name]
-                    messages.append(_message) 
+            try:
+                content = loads(message.content)
+                if content['ref'] == 'MESSAGE':
+                    _message = content['message']
+                    
+                    # Adds to buffer
+                    sender_name = message.sender.name
+                    if sender_name not in self.messages_buffer:
+                        self.messages_buffer[sender_name] = [_message]
+                    else:
+                        self.messages_buffer[sender_name].append(_message)
+                    
+                    # Schedules buffer processing if necessary
+                    if self.buffer_control:
+                        # Processes after a random time to avoid overload
+                        delay = random.uniform(2.0, 5.0)
+                        reactor.callLater(delay, self.handle_store_messages)
+                        self.buffer_control = False
+                        
+                        # Log of scheduled buffer
+                        if self.debug:
+                            display_message(self.aid.name, f'Buffer processing scheduled in {delay:.2f}s')
+            
+            except Exception as e:
+                # Error log in message processing
+                logger.log_event(
+                    event_type="sniffer_message_error",
+                    data={
+                        "error": str(e),
+                        "sender": message.sender.name if hasattr(message.sender, 'name') else str(message.sender),
+                        "content_preview": str(message.content)[:100]
+                    }
+                )
+                
+                if self.debug:
+                    display_message(self.aid.name, f'Error processing message: {e}')
 
-                if self.buffer_control:
-                    reactor.callLater(5.0, self.handle_store_messages)
-                    self.buffer_control = False
+
+def start_sniffer(port=8001, debug=False):
+    """Auxiliary function to start the Sniffer."""
+    sniffer = Sniffer(port=port, debug=debug)
+    
+    # Sniffer start log
+    logger.log_event(
+        event_type="sniffer_started",
+        data={
+            "port": port,
+            "debug": debug,
+            "timestamp": datetime.now().isoformat(),
+            "session_id": sniffer.session_id,
+        }
+    )
+    
+    return sniffer
+
 
 if __name__ == '__main__':
-    sniffer = Sniffer(port=sys.argv[1])
+    if len(sys.argv) < 2:
+        print("Usage: python sniffer.py <port>")
+        print("Example: python sniffer.py 8001")
+        sys.exit(1)
+    
+    port = int(sys.argv[1])
+    debug = len(sys.argv) > 2 and sys.argv[2].lower() == 'debug'
+    
+    display_message('Sniffer', f'Starting Sniffer on port {port}...')
+    
+    sniffer = Sniffer(port=port, debug=debug)
+    
+    # CLI start log
+    logger.log_event(
+        event_type="sniffer_cli_started",
+        data={
+            "port": port,
+            "debug": debug,
+            "command": " ".join(sys.argv),
+            "session_id": sniffer.session_id,
+        }
+    )
+    
     start_loop([sniffer])

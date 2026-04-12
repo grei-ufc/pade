@@ -1,76 +1,119 @@
 Recebendo Mensagens
 ===================
 
-No Pade para que um agente possa receber mensagens, basta que o método react() seja implementado, dentro da classe que herda da classe `Agent()`.
+No PADE, quando você quer tratar mensagens ACL fora de um protocolo
+específico, o ponto de extensão mais comum é o método ``react()`` da
+classe ``Agent``.
 
-Recebendo mensagens FIPA-ACL com PADE
--------------------------------------
+Recebendo mensagens FIPA-ACL com ``react()``
+--------------------------------------------
 
-No exemplo a seguir são implementados dois agentes distintos, o primeiro é o agente ```remetente``` modelado pela classe `Remetente()`, que tem o papel de enviar uma mensagem ao agente `destinatario` modelado pela classe `Destinatario`, que irá receber a mensagem enviada pelo agente `remetente` e por isso tem o método `react()` implementado.   
+O exemplo abaixo mostra dois agentes: um remetente, que agenda o envio
+de uma mensagem, e um destinatário, que sobrescreve ``react()`` para
+tratar o recebimento.
 
 ::
 
-    from pade.misc.utility import display_message, start_loop, call_later
+    from pade.misc.utility import display_message, start_loop
     from pade.core.agent import Agent
     from pade.acl.messages import ACLMessage
     from pade.acl.aid import AID
+    from pade.misc.data_logger import get_shared_session_id, logger
     from sys import argv
 
 
     class Remetente(Agent):
-        def __init__(self, aid):
-            super(Remetente, self).__init__(aid=aid, debug=False)
+        def __init__(self, aid, target_aid):
+            super().__init__(aid=aid, debug=False)
+            self.target_aid = target_aid
 
         def on_start(self):
-            super(Remetente, self).on_start()
-            display_message(self.aid.localname, 'Enviando Mensagem...')
-            call_later(8.0, self.sending_message)
+            super().on_start()
+            display_message(self.aid.localname, 'Enviando mensagem...')
+            self.call_later(8.0, self.sending_message)
 
         def sending_message(self):
             message = ACLMessage(ACLMessage.INFORM)
-            message.add_receiver(AID('destinatario'))
-            message.set_content('Ola')
+            message.add_receiver(AID(name=self.target_aid))
+            message.set_ontology('saudacao')
+            message.set_content('Ola Destinatario!')
             self.send(message)
-
-        def react(self, message):
-            super(Remetente, self).react(message)
-            display_message(self.aid.localname, 'Mensagem recebida from {}'.format(message.sender.name))
 
 
     class Destinatario(Agent):
         def __init__(self, aid):
-            super(Destinatario, self).__init__(aid=aid, debug=False)
+            super().__init__(aid=aid, debug=False)
 
         def react(self, message):
-            super(Destinatario, self).react(message)
-            display_message(self.aid.localname, 'Mensagem recebida from {}'.format(message.sender.name))
+            super().react(message)
+            display_message(
+                self.aid.localname,
+                f'Mensagem recebida de {message.sender.name}'
+            )
 
 
     if __name__ == '__main__':
+        ams_config = {'name': 'localhost', 'port': 8000}
+        session_id = get_shared_session_id()
 
-        agents = list()
-        port = int(argv[1])
-        destinatario_agent = Destinatario(AID(name='destinatario@localhost:{}'.format(port)))
-        agents.append(destinatario_agent)
+        logger.log_session(
+            session_id=session_id,
+            name=f"React_{session_id}",
+            state='Started'
+        )
 
-        port += 1
-        remetente_agent = Remetente(AID(name='remetente@localhost:{}'.format(port)))
-        agents.append(remetente_agent)
+        agents = []
+        base_port = int(argv[1]) if len(argv) > 1 else 20000
+
+        destinatario_name = f'destinatario@localhost:{base_port}'
+        destinatario = Destinatario(AID(name=destinatario_name))
+        destinatario.update_ams(ams_config)
+        agents.append(destinatario)
+
+        remetente_port = base_port + 1
+        remetente = Remetente(
+            AID(name=f'remetente@localhost:{remetente_port}'),
+            destinatario_name
+        )
+        remetente.update_ams(ams_config)
+        agents.append(remetente)
 
         start_loop(agents)
 
+Executando o exemplo
+--------------------
 
-.. Visualização via Interface Gráfica
-.. ----------------------------------
+O fluxo recomendado é:
 
-.. A seguir é possível observar a interface gráfica do PADE que mostra os agentes cadastrados no AMS.
+.. code-block:: console
 
-.. .. figure:: ../img/janela_agentes.png
-..     :align: center
-..     :width: 4.5in
+    $ pade start-runtime --port 20000 meu_exemplo.py
 
-.. Ao clicar na mensagem recebida pelo agente `destinatario` é possível observar todos os dados contidos na mensagem:
+Depois da inicialização dos agentes, o remetente aguardará 8 segundos e
+enviará a mensagem ao destinatário. O método ``react()`` do destinatário
+será chamado quando a mensagem chegar.
 
-.. .. figure:: ../img/janela_mensagem.png
-..     :align: center
-..     :width: 3.0in
+Visualização dos registros
+--------------------------
+
+Com o Sniffer ativo, a troca ficará registrada em ``logs/messages.csv``.
+Você poderá verificar:
+
+* o ``performative`` da mensagem;
+* o remetente e o destinatário;
+* o conteúdo enviado;
+* a ontologia, se definida.
+
+Quando usar ``react()``
+-----------------------
+
+``react()`` é especialmente útil quando:
+
+* você quer tratar mensagens fora de um protocolo FIPA formal;
+* precisa implementar lógica direta de recebimento;
+* deseja inspecionar ACLs recebidas antes de adicionar comportamentos
+  mais elaborados.
+
+Se a conversa seguir um padrão FIPA conhecido, como ``REQUEST`` ou
+``SUBSCRIBE``, normalmente vale mais a pena usar os protocolos prontos
+em ``pade.behaviours.protocols``.

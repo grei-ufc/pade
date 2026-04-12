@@ -61,3 +61,30 @@ target/
 
 # PyCharm IDE
 \.idea/
+
+# Local machine / pyenv / virtualenv
+.python-version
+.venv/
+venv/
+env/
+
+# Python caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# Local editor files
+.vscode/
+.idea/
+
+# Local archives
+*.tar.gz
+*.zip
+
+# Optional: generated logs
+# Use only if you do NOT want to version the test logs
+pade/tests/**/logs/
+pade/tests/**/logs/exports/
