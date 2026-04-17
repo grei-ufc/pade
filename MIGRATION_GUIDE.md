@@ -5,7 +5,7 @@ This document summarizes what was actually verified in the current `NOVO/pade` c
 ## Scope
 
 - Analysed codebase: `NOVO/pade`
-- Package version observed in `setup.py`: `2.2.6`
+- Package version observed in `pyproject.toml`: `2.2.6`
 - Recommended execution flow: `pade start-runtime --port <port> <file.py>`
 - Telemetry persistence: CSV (`sessions.csv`, `agents.csv`, `messages.csv`, `events.csv`)
 
@@ -30,12 +30,12 @@ This document summarizes what was actually verified in the current `NOVO/pade` c
 
 ## File-by-file changes that were confirmed
 
-## `setup.py`
+## `pyproject.toml`
 
 - The package version is `2.2.6`.
-- `package_data` includes only `*.png`.
-- Observed dependencies include `twisted>=22.10.0`, `requests>=2.31.0`, `click>=8.1.0`, `terminaltables>=3.1.0`, `pandas>=2.0.0`, `matplotlib>=3.7.0`, and `numpy>=1.24.0`.
-- Python classifiers cover `3.7` through `3.12`.
+- Packaging metadata now lives in the PEP 621 `project` table.
+- The console script `pade` is declared in `project.scripts`.
+- The build backend is `setuptools.build_meta`, which keeps compatibility with modern `uv` workflows.
 
 Practical reading:
 - The current package is centered on a lightweight runtime and CSV telemetry.

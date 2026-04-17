@@ -27,7 +27,7 @@ adaptados, clone o repositório oficial:
 
     $ git clone https://github.com/grei-ufc/pade
     $ cd pade
-    $ python -m pip install -e .
+    $ uv sync
 
 Essa forma é a mais indicada para desenvolvimento e revisão dos
 exemplos em ``pade/tests/``.
@@ -40,7 +40,7 @@ apenas imprime no terminal:
 
 .. code-block:: console
 
-    $ pade start-runtime --port 20000 pade/tests/hello_world/hello_world_minimal.py
+    $ uv run pade start-runtime --port 20000 pade/tests/hello_world/hello_world_minimal.py
 
 Se o ambiente estiver correto, o runtime abrirá AMS, Sniffer e os
 agentes do exemplo, além de criar a pasta ``logs/`` no diretório atual.
@@ -52,7 +52,7 @@ Sniffer e preencha ``messages.csv``, use a variante com logging:
 
 .. code-block:: console
 
-    $ pade start-runtime --port 20000 pade/tests/hello_world/hello_world.py
+    $ uv run pade start-runtime --port 20000 pade/tests/hello_world/hello_world.py
 
 Observe que você não precisa obrigatoriamente usar ``cd`` até a pasta do
 script. Se estiver na raiz do repositório, pode passar o caminho
@@ -62,13 +62,14 @@ o nome do arquivo.
 Usando ambiente virtual
 -----------------------
 
-Em Python 3.12+, o caminho mais simples é usar ``venv``:
+Em Python 3.12+, o caminho mais simples é usar ``uv`` para criar e manter
+o ambiente virtual automaticamente:
 
 .. code-block:: console
 
-    $ python -m venv .venv
+    $ uv sync
 
-Ativação do ambiente virtual:
+Se você quiser ativar o ambiente criado pelo ``uv`` manualmente:
 
 .. code-block:: console
 
@@ -80,11 +81,12 @@ Ativação do ambiente virtual:
     # Windows
     > .venv\Scripts\activate
 
-Depois disso, instale o PADE normalmente:
+Depois disso, você pode usar o comando ``pade`` diretamente no shell ativado
+ou continuar pelo fluxo do ``uv``:
 
 .. code-block:: console
 
-    $ python -m pip install pade
+    $ uv run pade version
 
 Observações importantes
 -----------------------

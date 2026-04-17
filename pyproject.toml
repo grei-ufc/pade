@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pade"
+version = "2.2.6"
+description = "Framework for multiagent systems development in Python"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [
+    { name = "Lucas S Melo", email = "lucassmelo@dee.ufc.br" },
+]
+license = "MIT"
+keywords = ["multiagent", "distributed systems"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Build Tools",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "twisted>=22.10.0",
+    "requests>=2.31.0",
+    "click>=8.1.0",
+    "terminaltables>=3.1.0",
+]
+
+[project.urls]
+Homepage = "http://pade.readthedocs.org"
+Documentation = "https://pade.readthedocs.io/en/latest/"
+Repository = "https://github.com/grei-ufc/pade"
+
+[project.scripts]
+pade = "pade.cli.pade_cmd:cmd"
+
+[tool.setuptools.packages.find]
+include = ["pade*"]

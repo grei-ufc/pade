@@ -5,7 +5,7 @@ Este documento resume o que foi efetivamente confirmado no codigo atual de `NOVO
 ## Escopo
 
 - Base analisada: `NOVO/pade`
-- Versao do pacote observada em `setup.py`: `2.2.6`
+- Versao do pacote observada em `pyproject.toml`: `2.2.6`
 - Fluxo de execucao recomendado: `pade start-runtime --port <porta> <arquivo.py>`
 - Persistencia de telemetria: CSV (`sessions.csv`, `agents.csv`, `messages.csv`, `events.csv`)
 
@@ -30,12 +30,12 @@ Este documento resume o que foi efetivamente confirmado no codigo atual de `NOVO
 
 ## Mudancas confirmadas por arquivo
 
-## `setup.py`
+## `pyproject.toml`
 
 - A versao do pacote esta em `2.2.6`.
-- `package_data` empacota apenas arquivos `*.png`.
-- As dependencias observadas incluem `twisted>=22.10.0`, `requests>=2.31.0`, `click>=8.1.0`, `terminaltables>=3.1.0`, `pandas>=2.0.0`, `matplotlib>=3.7.0` e `numpy>=1.24.0`.
-- Os classificadores de Python cobrem `3.7` ate `3.12`.
+- Os metadados de empacotamento agora ficam centralizados na tabela PEP 621 `project`.
+- O script de console `pade` e declarado em `project.scripts`.
+- O backend de build e `setuptools.build_meta`, mantendo compatibilidade com o fluxo moderno via `uv`.
 
 Leitura pratica:
 - O empacotamento atual esta orientado a runtime leve e telemetria CSV.

@@ -84,7 +84,8 @@ Para desenvolvedores e pesquisadores (recomendado), instale a versão mais recen
 
     $ git clone https://github.com/grei-ufc/pade
     $ cd pade
-    $ python setup.py install
+    $ uv sync
+    $ uv run pade version
 
 Veja mais detalhes aqui: :ref:`installation-page`.
 

@@ -51,7 +51,8 @@ $ pip install pade
 ```bash
 $ git clone https://github.com/grei-ufc/pade.git
 $ cd pade
-$ python -m pip install -e .
+$ uv sync
+$ uv run pade version
 ```
 
 For the current installation workflow, prefer the repository documentation in `docs/user/instalacao.rst`, which reflects the Python 3.12 codebase.
