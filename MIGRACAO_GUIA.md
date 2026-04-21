@@ -1,13 +1,13 @@
 # Guia de Migracao do PADE legado para o PADE em Python 3.12
 
-Este documento resume o que foi efetivamente confirmado no codigo atual de `NOVO/pade` durante a migracao para Python 3.12. O foco aqui nao e repetir todo o historico do projeto, mas registrar com precisao como a arquitetura funciona hoje, quais padroes foram adotados nos exemplos e quais diferencas ainda restam em alguns casos especializados.
+Este documento resume o que foi efetivamente confirmado no código atual de `NOVO/pade` durante a migração para Python 3.12. O foco aqui não e repetir todo o histórico do projeto, mas registrar com precisão como a arquitetura funciona hoje, quais padrões foram adotados nos exemplos e quais diferenças ainda restam em alguns casos especializados.
 
 ## Escopo
 
 - Base analisada: `NOVO/pade`
-- Versao do pacote observada em `pyproject.toml`: `2.2.6`
-- Fluxo de execucao recomendado: `pade start-runtime --port <porta> <arquivo.py>`
-- Persistencia de telemetria: CSV (`sessions.csv`, `agents.csv`, `messages.csv`, `events.csv`)
+- Versão do pacote observada em `pyproject.toml`: `3.0`
+- Fluxo de execução recomendado: `pade start-runtime --port <porta> <arquivo.py>`
+- Persistência de telemetria: CSV (`sessions.csv`, `agents.csv`, `messages.csv`, `events.csv`)
 
 ## Resumo executivo
 
@@ -32,12 +32,13 @@ Este documento resume o que foi efetivamente confirmado no codigo atual de `NOVO
 
 ## `pyproject.toml`
 
-- A versao do pacote esta em `2.2.6`.
+- A versao do pacote esta em `3.0`.
 - Os metadados de empacotamento agora ficam centralizados na tabela PEP 621 `project`.
 - O script de console `pade` e declarado em `project.scripts`.
 - O backend de build e `setuptools.build_meta`, mantendo compatibilidade com o fluxo moderno via `uv`.
 
 Leitura pratica:
+
 - O empacotamento atual esta orientado a runtime leve e telemetria CSV.
 - O ecossistema web legado nao faz parte do fluxo padrao de instalacao e uso.
 
@@ -51,6 +52,7 @@ Leitura pratica:
 - Comandos utilitarios atuais: `show-logs`, `export-logs`, `version` e `clean-logs`.
 
 Leitura pratica:
+
 - O `start-runtime` e o equivalente moderno do fluxo integrado que o usuario esperava do PADE legado.
 - `start-runtime --detailed` e `start-runtime-detailed` mantem o mesmo fluxo de execucao, mas recolocam no terminal os rastros tecnicos de AMS e Sniffer.
 - A arquitetura interna continua desacoplada, mas a experiencia de uso voltou a ser centralizada.
@@ -70,6 +72,7 @@ Leitura pratica:
 - `events.csv` guarda eventos livres do runtime e dos exemplos.
 
 Leitura pratica:
+
 - Para alinhar exemplos ao runtime integrado, o padrao recomendado e chamar `get_shared_session_id()` ao criar a sessao do exemplo.
 - Isso tambem explica a diferenca entre os dois Hello Worlds:
   - o minimal nao envia mensagem ACL, entao `messages.csv` fica vazio;
@@ -85,6 +88,7 @@ Leitura pratica:
 - A saida padrao no terminal ficou mais limpa; os rastros detalhados do AMS agora ficam atras do modo `--detailed`.
 
 Leitura pratica:
+
 - O AMS hoje e um servico de roteamento e coordenacao, nao um componente acoplado a SQLite/Flask.
 
 ## `pade/core/agent.py`
@@ -95,6 +99,7 @@ Leitura pratica:
 - O uso de AIDs completos ajuda a manter roteamento e logs estaveis.
 
 Leitura pratica:
+
 - Quando um exemplo esta com `events.csv` correto, mas `messages.csv` estranho, a primeira verificacao deve ser no Sniffer e no payload da mensagem, nao no logger do `Agent`.
 
 ## `pade/core/sniffer.py`
@@ -105,6 +110,7 @@ Leitura pratica:
 - O Sniffer tambem registra `message_stored` em `events.csv`.
 
 Leitura pratica:
+
 - Quando o payload da aplicacao e texto ou JSON, `messages.csv` tende a ficar legivel.
 - Quando o payload da aplicacao e binario ou serializado com `pickle`, o CSV pode conter representacoes pouco amigaveis. Por isso os exemplos migrados passaram a preferir JSON quando a legibilidade dos logs importa.
 
@@ -114,10 +120,12 @@ Leitura pratica:
 - O metodo `on_time()` volta a se agendar com `reactor.callLater(self.time, self.on_time)`.
 
 Leitura pratica:
+
 - Se o objetivo for executar algo uma unica vez apos atraso, o padrao recomendado e `call_later(...)`.
 - Se o objetivo for comportamento periodico, `TimedBehaviour` continua sendo a escolha certa.
 
 Esse ponto foi decisivo para corrigir:
+
 - `test_agent`, que nao deveria entrar em loop
 - exemplos periodicos como `agent_example_2`, `agent_example_3` e `iec_61850`, que devem continuar recorrentes
 
@@ -128,6 +136,7 @@ Esse ponto foi decisivo para corrigir:
 - Apesar disso, o caminho principal para o usuario final continua sendo o CLI integrado, nao a montagem manual de sessao.
 
 Leitura pratica:
+
 - `PadeSession` ainda pode ser util em cenarios especificos, mas nao e o padrao que a documentacao principal deve promover.
 
 ## `pade/drivers/mosaik_driver.py`
@@ -136,6 +145,7 @@ Leitura pratica:
 - O exemplo migrado declara API `3.0` do Mosaik e opera com payloads JSON na telemetria ACL.
 
 Leitura pratica:
+
 - O caso Mosaik e mais especializado do que os exemplos basicos de protocolo.
 - A validacao mais importante nesta rodada foi: os dados do simulador conseguem ser refletidos em `messages.csv` como mensagens ACL legiveis.
 
