@@ -3,8 +3,8 @@ requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pade"
-version = "3.0"
+name = "pade-agents"
+dynamic = ["version"]
 description = "Framework for multiagent systems development in Python"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -34,6 +34,9 @@ Repository = "https://github.com/grei-ufc/pade"
 
 [project.scripts]
 pade = "pade.cli.pade_cmd:cmd"
+
+[tool.setuptools.dynamic]
+version = { attr = "pade.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["pade*"]

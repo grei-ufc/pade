@@ -5,7 +5,7 @@ This document summarizes what was actually verified in the current `NOVO/pade` c
 ## Scope
 
 - Analysed codebase: `NOVO/pade`
-- Package version observed in `pyproject.toml`: `2.2.6`
+- Package version observed in `pyproject.toml`: `3.0`
 - Recommended execution flow: `pade start-runtime --port <port> <file.py>`
 - Telemetry persistence: CSV (`sessions.csv`, `agents.csv`, `messages.csv`, `events.csv`)
 
@@ -32,7 +32,7 @@ This document summarizes what was actually verified in the current `NOVO/pade` c
 
 ## `pyproject.toml`
 
-- The package version is `2.2.6`.
+- The package version is `3.0`.
 - Packaging metadata now lives in the PEP 621 `project` table.
 - The console script `pade` is declared in `project.scripts`.
 - The build backend is `setuptools.build_meta`, which keeps compatibility with modern `uv` workflows.

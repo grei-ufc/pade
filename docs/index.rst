@@ -76,7 +76,9 @@ Para instalar a versão estável do PADE via PyPI, execute:
 
 .. code-block:: console
 
-    $ pip install pade
+    $ pip install pade-agents
+
+No PyPI, a distribuição publicada se chama ``pade-agents``. O pacote importável e o comando continuam sendo ``pade``.
 
 Para desenvolvedores e pesquisadores (recomendado), instale a versão mais recente clonando o repositório do GREI:
 

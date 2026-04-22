@@ -13,9 +13,11 @@ Para instalar o PADE a partir do PyPI:
 
 .. code-block:: console
 
-    $ python -m pip install pade
+    $ python -m pip install pade-agents
 
-Pronto: o comando ``pade`` já estará disponível no ambiente.
+Pronto: o comando ``pade`` já estará disponível no ambiente. No PyPI, a
+distribuição publicada se chama ``pade-agents``, mas o pacote Python e o
+CLI permanecem ``pade``.
 
 Instalação a partir do repositório
 ----------------------------------

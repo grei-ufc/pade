@@ -468,9 +468,9 @@ def version():
     """Shows the PADE version."""
     try:
         from importlib.metadata import version as get_version
-        version = get_version("pade")
+        version = get_version("pade-agents")
     except Exception:
-        version = "2.2.6"
+        from pade import __version__ as version
     
     click.echo(click.style(f'PADE version: {version}', fg='green'))
     click.echo(click.style('Python 3.12+ compatible (no Flask/SQLAlchemy)', fg='blue'))

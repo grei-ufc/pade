@@ -1,7 +1,7 @@
 # Python Agent DEvelopment framework (PADE)
 
-[![](https://img.shields.io/pypi/v/pade.svg)](https://pypi.python.org/pypi/pade/)
-[![](https://img.shields.io/pypi/pyversions/pade.svg)](https://pypi.python.org/pypi/pade/)
+[![](https://img.shields.io/pypi/v/pade-agents.svg)](https://pypi.org/project/pade-agents/)
+[![](https://img.shields.io/pypi/pyversions/pade-agents.svg)](https://pypi.org/project/pade-agents/)
 [![](https://img.shields.io/readthedocs/pade.svg)](https://pade.readthedocs.io/en/latest/)
 [![](https://img.shields.io/github/issues/grei-ufc/pade.svg)](https://github.com/grei-ufc/pade/issues)
 [![](https://img.shields.io/github/issues-pr/grei-ufc/pade.svg)](https://github.com/grei-ufc/pade/pulls)
@@ -44,8 +44,10 @@ PADE is currently maintained for [Python 3.12+**](https://www.python.org/) and h
 
 #### Via Python Package Index (PyPI):
 ```bash
-$ pip install pade
+$ pip install pade-agents
 ```
+
+The published distribution on PyPI is `pade-agents`, while the imported package and CLI command remain `pade`.
 
 #### Via Github (Latest Version):
 ```bash
@@ -135,7 +137,7 @@ PADE now features a lightweight, high-performance **CSV Logging System**. When y
 This new approach ensures data persistence without external database services and allows for easy data analysis using standard tools like Pandas or Excel.
 
 ### 2. Integrated Execution with `start-runtime`
-PADE 2.2.6 keeps the modernized AMS and Sniffer as independent services internally, but the recommended user experience is integrated again through `pade start-runtime`. This preserves the original workflow of the legacy PADE while maintaining the lightweight CSV-based architecture.
+PADE 3.0 keeps the modernized AMS and Sniffer as independent services internally, but the recommended user experience is integrated again through `pade start-runtime`. This preserves the original workflow of the legacy PADE while maintaining the lightweight CSV-based architecture.
 
 Here it is important to explain how `start-runtime` executes the agent scripts.
 
