@@ -1,12 +1,17 @@
-version: '2'
-
 services:
   pade:
     build:
       context: .
-      dockerfile: ./docker/dev/Dockerfile
+      dockerfile: ./docker/Dockerfile
+    stdin_open: true
+    tty: true
     ports:
-      - "5000:5000"
       - "8000:8000"
       - "8001:8001"
       - "3000:3000"
+    volumes:
+      - .:/app
+      - pade_venv:/app/.venv
+
+volumes:
+  pade_venv:
