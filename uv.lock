@@ -175,8 +175,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pade"
-version = "2.2.6"
+name = "pade-agents"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
