@@ -61,22 +61,29 @@ For the current installation workflow, prefer the repository documentation in `d
 
 ## Docker
 
-Build container:
+The repository now ships a single Docker image definition for PADE 3.0 and two Compose entry points:
+
+* `docker-compose.yml`: a clean image-oriented environment, closer to a production-style container;
+* `docker-compose-dev.yml`: a development environment with the repository mounted into the container and a dedicated volume for `/app/.venv`.
+
+Build and start the default container:
 ```bash
-$ docker-compose up -d
+$ docker compose up -d
+```
+
+Build and start the development container:
+```bash
+$ docker compose -f docker-compose-dev.yml up -d
 ```
 
 List containers:
 ```bash
 $ docker ps
-
-CONTAINER ID        IMAGE
-8d7cb00972c9        pade_pade
 ```
 
-Get inside container:
+Get inside the container:
 ```bash
-$ docker exec -it <CONTAINER_ID> bash
+$ docker compose exec pade bash
 ```
 
 
